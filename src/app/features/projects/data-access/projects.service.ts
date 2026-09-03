@@ -1,13 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
-import {
-  slugify,
-  type AdminProject,
-  type AdminProjectImage,
-  type CategoryOption,
-  type Project,
-  type ProjectImage,
-  type ProjectInput,
+import { slugify } from '../../../core/slugify';
+import type {
+  AdminProject,
+  AdminProjectImage,
+  CategoryOption,
+  Project,
+  ProjectImage,
+  ProjectInput,
 } from './project.model';
 
 /**

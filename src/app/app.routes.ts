@@ -51,12 +51,19 @@ export const routes: Routes = [
       {
         path: 'servicios',
         loadComponent: () =>
-          import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
-        data: {
-          title: 'CRUD Servicios',
-          phase: 'Fase 5',
-          description: 'Listar, crear, editar y eliminar servicios con foto o ícono de respaldo.',
-        },
+          import('./features/services/admin/services-admin-page.component').then(
+            (m) => m.ServicesAdminPageComponent,
+          ),
+      },
+      {
+        path: 'servicios/nuevo',
+        loadComponent: () =>
+          import('./features/services/admin/service-form.component').then((m) => m.ServiceFormComponent),
+      },
+      {
+        path: 'servicios/:id',
+        loadComponent: () =>
+          import('./features/services/admin/service-form.component').then((m) => m.ServiceFormComponent),
       },
       {
         path: 'contenido',
@@ -72,12 +79,7 @@ export const routes: Routes = [
       {
         path: 'mensajes',
         loadComponent: () =>
-          import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
-        data: {
-          title: 'Bandeja de mensajes',
-          phase: 'Fase 7',
-          description: 'Mensajes del formulario de contacto guardados en contact_messages.',
-        },
+          import('./features/contact/admin/messages-inbox.component').then((m) => m.MessagesInboxComponent),
       },
     ],
   },

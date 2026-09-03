@@ -1,0 +1,59 @@
+<div class="mx-auto max-w-5xl">
+  <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent">Panel de administración</p>
+  <h1 class="text-4xl font-bold tracking-[-0.04em]">Mensajes de contacto</h1>
+  <p class="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
+    Mensajes enviados desde el formulario de contacto. Los no leídos aparecen resaltados.
+  </p>
+
+  @if (error()) {
+    <p class="mt-6 rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="mt-10 text-sm text-muted-foreground">Cargando mensajes…</p>
+  } @else if (items().length === 0) {
+    <div class="mt-10 border border-border bg-secondary p-8">
+      <p class="text-sm font-semibold">No hay mensajes todavía.</p>
+      <p class="mt-2 text-sm leading-6 text-muted-foreground">
+        Los mensajes del formulario de contacto aparecerán aquí (ejecuta <span class="font-mono">schema.sql</span> para crear la tabla).
+      </p>
+    </div>
+  } @else {
+    <div class="mt-10 grid gap-4">
+      @for (item of items(); track item.id) {
+        <article [class]="item.read
+          ? 'rounded-2xl border border-border bg-secondary p-6'
+          : 'rounded-2xl border border-accent bg-secondary p-6'">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span [class]="item.read
+                ? 'flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground'
+                : 'flex h-9 w-9 items-center justify-center rounded-full bg-accent text-primary'">
+                <svg lucideMail class="h-4 w-4" />
+              </span>
+              <div>
+                <p class="font-bold tracking-tight">{{ item.name }}</p>
+                <p class="text-xs text-muted-foreground">{{ item.email }}{{ item.phone ? ' · ' + item.phone : '' }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-xs text-muted-foreground">{{ formatDate(item.created_at) }}</span>
+              <button type="button" (click)="toggleRead(item.id, item.read)"
+                class="text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+                {{ item.read ? 'Marcar no leído' : 'Marcar leído' }}
+              </button>
+              <button type="button" (click)="onDelete(item.id)"
+                class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+                <svg lucideTrash2 class="h-4 w-4" /> Eliminar
+              </button>
+            </div>
+          </div>
+          @if (item.subject) {
+            <p class="mt-4 text-sm font-semibold">{{ item.subject }}</p>
+          }
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item.message }}</p>
+        </article>
+      }
+    </div>
+  }
+</div>

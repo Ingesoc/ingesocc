@@ -1,0 +1,104 @@
+<div class="mx-auto max-w-4xl">
+  <a routerLink="/admin/servicios" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+    <svg lucideChevronLeft class="h-4 w-4" /> Volver a servicios
+  </a>
+
+  <h1 class="mt-6 text-4xl font-bold tracking-[-0.04em]">{{ isEdit() ? 'Editar Servicio' : 'Nuevo Servicio' }}</h1>
+
+  @if (error()) {
+    <p class="mt-6 rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="mt-10 text-sm text-muted-foreground">Cargando servicio…</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="mt-10 grid gap-8">
+      <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
+        <p class="mb-6 text-xs font-bold uppercase tracking-[0.25em] text-accent">Información general</p>
+        <div class="grid gap-5">
+          <div>
+            <label for="name" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Nombre *</label>
+            <input id="name" type="text" formControlName="name" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
+            @if (form.controls.name.touched && form.controls.name.invalid) {
+              <p class="mt-1 text-xs text-accent">Ingrese un nombre (mínimo 3 caracteres).</p>
+            }
+          </div>
+          <div>
+            <label for="slug" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Slug (URL)</label>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-muted-foreground">/servicios/</span>
+              <input id="slug" type="text" formControlName="slug" (input)="onSlugInput()" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
+            </div>
+            <p class="mt-1 text-xs text-muted-foreground">Se genera automáticamente desde el nombre.</p>
+          </div>
+          <div>
+            <label for="description" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Descripción *</label>
+            <textarea id="description" rows="4" formControlName="description" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"></textarea>
+            @if (form.controls.description.touched && form.controls.description.invalid) {
+              <p class="mt-1 text-xs text-accent">Ingrese una descripción (mínimo 10 caracteres).</p>
+            }
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label for="sortOrder" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Orden</label>
+              <input id="sortOrder" type="number" formControlName="sortOrder" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
+              <p class="mt-1 text-xs text-muted-foreground">El orden editorial prioriza infraestructura/hospitalario/industrial (plan 1.3).</p>
+            </div>
+            <div>
+              <label for="status" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Estado</label>
+              <select id="status" formControlName="status" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent">
+                <option value="draft">Borrador</option>
+                <option value="published">Publicado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
+        <p class="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-accent">Foto o ícono</p>
+        <p class="mb-6 text-sm leading-6 text-muted-foreground">
+          Si subes una foto se muestra la foto en las cards; si no, se usa el ícono de respaldo.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-6">
+          @if (photo(); as photo) {
+            <div class="relative">
+              <img [src]="photo.url" alt="Foto del servicio" class="h-40 w-64 object-cover" />
+              <button type="button" (click)="removePhoto()" title="Quitar foto"
+                class="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary">
+                <svg lucideTrash2 class="h-4 w-4" />
+              </button>
+            </div>
+          } @else {
+            <div class="flex h-40 w-64 items-center justify-center bg-primary text-accent">
+              <ng-container [ngComponentOutlet]="selectedIcon()" [ngComponentOutletInputs]="{ size: 56 }" />
+            </div>
+          }
+
+          <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-border px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent hover:text-accent">
+            <svg lucideUpload class="h-4 w-4" /> {{ photo()?.file ? 'Reemplazar foto' : 'Subir foto' }}
+            <input type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
+          </label>
+        </div>
+
+        <div class="mt-8">
+          <label for="iconName" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Ícono de respaldo</label>
+          <select id="iconName" formControlName="iconName" class="w-full max-w-xs rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent">
+            <option [ngValue]="null">Sin ícono</option>
+            @for (name of iconNames; track name) {
+              <option [ngValue]="name">{{ name }}</option>
+            }
+          </select>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-4">
+        <button type="submit" [disabled]="saving()" class="rounded-full bg-accent px-8 py-4 text-xs font-bold uppercase tracking-widest text-primary transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60">
+          {{ saving() ? 'Guardando…' : (isEdit() ? 'Guardar cambios' : 'Crear servicio') }}
+        </button>
+        <a routerLink="/admin/servicios" class="rounded-full border border-border px-8 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent hover:text-accent">Cancelar</a>
+      </div>
+    </form>
+  }
+</div>

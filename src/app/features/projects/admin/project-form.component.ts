@@ -6,7 +6,8 @@ import { map } from 'rxjs';
 import imageCompression from 'browser-image-compression';
 import { LucideChevronLeft, LucideStar, LucideTrash2, LucideUpload } from '@lucide/angular';
 import { ProjectsService } from '../data-access/projects.service';
-import { slugify, type ProjectInput } from '../data-access/project.model';
+import type { ProjectInput } from '../data-access/project.model';
+import { slugify } from '../../../core/slugify';
 
 /** Imagen del formulario: pendiente de subir o ya persistida. */
 interface ImageSlot {

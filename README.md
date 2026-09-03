@@ -21,9 +21,9 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 - [x] **Fase 2** — Las 5 páginas públicas (Home, Quiénes Somos, Servicios, Proyectos, Contacto + detalle de proyecto) con nav/CTA/footer unificados (plan 1.1), leyendo de seeds estáticos con el mismo contrato que las tablas de Supabase
 - [x] **Fase 3** — Login admin + `authGuard` (`CanActivateFn`) + layout admin (auth real vía Supabase Auth, rol desde `profiles`)
 - [x] **Fase 4** — CRUD Proyectos contra Supabase: listar (con borradores), crear, editar, eliminar, subir imágenes al bucket con compresión y portada, asignar categorías, destacar y estado draft/published (la paginación pública "Cargar Más" ya estaba en Fase 2, 1.2.3)
-- [ ] **Fase 5** — CRUD Servicios
+- [x] **Fase 5** — CRUD Servicios contra Supabase: listar (con borradores), crear, editar, eliminar, subir/quitar foto al bucket, ícono de respaldo y estado draft/published
 - [ ] **Fase 6** — Modo edición de `content_blocks` (EditableText/EditableImage + EditModeService)
-- [ ] **Fase 7** — Formulario de contacto guardando en `contact_messages` + bandeja admin (el form ya valida, plan 1.5)
+- [x] **Fase 7** — Formulario de contacto guardando en `contact_messages` (insert público por RLS, validación plan 1.5) + bandeja admin con leído/no leído y eliminación
 - [ ] **Fase 8** — Proyectos destacados en Home (ya implementado con `featured`, 1.2.2) + filtros (ya implementados)
 - [ ] **Fase 9** — Datos reales, SEO, QA, despliegue
 
@@ -36,7 +36,7 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 | `/servicios` | Los 6 servicios (foto o ícono de respaldo, plan 1.3) |
 | `/proyectos` | Grid con filtros de categoría + "Cargar Más" (bloques de 8) |
 | `/proyectos/:slug` | Detalle: descripción, valor en salarios mínimos, galería |
-| `/contacto` | Formulario + información de contacto |
+| `/contacto` | Formulario (guarda en `contact_messages`) + información de contacto |
 
 ## Rutas admin (protegidas por sesión + rol)
 
@@ -47,9 +47,11 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 | `/admin/proyectos` | Listado de proyectos (editar/eliminar) |
 | `/admin/proyectos/nuevo` | Crear proyecto |
 | `/admin/proyectos/:id` | Editar proyecto (imágenes, categorías, estado) |
-| `/admin/servicios` | CRUD Servicios (Fase 5) |
+| `/admin/servicios` | Listado de servicios (editar/eliminar) |
+| `/admin/servicios/nuevo` | Crear servicio |
+| `/admin/servicios/:id` | Editar servicio (foto, ícono, estado) |
 | `/admin/contenido` | Editor de `content_blocks` (Fase 6) |
-| `/admin/mensajes` | Bandeja de `contact_messages` (Fase 7) |
+| `/admin/mensajes` | Bandeja de `contact_messages` (leído/no leído, eliminar) |
 
 **Acceso admin**: crea el usuario en Supabase (Authentication → Users) y asigna `role = 'admin'` en la tabla `profiles` (ver abajo).
 

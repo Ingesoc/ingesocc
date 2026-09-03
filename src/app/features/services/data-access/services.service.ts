@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
-import type { Service } from './service.model';
+import type { AdminService, Service, ServiceInput } from './service.model';
 
 /**
  * Catálogo de servicios (tabla `services` del plan, sección 3.3).
@@ -97,6 +97,11 @@ export class ServicesService {
 
   private readonly services = signal<Service[]>(SEED_SERVICES);
 
+  /** Todos los servicios visto por el admin (incluye borradores). */
+  private readonly adminServicesSignal = signal<AdminService[]>([]);
+
+  readonly adminServices = this.adminServicesSignal.asReadonly();
+
   /** Servicios publicados, en el orden editorial del plan (1.3). */
   readonly published = computed(() =>
     this.services()
@@ -106,6 +111,11 @@ export class ServicesService {
 
   constructor() {
     void this.load();
+  }
+
+  /** Recarga lo que consume el panel admin y el sitio público. */
+  async refreshAll(): Promise<void> {
+    await Promise.all([this.load(), this.loadAll()]);
   }
 
   /** Carga los servicios desde Supabase; si falla, mantiene el seed. */
@@ -135,5 +145,100 @@ export class ServicesService {
         sortOrder: row.sort_order,
       })),
     );
+  }
+
+  /** Carga TODOS los servicios para el panel admin (RLS permite todo a rol admin). */
+  async loadAll(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('services')
+      .select('id, name, slug, description, photo_path, icon_name, status, sort_order')
+      .order('sort_order');
+
+    if (error) {
+      console.warn('[services/admin] sin datos:', error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      this.adminServicesSignal.set([]);
+      return;
+    }
+
+    this.adminServicesSignal.set(
+      (data as ServiceRow[]).map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        description: row.description,
+        photoPath: row.photo_path,
+        photoUrl: this.supabase.resolvePublicUrl('service-images', row.photo_path),
+        iconName: row.icon_name,
+        status: row.status,
+        sortOrder: row.sort_order,
+      })),
+    );
+  }
+
+  /** Crea un servicio y devuelve su id. */
+  async createService(input: ServiceInput): Promise<string> {
+    const { data, error } = await this.supabase.client
+      .from('services')
+      .insert(input)
+      .select('id')
+      .single();
+    if (error) throw new Error(error.message);
+    return (data as { id: string }).id;
+  }
+
+  /** Actualiza los datos básicos de un servicio. */
+  async updateService(id: string, input: ServiceInput): Promise<void> {
+    const { error } = await this.supabase.client.from('services').update(input).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Elimina un servicio y su foto de storage (si existe). */
+  async deleteService(id: string): Promise<void> {
+    const service = this.adminServicesSignal().find((item) => item.id === id);
+    if (service?.photoPath) {
+      await this.supabase.client.storage.from('service-images').remove([service.photoPath]);
+    }
+    const { error } = await this.supabase.client.from('services').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Sube (o reemplaza) la foto de un servicio al bucket service-images. */
+  async uploadServicePhoto(serviceId: string, file: File): Promise<void> {
+    const current = this.adminServicesSignal().find((item) => item.id === serviceId);
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const path = `services/${serviceId}/${crypto.randomUUID()}.${ext}`;
+
+    const { error: uploadError } = await this.supabase.client.storage
+      .from('service-images')
+      .upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { error } = await this.supabase.client
+      .from('services')
+      .update({ photo_path: path })
+      .eq('id', serviceId);
+    if (error) throw new Error(error.message);
+
+    // Limpia la foto anterior si existía.
+    if (current?.photoPath) {
+      await this.supabase.client.storage.from('service-images').remove([current.photoPath]);
+    }
+  }
+
+  /** Elimina la foto del servicio (storage + columna photo_path). */
+  async removeServicePhoto(serviceId: string): Promise<void> {
+    const service = this.adminServicesSignal().find((item) => item.id === serviceId);
+    if (!service?.photoPath) return;
+    await this.supabase.client.storage.from('service-images').remove([service.photoPath]);
+    const { error } = await this.supabase.client.from('services').update({ photo_path: null }).eq('id', serviceId);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Busca un servicio por id entre TODOS (incluye borradores, para el panel). */
+  byId(id: string): AdminService | undefined {
+    return this.adminServicesSignal().find((item) => item.id === id);
   }
 }
