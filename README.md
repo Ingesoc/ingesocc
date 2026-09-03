@@ -63,6 +63,12 @@ pnpm start      # http://localhost:4200
 pnpm build      # build de producción en dist/ingesocc-web
 ```
 
+> **Nota de build (Tailwind v4)**: Angular 19 solo carga la config de PostCSS desde **`.postcssrc.json`** (no `postcss.config.mjs`), y la detección automática de contenido falla en rutas con espacios/OneDrive — por eso `src/styles.css` declara `@source "./src"` explícitamente. Si los estilos no se generan, revisa esos dos puntos.
+
+## Marca y favicon
+
+El logo oficial vive en `public/logo/logo.png` y se usa en header, footer, favicon y Open Graph. El set de favicons (`public/favicon.ico` multi-tamaño, `favicon-16/32.png`, `apple-touch-icon.png`, `icon-192/512.png`) y el `site.webmanifest` se generaron desde ese logo con los colores de la marca (`#171717` / `#f25623`). Si cambias el logo, regenera los favicons a las mismas medidas.
+
 ## Despliegue (Vercel)
 
 El repo incluye `vercel.json` (SPA: `outputDirectory` = `dist/ingesocc-web/browser`, URLs limpias y rewrites a `index.html` para las rutas profundas de `/proyectos/:slug`).

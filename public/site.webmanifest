@@ -1,0 +1,21 @@
+{
+  "name": "Ingesocc S.A.S. — Construcción, Ingeniería y Arquitectura",
+  "short_name": "Ingesocc",
+  "description": "Arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f6f4",
+  "theme_color": "#171717",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

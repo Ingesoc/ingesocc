@@ -59,7 +59,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:type', content: 'website' });
     this.meta.updateTag({ property: 'og:url', content: url });
-    this.meta.updateTag({ property: 'og:image', content: `${SITE_URL}/ingesocc-logo.jpg` });
+    this.meta.updateTag({ property: 'og:image', content: `${SITE_URL}/logo/logo.png` });
     this.meta.updateTag({ property: 'og:site_name', content: SITE_NAME });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary' });
 

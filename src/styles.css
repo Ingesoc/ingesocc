@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Detección automática de contenido deshabilitada en este entorno (ruta con espacios + OneDrive):
+   se indica la fuente de clases explícitamente (Tailwind v4, `@source`). */
+@source "./src";
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
