@@ -1,12 +1,12 @@
 <div class="mx-auto max-w-4xl">
-  <a routerLink="/admin/servicios" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+  <a routerLink="/admin/servicios" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
     <svg lucideChevronLeft class="h-4 w-4" /> Volver a servicios
   </a>
 
   <h1 class="mt-6 text-4xl font-bold tracking-[-0.04em]">{{ isEdit() ? 'Editar Servicio' : 'Nuevo Servicio' }}</h1>
 
   @if (error()) {
-    <p class="mt-6 rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+    <p class="mt-6 rounded-md border border-accent-deep bg-secondary px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
   }
 
   @if (loading()) {
@@ -14,13 +14,13 @@
   } @else {
     <form [formGroup]="form" (ngSubmit)="onSave()" class="mt-10 grid gap-8">
       <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
-        <p class="mb-6 text-xs font-bold uppercase tracking-[0.25em] text-accent">Información general</p>
+        <p class="mb-6 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Información general</p>
         <div class="grid gap-5">
           <div>
             <label for="name" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Nombre *</label>
             <input id="name" type="text" formControlName="name" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
             @if (form.controls.name.touched && form.controls.name.invalid) {
-              <p class="mt-1 text-xs text-accent">Ingrese un nombre (mínimo 3 caracteres).</p>
+              <p class="mt-1 text-xs text-accent-deep">Ingrese un nombre (mínimo 3 caracteres).</p>
             }
           </div>
           <div>
@@ -35,7 +35,7 @@
             <label for="description" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Descripción *</label>
             <textarea id="description" rows="4" formControlName="description" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"></textarea>
             @if (form.controls.description.touched && form.controls.description.invalid) {
-              <p class="mt-1 text-xs text-accent">Ingrese una descripción (mínimo 10 caracteres).</p>
+              <p class="mt-1 text-xs text-accent-deep">Ingrese una descripción (mínimo 10 caracteres).</p>
             }
           </div>
           <div class="grid gap-5 sm:grid-cols-2">
@@ -56,7 +56,7 @@
       </section>
 
       <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
-        <p class="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-accent">Foto o ícono</p>
+        <p class="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Foto o ícono</p>
         <p class="mb-6 text-sm leading-6 text-muted-foreground">
           Si subes una foto se muestra la foto en las cards; si no, se usa el ícono de respaldo.
         </p>
@@ -76,7 +76,7 @@
             </div>
           }
 
-          <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-border px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent hover:text-accent">
+          <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-border px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent-deep hover:text-accent-deep">
             <svg lucideUpload class="h-4 w-4" /> {{ photo()?.file ? 'Reemplazar foto' : 'Subir foto' }}
             <input type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
           </label>
@@ -97,7 +97,7 @@
         <button type="submit" [disabled]="saving()" class="rounded-full bg-accent px-8 py-4 text-xs font-bold uppercase tracking-widest text-primary transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60">
           {{ saving() ? 'Guardando…' : (isEdit() ? 'Guardar cambios' : 'Crear servicio') }}
         </button>
-        <a routerLink="/admin/servicios" class="rounded-full border border-border px-8 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent hover:text-accent">Cancelar</a>
+        <a routerLink="/admin/servicios" class="rounded-full border border-border px-8 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent-deep hover:text-accent-deep">Cancelar</a>
       </div>
     </form>
   }

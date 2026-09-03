@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ProjectCardComponent } from './project-card.component';
-import { PROJECT_CATEGORIES, ProjectsService } from '../data-access/projects.service';
+import { ProjectsService } from '../data-access/projects.service';
 
 /** Paginación pública en bloques de 8 (plan 1.2.3). */
 const PAGE_SIZE = 8;
@@ -14,8 +14,13 @@ const PAGE_SIZE = 8;
 export class ProjectsPageComponent {
   private readonly projects = inject(ProjectsService);
 
-  /** "Todos" es el filtro por defecto, no una categoría guardable (plan 1.2). */
-  readonly categories = ['Todos', ...PROJECT_CATEGORIES];
+  /**
+   * "Todos" es el filtro por defecto, no una categoría guardable (plan 1.2).
+   * Las categorías vienen de la tabla `categories` (con respaldo estático solo
+   * si la tabla no existe): así el sitio público ve categorías nuevas o
+   * renombradas sin tocar código (Fase 4.4).
+   */
+  readonly categories = computed(() => ['Todos', ...this.projects.categoryNames()]);
   readonly activeCategory = signal<string>('Todos');
   readonly visibleCount = signal(PAGE_SIZE);
 

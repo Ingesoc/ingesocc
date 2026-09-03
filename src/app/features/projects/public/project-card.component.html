@@ -7,6 +7,7 @@
     <img
       [src]="coverUrl()"
       [alt]="project().title"
+      loading="lazy"
       class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
     />
   } @else {
@@ -17,7 +18,7 @@
     <div class="flex items-end justify-between gap-4">
       <div>
         <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">{{ project().categories[0] }}</p>
-        <h3 [class]="compact() ? 'text-xl font-bold tracking-tight' : 'text-2xl font-bold tracking-tight md:text-3xl'">{{ project().title }}</h3>
+        <h2 [class]="compact() ? 'text-xl font-bold tracking-tight' : 'text-2xl font-bold tracking-tight md:text-3xl'">{{ project().title }}</h2>
         @if (project().priceMinWages != null) {
           <p class="mt-1 text-sm text-white/70">{{ project().priceMinWages }} salarios mínimos</p>
         }

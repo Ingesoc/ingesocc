@@ -178,6 +178,19 @@ const SEED_PROJECTS: Project[] = [
   },
 ];
 
+interface DbError {
+  message: string;
+  code?: string;
+}
+
+/** Traduce el error de unicidad de slug a un mensaje claro para el admin (plan 1.2). */
+function mapProjectWriteError(error: DbError): Error {
+  if (error.code === '23505') {
+    return new Error('Ya existe un proyecto con ese slug (URL). Elígelo diferente.');
+  }
+  return new Error(error.message);
+}
+
 /** Categorías reales del filtro (plan 1.2 — "Todos" es el filtro por defecto, no una categoría). */
 export const PROJECT_CATEGORIES: readonly string[] = [
   'Edificaciones',
@@ -224,6 +237,9 @@ export class ProjectsService {
   readonly adminProjects = this.adminProjectsSignal.asReadonly();
   readonly categories = this.categoriesSignal.asReadonly();
 
+  /** Nombres visibles de las categorías, en el orden de la tabla (filtro público). */
+  readonly categoryNames = computed(() => this.categoriesSignal().map((category) => category.name));
+
   /** Proyectos publicados, en orden manual del admin. */
   readonly published = computed(() =>
     this.projects()
@@ -250,6 +266,7 @@ export class ProjectsService {
 
   /** Carga proyectos + categorías + imágenes desde Supabase; si falla, mantiene el seed. */
   async load(): Promise<void> {
+    await this.supabase.clientPromise;
     const client = this.supabase.client;
 
     const { data: projects, error } = await client
@@ -257,11 +274,14 @@ export class ProjectsService {
       .select('id, title, slug, description, price_min_wages, status, featured, sort_order');
 
     if (error) {
+      // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
       console.warn('[projects] usando seed estático:', error.message);
       return;
     }
     if (!projects || projects.length === 0) {
-      console.info('[projects] tabla vacía: usando seed estático.');
+      // La tabla existe pero está vacía (p. ej. se eliminaron todos los
+      // proyectos): se muestra la realidad, no un seed que ya no está en DB.
+      this.projects.set([]);
       return;
     }
 
@@ -311,6 +331,7 @@ export class ProjectsService {
 
   /** Carga TODOS los proyectos para el panel admin (RLS permite todo a rol admin). */
   async loadAll(): Promise<void> {
+    await this.supabase.clientPromise;
     const client = this.supabase.client;
 
     const { data: rows, error } = await client
@@ -377,15 +398,15 @@ export class ProjectsService {
 
   /** Carga las categorías; si la tabla no existe, respaldo con las 4 del plan. */
   async loadCategories(): Promise<void> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('categories')
       .select('id, name, slug, sort_order')
       .order('sort_order');
 
-    if (error || !data || data.length === 0) {
-      if (error) {
-        console.warn('[projects] categorías: respaldo estático:', error.message);
-      }
+    if (error) {
+      // Tabla inexistente (schema.sql sin aplicar) o sin credenciales.
+      console.warn('[projects] categorías: respaldo estático:', error.message);
       this.categoriesSignal.set(
         PROJECT_CATEGORIES.map((name, index) => ({
           id: slugify(name),
@@ -394,6 +415,10 @@ export class ProjectsService {
           sortOrder: index + 1,
         })),
       );
+      return;
+    }
+    if (!data || data.length === 0) {
+      this.categoriesSignal.set([]);
       return;
     }
 
@@ -409,23 +434,26 @@ export class ProjectsService {
 
   /** Crea un proyecto y devuelve su id. */
   async createProject(input: ProjectInput): Promise<string> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('projects')
       .insert(input)
       .select('id')
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw mapProjectWriteError(error);
     return (data as { id: string }).id;
   }
 
   /** Actualiza los datos básicos de un proyecto. */
   async updateProject(id: string, input: ProjectInput): Promise<void> {
+    await this.supabase.clientPromise;
     const { error } = await this.supabase.client.from('projects').update(input).eq('id', id);
-    if (error) throw new Error(error.message);
+    if (error) throw mapProjectWriteError(error);
   }
 
   /** Elimina un proyecto (cascade a project_images/project_categories) + objetos de storage. */
   async deleteProject(id: string): Promise<void> {
+    await this.supabase.clientPromise;
     const project = this.adminProjectsSignal().find((item) => item.id === id);
     const paths = (project?.images ?? []).map((image) => image.storagePath).filter(Boolean);
     if (paths.length > 0) {
@@ -437,6 +465,7 @@ export class ProjectsService {
 
   /** Reemplaza las categorías asignadas a un proyecto (plan 1.2: una o varias). */
   async replaceCategories(projectId: string, categoryIds: string[]): Promise<void> {
+    await this.supabase.clientPromise;
     const client = this.supabase.client;
     await client.from('project_categories').delete().eq('project_id', projectId);
     if (categoryIds.length > 0) {
@@ -449,6 +478,7 @@ export class ProjectsService {
 
   /** Sube una imagen al bucket project-images y registra su fila; devuelve el id de la fila. */
   async addProjectImage(projectId: string, file: File): Promise<string> {
+    await this.supabase.clientPromise;
     const ext = file.name.split('.').pop() ?? 'jpg';
     const path = `${projectId}/${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await this.supabase.client.storage
@@ -467,6 +497,7 @@ export class ProjectsService {
 
   /** Elimina una imagen: objeto de storage + fila de project_images. */
   async removeProjectImage(imageId: string, storagePath: string): Promise<void> {
+    await this.supabase.clientPromise;
     if (storagePath) {
       await this.supabase.client.storage.from('project-images').remove([storagePath]);
     }
@@ -479,6 +510,7 @@ export class ProjectsService {
     projectId: string,
     rows: { id: string; sortOrder: number; isCover: boolean }[],
   ): Promise<void> {
+    await this.supabase.clientPromise;
     for (const row of rows) {
       const { error } = await this.supabase.client
         .from('project_images')

@@ -25,11 +25,12 @@ export class ProjectDetailComponent {
   readonly coverUrl = computed(() => (this.project() ? projectCoverUrl(this.project()!) : ''));
 
   constructor() {
-    // SEO dinámico por proyecto (Fase 9): título y descripción propios en el <head>.
+    // SEO dinámico por proyecto (Fase 9): título, descripción e imagen social
+    // (portada) propios en el <head> al abrir /proyectos/:slug.
     effect(() => {
       const project = this.project();
       if (project) {
-        this.seo.set(project.title, project.description.slice(0, 160));
+        this.seo.set(project.title, project.description.slice(0, 160), undefined, this.coverUrl());
       }
     });
   }

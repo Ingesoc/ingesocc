@@ -1,8 +1,8 @@
 <div class="mx-auto max-w-5xl">
-  <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent">Panel de administración</p>
+  <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Panel de administración</p>
   <h1 class="text-4xl font-bold tracking-[-0.04em]">Dashboard</h1>
   <p class="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-    Gestiona proyectos, servicios y el contenido editable del sitio. Los módulos CRUD se habilitan en sus fases del plan.
+    Gestiona proyectos, servicios, mensajes y el contenido editable del sitio.
   </p>
 
   <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -16,9 +16,14 @@
   </div>
 
   <div class="mt-12 border border-border bg-secondary p-6">
-    <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Estado del plan</p>
+    <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Contenido editable</p>
     <p class="mt-3 text-sm leading-6">
-      Fases 0–9 implementadas. El contenido editable se cambia <span class="font-semibold">in-place</span> en las páginas públicas: activa el botón flotante "Modo edición" y usa los lápices sobre cada texto/imagen. Pendiente operativo: cargar los datos reales de la empresa (contacto, equipo, redes) y desplegar (ver README).
+      Los textos e imágenes de Home, Quiénes Somos, Contacto, header y footer se editan
+      <span class="font-semibold">in-place</span>: abre la página pública con tu sesión de
+      administrador, activa el botón flotante "Modo edición" y usa los lápices sobre cada bloque.
     </p>
+    <a routerLink="/admin/contenido" class="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-deep transition-colors hover:opacity-80">
+      Ver guía
+    </a>
   </div>
 </div>

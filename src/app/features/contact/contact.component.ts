@@ -23,12 +23,39 @@ export class ContactComponent {
 
   /** Obligatorios según supuesto del plan 1.5: Nombre, Email, Mensaje. Teléfono y Asunto opcionales. */
   readonly form = new FormGroup({
-    name: new FormControl('', [Validators.required, Validators.minLength(2)]),
-    email: new FormControl('', [Validators.required, Validators.email]),
-    phone: new FormControl(''),
-    subject: new FormControl(''),
-    message: new FormControl('', [Validators.required, Validators.minLength(10)]),
+    name: new FormControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]),
+    email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(254)]),
+    phone: new FormControl('', [Validators.maxLength(30)]),
+    subject: new FormControl('', [Validators.maxLength(200)]),
+    message: new FormControl('', [Validators.required, Validators.minLength(10), Validators.maxLength(5000)]),
   });
+
+  /** Mensaje de error por campo (primer validador fallido). */
+  fieldError(control: 'name' | 'email' | 'phone' | 'subject' | 'message'): string {
+    const c = this.form.controls[control];
+    if (!c.touched || !c.errors) return '';
+    if (c.errors['required']) {
+      const labels = {
+        name: 'Ingrese su nombre.',
+        email: 'Ingrese su correo.',
+        phone: '',
+        subject: '',
+        message: 'Escriba un mensaje.',
+      };
+      return labels[control];
+    }
+    if (c.errors['minlength']) {
+      return control === 'name'
+        ? 'El nombre debe tener al menos 2 caracteres.'
+        : 'Escriba un mensaje de al menos 10 caracteres.';
+    }
+    if (c.errors['maxlength']) {
+      const limits = { name: 80, email: 254, phone: 30, subject: 200, message: 5000 } as const;
+      return `Máximo ${limits[control]} caracteres.`;
+    }
+    if (c.errors['email']) return 'Ingrese un email válido.';
+    return 'Revisa este campo.';
+  }
 
   readonly submitted = signal(false);
   readonly submitting = signal(false);

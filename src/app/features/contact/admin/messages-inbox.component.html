@@ -1,12 +1,12 @@
 <div class="mx-auto max-w-5xl">
-  <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent">Panel de administración</p>
+  <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Panel de administración</p>
   <h1 class="text-4xl font-bold tracking-[-0.04em]">Mensajes de contacto</h1>
   <p class="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
     Mensajes enviados desde el formulario de contacto. Los no leídos aparecen resaltados.
   </p>
 
   @if (error()) {
-    <p class="mt-6 rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+    <p class="mt-6 rounded-md border border-accent-deep bg-secondary px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
   }
 
   @if (loading()) {
@@ -39,11 +39,11 @@
             <div class="flex items-center gap-4">
               <span class="text-xs text-muted-foreground">{{ formatDate(item.created_at) }}</span>
               <button type="button" (click)="toggleRead(item.id, item.read)"
-                class="text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+                class="text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
                 {{ item.read ? 'Marcar no leído' : 'Marcar leído' }}
               </button>
               <button type="button" (click)="onDelete(item.id)"
-                class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+                class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
                 <svg lucideTrash2 class="h-4 w-4" /> Eliminar
               </button>
             </div>

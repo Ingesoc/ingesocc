@@ -46,12 +46,14 @@ export class SeoService {
   /**
    * Aplica título, descripción, Open Graph y canonical a la página actual.
    * `urlOverride` permite fijar la URL canónica distinta de la actual (p. ej. la home).
+   * `imageOverride` permite una imagen social distinta del logo (p. ej. la portada de un proyecto).
    */
-  set(pageTitle: string, description: string, urlOverride?: string): void {
+  set(pageTitle: string, description: string, urlOverride?: string, imageOverride?: string): void {
     const fullTitle = pageTitle
       ? `${pageTitle} · ${SITE_NAME}`
       : `${SITE_NAME} — Construcción, Ingeniería y Arquitectura`;
     const url = urlOverride ?? `${SITE_URL}${this.router.url}`;
+    const image = imageOverride || `${SITE_URL}/logo/logo.png`;
 
     this.title.setTitle(fullTitle);
     this.meta.updateTag({ name: 'description', content: description });
@@ -59,9 +61,10 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:type', content: 'website' });
     this.meta.updateTag({ property: 'og:url', content: url });
-    this.meta.updateTag({ property: 'og:image', content: `${SITE_URL}/logo/logo.png` });
+    this.meta.updateTag({ property: 'og:image', content: image });
+    this.meta.updateTag({ name: 'twitter:image', content: image });
     this.meta.updateTag({ property: 'og:site_name', content: SITE_NAME });
-    this.meta.updateTag({ name: 'twitter:card', content: 'summary' });
+    this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
 
     let canonical = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) {

@@ -30,9 +30,26 @@ export class AuthService {
 
   readonly isAdmin = computed(() => this.role() === 'admin');
 
+  /**
+   * Resuelve cuando la sesión persistida se restauró (o se confirmó que no
+   * existe). El guard lo espera para no rechazar un deep-link a /admin por un
+   * simple tema de sincronización (restoreSession es asíncrono).
+   */
+  private readonly readyPromise: Promise<void>;
+
   constructor() {
+    this.readyPromise = this.initialize().catch(() => undefined);
+  }
+
+  /**
+   * Espera al cliente supabase-js (import diferido) y restaura la sesión.
+   * El registro de onAuthStateChange se hace aquí, después de inicializar.
+   */
+  private async initialize(): Promise<void> {
+    const client = await this.supabase.clientPromise;
+
     // Mantiene la señal al día con la sesión de Supabase (login, logout, refresh).
-    this.supabase.client.auth.onAuthStateChange((_event, session) => {
+    client.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         void this.loadUser(session.user.id, session.user.email);
       } else {
@@ -40,32 +57,52 @@ export class AuthService {
       }
     });
 
-    void this.restoreSession();
+    const { data } = await client.auth.getSession();
+    if (data.session?.user) {
+      await this.loadUser(data.session.user.id, data.session.user.email);
+    }
+  }
+
+  /** Espera a que la sesión inicial se restaure antes de decidir (guard). */
+  whenReady(): Promise<void> {
+    return this.readyPromise;
   }
 
   /** Inicia sesión con Supabase Auth (email + password). */
   async login(email: string, password: string): Promise<void> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client.auth.signInWithPassword({
       email,
       password,
     });
     if (error || !data.user) {
-      throw new Error('Credenciales inválidas');
+      throw new Error(this.mapAuthError(error?.code ?? error?.message ?? ''));
     }
     // onAuthStateChange también disparará loadUser; aquí se hace explícito.
     await this.loadUser(data.user.id, data.user.email);
   }
 
-  async logout(): Promise<void> {
-    await this.supabase.client.auth.signOut();
-    this.userSignal.set(null);
+  /** Traduce errores comunes de Supabase Auth a mensajes claros en español. */
+  private mapAuthError(codeOrMessage: string): string {
+    if (/invalid_credentials|Invalid login credentials/i.test(codeOrMessage)) {
+      return 'Credenciales inválidas. Revisa el correo y la contraseña.';
+    }
+    if (/email_not_confirmed/i.test(codeOrMessage)) {
+      return 'Confirma tu correo electrónico antes de ingresar.';
+    }
+    if (/user_already_exists/i.test(codeOrMessage)) {
+      return 'Ya existe una cuenta con ese correo.';
+    }
+    if (/rate_limit|too_many/i.test(codeOrMessage)) {
+      return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+    }
+    return codeOrMessage || 'No se pudo iniciar sesión.';
   }
 
-  private async restoreSession(): Promise<void> {
-    const { data } = await this.supabase.client.auth.getSession();
-    if (data.session?.user) {
-      await this.loadUser(data.session.user.id, data.session.user.email);
-    }
+  async logout(): Promise<void> {
+    await this.supabase.clientPromise;
+    await this.supabase.client.auth.signOut();
+    this.userSignal.set(null);
   }
 
   /** Lee el rol desde `profiles`; si la tabla no existe o no hay fila, rol 'user'. */
@@ -73,11 +110,10 @@ export class AuthService {
     let role: AuthRole = 'user';
 
     try {
-      const { data } = await this.supabase.client
-        .from('profiles')
-        .select('role')
-        .eq('id', id)
-        .maybeSingle();
+      // loadUser solo se invoca después de clientPromise (initialize/login), pero
+      // se espera explícitamente por seguridad ante un futuro call site nuevo.
+      const client = await this.supabase.clientPromise;
+      const { data } = await client.from('profiles').select('role').eq('id', id).maybeSingle();
 
       if (data?.role === 'admin' || data?.role === 'user') {
         role = data.role;

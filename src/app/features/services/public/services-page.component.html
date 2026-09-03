@@ -12,6 +12,10 @@
   <div class="mx-auto grid max-w-[1440px] gap-6 md:grid-cols-2 lg:grid-cols-3">
     @for (service of services(); track service.slug) {
       <app-service-card [service]="service" />
+    } @empty {
+      <div class="md:col-span-2 lg:col-span-3">
+        <p class="text-sm text-muted-foreground">Todavía no hay servicios publicados.</p>
+      </div>
     }
   </div>
 </section>

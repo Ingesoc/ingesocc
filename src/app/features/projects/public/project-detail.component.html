@@ -1,7 +1,7 @@
 @if (project(); as project) {
   <section class="relative flex min-h-[560px] items-end bg-primary px-5 pb-16 pt-40 text-white md:px-10 md:pb-20">
     @if (coverUrl()) {
-      <img [src]="coverUrl()" [alt]="project.title" class="absolute inset-0 h-full w-full object-cover opacity-45" />
+      <img [src]="coverUrl()" [alt]="project.title" fetchpriority="high" class="absolute inset-0 h-full w-full object-cover opacity-45" />
     }
     <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/60 to-primary/30"></div>
     <div class="relative mx-auto w-full max-w-[1440px]">
@@ -25,17 +25,19 @@
   <section class="px-5 py-16 md:px-10 md:py-24">
     <div class="mx-auto grid max-w-[1440px] gap-12 md:grid-cols-12">
       <div class="md:col-span-7">
-        <p class="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-accent">Sobre la obra</p>
+        <p class="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Sobre la obra</p>
         <p class="text-base leading-7 text-muted-foreground">{{ project.description }}</p>
         <a routerLink="/contacto" class="mt-10 inline-flex items-center gap-3 rounded-full bg-accent px-7 py-4 text-sm font-bold text-primary transition-transform hover:scale-105">
           Solicitar Cotización <svg lucideArrowUpRight class="h-5 w-5" />
         </a>
       </div>
       <div class="md:col-span-5">
-        <p class="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-accent">Galería</p>
+        <p class="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Galería</p>
         <div class="grid gap-3">
           @for (image of project.images; track image.url; let first = $first) {
-            <img [src]="image.url" [alt]="project.title" [class]="first ? 'h-80 w-full object-cover' : 'h-56 w-full object-cover'" />
+            <img [src]="image.url" [alt]="project.title" loading="lazy" [class]="first ? 'h-80 w-full object-cover' : 'h-56 w-full object-cover'" />
+          } @empty {
+            <p class="text-sm text-muted-foreground">La galería de imágenes se publicará próximamente.</p>
           }
         </div>
       </div>
@@ -46,7 +48,7 @@
     <div class="mx-auto max-w-[1440px]">
       <h1 class="text-4xl font-bold tracking-[-0.04em]">Proyecto no encontrado</h1>
       <p class="mt-4 text-muted-foreground">El proyecto que buscas no existe o no está publicado.</p>
-      <a routerLink="/proyectos" class="mt-8 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
+      <a routerLink="/proyectos" class="mt-8 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-deep">
         <svg lucideChevronLeft class="h-4 w-4" /> Ver todos los proyectos
       </a>
     </div>

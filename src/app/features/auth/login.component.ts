@@ -21,9 +21,12 @@ export class LoginComponent implements OnInit {
   readonly error = signal('');
   readonly loading = signal(false);
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    // Espera la restauración de sesión: si un admin ya tiene sesión persistida
+    // y cae directo a /admin/login, se le redirige al panel sin pedir login.
+    await this.auth.whenReady();
     if (this.auth.isAdmin()) {
-      this.router.navigate(['/admin']);
+      await this.router.navigate(['/admin']);
     }
   }
 
@@ -38,9 +41,21 @@ export class LoginComponent implements OnInit {
 
     try {
       await this.auth.login(this.form.value.email ?? '', this.form.value.password ?? '');
+
+      // La sesión es válida pero el usuario no tiene rol admin: no entrar al
+      // panel (el guard lo bloquearía igual); se le informa y se cierra sesión
+      // para que la cuenta no quede en un estado ambiguo.
+      if (!this.auth.isAdmin()) {
+        await this.auth.logout();
+        this.error.set(
+          'Tu usuario no tiene permisos de administración. Contacta al administrador del sitio.',
+        );
+        return;
+      }
+
       await this.router.navigate(['/admin']);
-    } catch {
-      this.error.set('Credenciales inválidas. Revisa el correo y la contraseña.');
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
     } finally {
       this.loading.set(false);
     }

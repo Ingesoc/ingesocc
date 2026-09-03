@@ -118,10 +118,10 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
         data: {
-          title: 'Contenido editable',
-          phase: 'Fase 6 — lista',
+          title: 'Contenido del sitio',
+          phase: 'Edición in-place',
           description:
-            'La edición es in-place: con sesión admin, en las páginas públicas activa el toggle flotante "Modo edición" y usa los lápices sobre cada texto/imagen (plan 1.4/§7).',
+            'Los textos e imágenes de las páginas públicas se editan directamente sobre la página: con sesión admin, activa el botón flotante "Modo edición" y usa los lápices sobre cada bloque.',
         },
       },
       {

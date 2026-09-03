@@ -12,7 +12,7 @@
       <app-editable-image page="about" sectionKey="historia.image" [fallback]="historiaImage()" [fill]="true" alt="Nuestra historia" />
     </div>
     <div class="md:col-span-5 md:col-start-8">
-      <p class="mb-5 text-xs font-bold uppercase tracking-[0.25em] text-accent">01 / Nuestra historia</p>
+      <p class="mb-5 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">01 / Nuestra historia</p>
       <h2 class="text-balance text-4xl font-bold leading-tight tracking-[-0.04em] md:text-5xl">El detalle hace la diferencia.</h2>
       <p class="mt-8 text-base leading-7 text-muted-foreground"><app-editable-text page="about" sectionKey="historia.text" [fallback]="historiaText()" [multiline]="true" /></p>
     </div>
@@ -22,7 +22,7 @@
 <section class="bg-secondary px-5 py-24 md:px-10 md:py-32">
   <div class="mx-auto max-w-[1440px]">
     <div class="mb-14 grid gap-6 md:grid-cols-12">
-      <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent md:col-span-2">02 / Trayectoria</p>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent-deep md:col-span-2">02 / Trayectoria</p>
       <h2 class="text-4xl font-bold tracking-[-0.04em] md:col-span-8 md:text-5xl">Hitos que nos definen.</h2>
     </div>
     <div class="grid gap-0 md:grid-cols-4">
@@ -31,7 +31,7 @@
           @if (!last) {
             <span class="absolute -left-1 top-2 h-2 w-2 rounded-full bg-accent md:-top-1 md:left-0"></span>
           }
-          <p class="text-4xl font-bold tracking-[-0.06em] text-accent"><app-editable-text [page]="'about'" [sectionKey]="'timeline.' + item.key + '.year'" [fallback]="item.year" /></p>
+          <p class="text-4xl font-bold tracking-[-0.06em] text-accent-deep"><app-editable-text [page]="'about'" [sectionKey]="'timeline.' + item.key + '.year'" [fallback]="item.year" /></p>
           <h3 class="mt-3 text-lg font-bold tracking-tight"><app-editable-text [page]="'about'" [sectionKey]="'timeline.' + item.key + '.title'" [fallback]="item.title" /></h3>
         </div>
       }
@@ -42,20 +42,20 @@
 <section class="px-5 py-24 md:px-10 md:py-32">
   <div class="mx-auto max-w-[1440px]">
     <div class="mb-14 grid gap-6 md:grid-cols-12">
-      <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent md:col-span-2">03 / Propósito</p>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent-deep md:col-span-2">03 / Propósito</p>
       <h2 class="text-4xl font-bold tracking-[-0.04em] md:col-span-8 md:text-5xl">Lo que nos mueve.</h2>
     </div>
     <div class="grid gap-6 md:grid-cols-3">
       <div class="bg-secondary p-8">
-        <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent">Misión</p>
+        <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Misión</p>
         <p class="mt-4 text-base leading-7 text-muted-foreground"><app-editable-text page="about" sectionKey="mision.text" [fallback]="mision()" [multiline]="true" /></p>
       </div>
       <div class="bg-secondary p-8">
-        <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent">Visión</p>
+        <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Visión</p>
         <p class="mt-4 text-base leading-7 text-muted-foreground"><app-editable-text page="about" sectionKey="vision.text" [fallback]="vision()" [multiline]="true" /></p>
       </div>
       <div class="bg-secondary p-8">
-        <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent">Valores</p>
+        <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Valores</p>
         <p class="mt-4 text-base leading-7 text-muted-foreground"><app-editable-text page="about" sectionKey="valores.text" [fallback]="valores()" [multiline]="true" /></p>
       </div>
     </div>
@@ -65,7 +65,7 @@
 <section class="px-5 pb-24 md:px-10 md:pb-32">
   <div class="mx-auto max-w-[1440px]">
     <div class="mb-14 grid gap-6 md:grid-cols-12">
-      <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent md:col-span-2">04 / Equipo</p>
+      <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent-deep md:col-span-2">04 / Equipo</p>
       <h2 class="text-4xl font-bold tracking-[-0.04em] md:col-span-8 md:text-5xl">Las personas detrás de cada obra.</h2>
     </div>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

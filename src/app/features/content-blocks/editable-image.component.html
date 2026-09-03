@@ -1,6 +1,6 @@
-<div class="group relative overflow-hidden" [class]="wrapperClass()">
+<div class="group overflow-hidden" [class]="wrapperClass()">
   @if (image()) {
-    <img [src]="image()" [alt]="alt()" class="h-full w-full object-cover" [class]="imageClass()" />
+    <img [src]="image()" [alt]="alt()" [attr.fetchpriority]="fetchPriority()" class="h-full w-full object-cover" [class]="imageClass()" />
   } @else {
     <div class="flex h-full w-full items-center justify-center bg-secondary text-muted-foreground"></div>
   }

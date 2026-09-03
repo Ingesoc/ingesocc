@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { LucideImagePlus } from '@lucide/angular';
 import { SupabaseService } from '../../core/supabase.service';
+import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../core/image-utils';
 import { ContentBlocksService } from './data-access/content-blocks.service';
 import { EditModeService } from './edit-mode.service';
 
@@ -23,15 +24,31 @@ export class EditableImageComponent {
   /** true cuando la imagen llena su contenedor (p. ej. fondo del hero). */
   readonly fill = input(false);
 
+  /**
+   * true para la imagen candidata a LCP (p. ej. el fondo del hero): añade
+   * `fetchpriority="high"` para que el navegador la baje antes que el resto.
+   */
+  readonly priority = input(false);
+
   /** Clases extra aplicadas a la <img> (opacidad, object-fit, etc.). */
   readonly imageClass = input('');
 
   /** Clases extra aplicadas al contenedor (p. ej. aspect-square para el equipo). */
   readonly containerClass = input('');
 
+  /**
+   * Posición del contenedor: `absolute inset-0` cuando la imagen llena su
+   * contenedor (fondo del hero), `relative` en el resto. Se aplica UNA sola
+   * clase de posición: antes convivían `relative` (base) y `absolute`
+   * (fill) y la que ganaba en el CSS era `relative`, dejando el wrapper en
+   * flujo y provocando un re-flow del hero (CLS ~0.25) al renderizar la img.
+   */
   readonly wrapperClass = computed(() =>
-    [this.fill() ? 'absolute inset-0' : '', this.containerClass()].filter(Boolean).join(' '),
+    [this.fill() ? 'absolute inset-0' : 'relative', this.containerClass()].filter(Boolean).join(' '),
   );
+
+  /** fetchpriority solo se emite cuando el componente lo pide (hero/LCP). */
+  readonly fetchPriority = computed(() => (this.priority() ? 'high' : undefined));
 
   readonly isEditingMode = this.editMode.isEditing;
 
@@ -47,10 +64,16 @@ export class EditableImageComponent {
     input.value = '';
     if (!file) return;
 
+    if (!isAcceptableImageFile(file)) {
+      this.error.set(`Solo se aceptan imágenes (${ACCEPTED_IMAGE_TYPES_LABEL}).`);
+      return;
+    }
+
     this.uploading.set(true);
     this.error.set('');
 
     try {
+      await this.supabase.clientPromise;
       let processed = file;
       try {
         // Carga diferida: la librería de compresión solo baja cuando el admin sube una imagen.

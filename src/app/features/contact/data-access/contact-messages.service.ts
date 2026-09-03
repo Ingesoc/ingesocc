@@ -35,6 +35,7 @@ export class ContactMessagesService {
 
   /** Carga la bandeja (solo admin por RLS). */
   async load(): Promise<void> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('contact_messages')
       .select('*')
@@ -49,12 +50,14 @@ export class ContactMessagesService {
 
   /** Inserta un mensaje enviado desde el formulario público (RLS permite insert). */
   async insert(input: ContactMessageInput): Promise<void> {
+    await this.supabase.clientPromise;
     const { error } = await this.supabase.client.from('contact_messages').insert(input);
     if (error) throw new Error(error.message);
   }
 
   /** Marca un mensaje como leído o no leído (solo admin por RLS). */
   async setRead(id: string, read: boolean): Promise<void> {
+    await this.supabase.clientPromise;
     const { error } = await this.supabase.client.from('contact_messages').update({ read }).eq('id', id);
     if (error) throw new Error(error.message);
     this.messagesSignal.update((list) => list.map((m) => (m.id === id ? { ...m, read } : m)));
@@ -62,6 +65,7 @@ export class ContactMessagesService {
 
   /** Elimina un mensaje (solo admin por RLS). */
   async remove(id: string): Promise<void> {
+    await this.supabase.clientPromise;
     const { error } = await this.supabase.client.from('contact_messages').delete().eq('id', id);
     if (error) throw new Error(error.message);
     this.messagesSignal.update((list) => list.filter((m) => m.id !== id));

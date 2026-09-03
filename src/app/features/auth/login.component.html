@@ -1,7 +1,7 @@
 <main class="flex min-h-screen items-center justify-center bg-primary px-5 py-16 text-white">
   <div class="w-full max-w-md">
     <div class="mb-10 flex flex-col items-center gap-4 text-center">
-      <img src="/ingesocc-logo.jpg" alt="Ingesocc S.A.S." width="64" height="64" class="h-16 w-16 rounded-full object-cover" />
+      <img src="/logo/logo.png" alt="Ingesocc S.A.S." width="64" height="64" class="h-16 w-16 rounded-full object-cover" />
       <div>
         <h1 class="text-2xl font-bold tracking-[-0.03em]">Panel de administración</h1>
         <p class="mt-2 text-xs font-bold uppercase tracking-[0.25em] text-white/60">Ingesocc S.A.S.</p>
@@ -19,7 +19,7 @@
           class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
         />
         @if (form.controls.email.touched && form.controls.email.invalid) {
-          <p class="mt-1 text-xs text-accent">Ingrese un email válido.</p>
+          <p class="mt-1 text-xs text-accent-deep">Ingrese un email válido.</p>
         }
       </div>
       <div>
@@ -32,12 +32,12 @@
           class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
         />
         @if (form.controls.password.touched && form.controls.password.invalid) {
-          <p class="mt-1 text-xs text-accent">La contraseña debe tener al menos 6 caracteres.</p>
+          <p class="mt-1 text-xs text-accent-deep">La contraseña debe tener al menos 6 caracteres.</p>
         }
       </div>
 
       @if (error()) {
-        <p class="rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+        <p class="rounded-md border border-accent-deep bg-secondary px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
       }
 
       <button

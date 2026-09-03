@@ -20,7 +20,7 @@ const SEED_CONTENT_BLOCKS: ContentBlock[] = [
   { page: 'home', sectionKey: 'hero.title', type: 'text', valueText: 'Construimos espacios que trascienden.', valueNumber: null, valueImagePath: null },
   { page: 'home', sectionKey: 'hero.subtitle', type: 'text', valueText: 'Diseñamos y ejecutamos proyectos con precisión, propósito y una visión que permanece.', valueNumber: null, valueImagePath: null },
   { page: 'home', sectionKey: 'hero.cta_label', type: 'text', valueText: 'Hablemos', valueNumber: null, valueImagePath: null },
-  { page: 'home', sectionKey: 'hero.background_image', type: 'image', valueText: null, valueNumber: null, valueImagePath: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=2200&q=90' },
+  { page: 'home', sectionKey: 'hero.background_image', type: 'image', valueText: null, valueNumber: null, valueImagePath: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1600&q=80' },
   { page: 'home', sectionKey: 'stats.years_experience', type: 'number', valueText: null, valueNumber: 15, valueImagePath: null },
   { page: 'home', sectionKey: 'stats.projects_executed', type: 'number', valueText: null, valueNumber: 120, valueImagePath: null },
   { page: 'home', sectionKey: 'stats.sectors_served', type: 'number', valueText: null, valueNumber: 8, valueImagePath: null },
@@ -104,16 +104,19 @@ export class ContentBlocksService {
 
   /** Carga las filas reales de `content_blocks`; si falla o está vacío, mantiene el seed. */
   async load(): Promise<void> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('content_blocks')
       .select('page, section_key, type, value_text, value_number, value_image_path');
 
     if (error) {
+      // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
       console.warn('[content_blocks] usando seed estático:', error.message);
       return;
     }
     if (!data || data.length === 0) {
-      console.info('[content_blocks] tabla vacía: usando seed estático.');
+      // Tabla existente pero vacía: sin bloques reales no hay contenido DB.
+      this.blocks.set([]);
       return;
     }
 
@@ -155,14 +158,19 @@ export class ContentBlocksService {
 
   /**
    * Persiste un cambio de bloque en `content_blocks` (plan 7.3/7.4).
-   * Si la tabla aún no existe en Supabase, aplica el cambio en memoria
-   * para que el modo edición funcione igual en desarrollo.
+   *
+   * El fallback en memoria (cambio local sin tocar la DB) queda reservado
+   * EXCLUSIVAMENTE para el caso "la tabla todavía no existe en Supabase"
+   * (código 42P01/relación inexistente) o credenciales no configuradas.
+   * Cualquier otro error real (RLS, red, timeout) se re-lanza para que la UI
+   * lo muestre: antes se tragaba todo error y el cambio se perdía al recargar.
    */
   async updateBlock(
     page: string,
     sectionKey: string,
     changes: { valueText?: string | null; valueNumber?: number | null; valueImagePath?: string | null },
   ): Promise<void> {
+    await this.supabase.clientPromise;
     const type: ContentBlock['type'] =
       changes.valueImagePath != null ? 'image' : changes.valueNumber != null ? 'number' : 'text';
     const existing = this.block(page, sectionKey);
@@ -178,22 +186,47 @@ export class ContentBlocksService {
         this.applyLocalUpdate(page, sectionKey, changes);
         return;
       }
-      console.warn('[content_blocks] cambio en memoria (tabla sin aplicar):', error.message);
-    } else {
-      const { error } = await this.supabase.client.from('content_blocks').insert({
-        page,
-        section_key: sectionKey,
-        type,
-        ...changes,
-      });
-      if (!error) {
-        await this.load();
-        return;
-      }
-      console.warn('[content_blocks] insert en memoria (tabla sin aplicar):', error.message);
+      this.handlePersistError(page, sectionKey, changes, error.message, error.code);
+      return;
     }
 
-    this.applyLocalUpdate(page, sectionKey, { ...changes, type });
+    const { error } = await this.supabase.client.from('content_blocks').insert({
+      page,
+      section_key: sectionKey,
+      type,
+      ...changes,
+    });
+    if (!error) {
+      await this.load();
+      return;
+    }
+    this.handlePersistError(page, sectionKey, { ...changes, type }, error.message, error.code);
+  }
+
+  /**
+   * Decide entre fallback local (tabla inexistente / sin credenciales) y
+   * re-lanzar el error real para que el editor lo vea.
+   */
+  private handlePersistError(
+    page: string,
+    sectionKey: string,
+    changes: Partial<ContentBlock>,
+    message: string,
+    code?: string,
+  ): void {
+    const tableMissing =
+      code === '42P01' ||
+      code === 'PGRST205' ||
+      /relation .*does not exist|does not exist/i.test(message ?? '');
+    const notConfigured = !this.supabase.ready;
+
+    if (tableMissing || notConfigured) {
+      console.warn('[content_blocks] cambio aplicado solo en memoria:', message);
+      this.applyLocalUpdate(page, sectionKey, changes);
+      return;
+    }
+
+    throw new Error(message || 'No se pudo guardar el contenido.');
   }
 
   private applyLocalUpdate(
@@ -201,11 +234,21 @@ export class ContentBlocksService {
     sectionKey: string,
     changes: Partial<ContentBlock>,
   ): void {
+    const localChanges: Partial<ContentBlock> = { ...changes };
+    // En memoria se guarda la URL pública (igual que load()): el cambio de
+    // imagen llega como storage_path y sin resolver el <img> quedaría roto
+    // hasta recargar.
+    if (localChanges.valueImagePath) {
+      localChanges.valueImagePath = this.supabase.resolvePublicUrl(
+        'content-images',
+        localChanges.valueImagePath,
+      );
+    }
     this.blocks.update((blocks) => {
       const index = blocks.findIndex((b) => b.page === page && b.sectionKey === sectionKey);
       if (index >= 0) {
         const updated = [...blocks];
-        updated[index] = { ...updated[index], ...changes };
+        updated[index] = { ...updated[index], ...localChanges };
         return updated;
       }
       return [
@@ -213,10 +256,10 @@ export class ContentBlocksService {
         {
           page,
           sectionKey,
-          type: (changes.type as ContentBlock['type']) ?? 'text',
-          valueText: changes.valueText ?? null,
-          valueNumber: changes.valueNumber ?? null,
-          valueImagePath: changes.valueImagePath ?? null,
+          type: (localChanges.type as ContentBlock['type']) ?? 'text',
+          valueText: localChanges.valueText ?? null,
+          valueNumber: localChanges.valueNumber ?? null,
+          valueImagePath: localChanges.valueImagePath ?? null,
         },
       ];
     });

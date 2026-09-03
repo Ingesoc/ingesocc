@@ -1,6 +1,6 @@
 <header class="absolute inset-x-0 top-0 z-20 px-5 py-5 text-white md:px-10 md:py-7">
   <div class="mx-auto flex max-w-[1440px] items-center justify-between">
-    <a routerLink="/" aria-label="Ingesocc inicio" class="flex items-center gap-3">
+    <a routerLink="/" class="flex items-center gap-3">
       <img src="/logo/logo.png" alt="Ingesocc S.A.S." width="52" height="52" class="h-12 w-12 rounded-full object-cover" />
       <span class="hidden text-xs font-bold uppercase tracking-[0.24em] sm:block">Ingesocc S.A.S.</span>
     </a>
@@ -8,7 +8,7 @@
       @for (item of navItems; track item.link) {
         <a [routerLink]="item.link" routerLinkActive="text-accent" [routerLinkActiveOptions]="{ exact: item.link === '/' }" class="transition-colors hover:text-accent">{{ item.label }}</a>
       }
-      <a routerLink="/contacto" class="rounded-full border border-white/50 px-5 py-3 transition-colors hover:border-accent hover:bg-accent hover:text-primary-foreground"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /></a>
+      <a routerLink="/contacto" class="rounded-full border border-white/50 px-5 py-3 transition-colors hover:border-accent hover:bg-accent hover:text-primary"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /></a>
     </nav>
     <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-white/50 lg:hidden" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Abrir menú">
       <svg lucideMenu class="h-5 w-5" />

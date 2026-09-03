@@ -15,6 +15,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-deep: var(--accent-deep);
   --color-border: var(--border);
   --font-sans: 'Arial', 'Helvetica Neue', sans-serif;
   --font-mono: 'Courier New', monospace;
@@ -29,9 +30,15 @@
   --secondary: #dedede;
   --secondary-foreground: #171717;
   --muted: #ededeb;
-  --muted-foreground: #666664;
+  --muted-foreground: #5c5c5a;
   --accent: #f25623;
   --accent-foreground: #171717;
+  /* Naranja de marca oscurecido para TEXTO sobre superficies claras: el accent
+     #f25623 (3.17:1 sobre --background) no cumple AA 4.5:1 en texto pequeño;
+     #a53a0c pasa 4.86:1 sobre --secondary y 6.05:1 sobre --background. Se usa
+     solo donde el accent iría sobre fondo claro (kickers, errores, enlaces);
+     sobre fondos oscuros (hero, footer, sidebar) se mantiene el accent. */
+  --accent-deep: #a53a0c;
   --border: #d7d7d3;
   --radius: 0.15rem;
 }
@@ -52,9 +59,16 @@ body {
   font-family: Arial, 'Helvetica Neue', sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Los enlaces heredan color por defecto (preflight ya lo hace dentro de la capa
+   base). OJO: esta regla DEBE vivir en una capa — si va sin `@layer`, al ser CSS
+   sin capa gana sobre TODAS las utilities de Tailwind y anula clases como
+   text-accent/text-accent-deep sobre <a> (bug silencioso detectado en el QA
+   visual: los enlaces nunca pintaban el color de su clase). */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
 }
 
 ::selection {

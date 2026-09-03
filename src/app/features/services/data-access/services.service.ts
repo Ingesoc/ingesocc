@@ -91,6 +91,14 @@ interface ServiceRow {
   sort_order: number;
 }
 
+/** Traduce el error de unicidad de slug a un mensaje claro para el admin (plan 1.3). */
+function mapServiceWriteError(error: { message: string; code?: string }): Error {
+  if (error.code === '23505') {
+    return new Error('Ya existe un servicio con ese slug (URL). Elígelo diferente.');
+  }
+  return new Error(error.message);
+}
+
 @Injectable({ providedIn: 'root' })
 export class ServicesService {
   private readonly supabase = inject(SupabaseService);
@@ -120,16 +128,19 @@ export class ServicesService {
 
   /** Carga los servicios desde Supabase; si falla, mantiene el seed. */
   async load(): Promise<void> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
       .select('id, name, slug, description, photo_path, icon_name, status, sort_order');
 
     if (error) {
+      // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
       console.warn('[services] usando seed estático:', error.message);
       return;
     }
     if (!data || data.length === 0) {
-      console.info('[services] tabla vacía: usando seed estático.');
+      // La tabla existe pero está vacía: se muestra la realidad.
+      this.services.set([]);
       return;
     }
 
@@ -149,6 +160,7 @@ export class ServicesService {
 
   /** Carga TODOS los servicios para el panel admin (RLS permite todo a rol admin). */
   async loadAll(): Promise<void> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
       .select('id, name, slug, description, photo_path, icon_name, status, sort_order')
@@ -180,23 +192,26 @@ export class ServicesService {
 
   /** Crea un servicio y devuelve su id. */
   async createService(input: ServiceInput): Promise<string> {
+    await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
       .insert(input)
       .select('id')
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw mapServiceWriteError(error);
     return (data as { id: string }).id;
   }
 
   /** Actualiza los datos básicos de un servicio. */
   async updateService(id: string, input: ServiceInput): Promise<void> {
+    await this.supabase.clientPromise;
     const { error } = await this.supabase.client.from('services').update(input).eq('id', id);
-    if (error) throw new Error(error.message);
+    if (error) throw mapServiceWriteError(error);
   }
 
   /** Elimina un servicio y su foto de storage (si existe). */
   async deleteService(id: string): Promise<void> {
+    await this.supabase.clientPromise;
     const service = this.adminServicesSignal().find((item) => item.id === id);
     if (service?.photoPath) {
       await this.supabase.client.storage.from('service-images').remove([service.photoPath]);
@@ -207,6 +222,7 @@ export class ServicesService {
 
   /** Sube (o reemplaza) la foto de un servicio al bucket service-images. */
   async uploadServicePhoto(serviceId: string, file: File): Promise<void> {
+    await this.supabase.clientPromise;
     const current = this.adminServicesSignal().find((item) => item.id === serviceId);
     const ext = file.name.split('.').pop() ?? 'jpg';
     const path = `services/${serviceId}/${crypto.randomUUID()}.${ext}`;
@@ -230,6 +246,7 @@ export class ServicesService {
 
   /** Elimina la foto del servicio (storage + columna photo_path). */
   async removeServicePhoto(serviceId: string): Promise<void> {
+    await this.supabase.clientPromise;
     const service = this.adminServicesSignal().find((item) => item.id === serviceId);
     if (!service?.photoPath) return;
     await this.supabase.client.storage.from('service-images').remove([service.photoPath]);

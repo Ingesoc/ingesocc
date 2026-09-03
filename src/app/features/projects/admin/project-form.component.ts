@@ -8,6 +8,7 @@ import { LucideChevronLeft, LucideStar, LucideTrash2, LucideUpload } from '@luci
 import { ProjectsService } from '../data-access/projects.service';
 import type { ProjectInput } from '../data-access/project.model';
 import { slugify } from '../../../core/slugify';
+import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../../core/image-utils';
 
 /** Imagen del formulario: pendiente de subir o ya persistida. */
 interface ImageSlot {
@@ -127,7 +128,17 @@ export class ProjectFormComponent {
     const files = input.files ? Array.from(input.files) : [];
     input.value = '';
 
-    for (const file of files) {
+    const validFiles = files.filter((file) => {
+      const valid = isAcceptableImageFile(file);
+      if (!valid) {
+        this.error.set(
+          `Algunos archivos no se subieron: solo se aceptan imágenes (${ACCEPTED_IMAGE_TYPES_LABEL}).`,
+        );
+      }
+      return valid;
+    });
+
+    for (const file of validFiles) {
       let processed = file;
       try {
         processed = await imageCompression(file, {

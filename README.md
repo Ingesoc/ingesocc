@@ -61,7 +61,83 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 pnpm install
 pnpm start      # http://localhost:4200
 pnpm build      # build de producción en dist/ingesocc-web
+pnpm test       # tests unitarios (Karma + Chrome)
+pnpm test:ci    # tests unitarios en una sola pasada (headless)
+pnpm test:e2e   # tests E2E (Playwright, flujos públicos)
+pnpm test:perf  # auditoría Lighthouse con presupuestos (/ y /proyectos)
+pnpm test:visual # QA visual: accent-deep + contraste + overflow + screenshots
 ```
+
+> Los tests unitarios (Jasmine/Karma) corren sin red: los servicios de datos se
+> prueban con un cliente Supabase simulado y no requieren credenciales ni una
+> base de datos disponible.
+>
+> Los tests E2E (Playwright) levantan el dev server automáticamente y cubren
+> Home → Proyectos → Detalle, el CRUD completo de proyectos y el flujo
+> contacto → bandeja admin. Los flujos de escritura (admin/bandeja) necesitan
+> credenciales y **escriben datos reales**: apúntalos a un proyecto Supabase de
+> pruebas.
+>
+> ```bash
+> pnpm test:e2e                                  # solo lectura pública
+> E2E_ADMIN_EMAIL=... E2E_ADMIN_PASSWORD=... pnpm test:e2e   # + admin CRUD y bandeja
+> ```
+>
+> Usa el Chrome instalado (`channel: 'chrome'`); si no existe, corre con
+> Chromium de Playwright instalado y `E2E_CHROMIUM=1`.
+
+## Auditoría Lighthouse (presupuestos de rendimiento)
+
+`pnpm test:perf` hace el build, sirve `dist/` localmente y audita `/` y
+`/proyectos` con Lighthouse en **dos modos** contra los presupuestos de
+`tools/lighthouse-ci.mjs`: **escritorio** simulado (1440×900, 10 Mbps, CPU 1×)
+con Performance ≥ 0.80 (error, exit 1) y ≥ 0.90 (aviso); y **móvil** real
+(412×823, 1.6 Mbps, CPU 4×) con Performance ≥ 0.50 (error) y ≥ 0.60 (aviso).
+En ambos modos se vigilan además los bytes transferidos (documento/script/total)
+y las categorías de accesibilidad/buenas prácticas/SEO. Los reportes JSON
+quedan en `.lighthouseci/` (ignorado por git).
+
+```bash
+pnpm test:perf             # escritorio + móvil (exit 0 si se cumplen los presupuestos de nivel "error")
+node tools/lighthouse-ci.mjs desktop   # solo un modo (sin rebuild)
+node tools/lighthouse-ci.mjs mobile
+```
+
+Estado actual (2026-09): **Desktop ~95-97 · Mobile ~65-66** en ambas páginas,
+**Accessibility 100** en las 4 corridas (el texto naranja sobre fondos claros
+usa `text-accent-deep`, un rust de la misma familia con contraste AA). La auditoría
+ya destapó y sirvió para corregir: logo de 1 MB → 80 KB (256 px, 2× retina en
+su uso mayor), LCP del hero (imagen sin `fetchpriority` y pedida a `w=2200`),
+CLS del hero (el fondo se renderizaba en flujo normal por un conflicto
+`relative`/`absolute` en `EditableImage`), imágenes bajo el fold sin `lazy`, y
+el SDK de Supabase (~220 KB) que bloqueaba el primer pintado — ahora se importa
+con `import()` diferido y no forma parte del bundle inicial. Para llegar más
+allá haría falta SSR/prerender (recomendación documentada, no migrada).
+
+## QA visual (paleta y contrastes en el navegador)
+
+`pnpm test:visual` (`tools/visual-qa.mjs`) abre cada página pública (y
+`/admin/login`) en escritorio y móvil contra el build de producción y verifica
+en vivo: color `#a53a0c` exacto en todo `text-accent-deep`, contraste ≥ 4.5:1
+sobre el fondo EFECTIVO del elemento, chip de filtro activo de `/proyectos`,
+errores de validación de `/contacto` y ausencia de overflow horizontal. Guarda
+screenshots completos en `test-results/visual-qa/`.
+
+Con `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` añade la **fase admin**: login real
+contra Supabase Auth y recorrido por dashboard, listados, formularios "nuevo",
+bandeja y contenido con las mismas comprobaciones. Intercepta solo la lectura
+de `profiles` (devuelve rol admin) para cuando el proyecto Supabase aún no
+tiene el esquema aplicado — el resto va a la red real y es de solo lectura:
+
+```bash
+E2E_ADMIN_EMAIL=... E2E_ADMIN_PASSWORD=... pnpm test:visual
+```
+
+Este QA destapó un **bug silencioso de CSS**: la regla `a { color: inherit }`
+en `styles.css` estaba sin `@layer`, así que al ser CSS sin capa ganaba sobre
+TODAS las utilities de Tailwind y anulaba `text-accent`/`text-accent-deep` (y
+cualquier clase de color) sobre `<a>` — los enlaces nunca pintaban su color.
+Se movió a `@layer base` y ahora las utilities ganan como corresponde.
 
 > **Nota de build (Tailwind v4)**: Angular 19 solo carga la config de PostCSS desde **`.postcssrc.json`** (no `postcss.config.mjs`), y la detección automática de contenido falla en rutas con espacios/OneDrive — por eso `src/styles.css` declara `@source "./src"` explícitamente. Si los estilos no se generan, revisa esos dos puntos.
 
@@ -100,7 +176,7 @@ Buckets de storage creados por el esquema: `project-images`, `service-images`, `
 
 ```
 src/app/
-  core/                  # supabase.service.ts (wrapper único, pendiente de credenciales)
+  core/                  # supabase.service.ts (wrapper único; SDK con import() diferido)
   layouts/
     public-layout/       # header (nav + CTA global) + footer (redes desde content_blocks)
   features/

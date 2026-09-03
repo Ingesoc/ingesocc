@@ -1,7 +1,7 @@
 <div class="mx-auto max-w-6xl">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent">Panel de administración</p>
+      <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Panel de administración</p>
       <h1 class="text-4xl font-bold tracking-[-0.04em]">Proyectos</h1>
       <p class="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
         Crea, edita y publica proyectos. Los borradores solo se ven aquí; los publicados salen al sitio (Home destacados y listado).
@@ -13,7 +13,7 @@
   </div>
 
   @if (error()) {
-    <p class="mt-6 rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+    <p class="mt-6 rounded-md border border-accent-deep bg-secondary px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
   }
 
   @if (loading()) {
@@ -48,7 +48,7 @@
               <p class="mt-0.5 truncate text-xs text-muted-foreground">/{{ project.slug }}</p>
               <div class="mt-1.5 flex flex-wrap gap-1.5">
                 <span [class]="project.status === 'published'
-                  ? 'rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent'
+                  ? 'rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent-deep'
                   : 'rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground'">
                   {{ project.status === 'published' ? 'Publicado' : 'Borrador' }}
                 </span>
@@ -64,10 +64,10 @@
           <p class="text-sm text-muted-foreground md:col-span-1 md:text-center">{{ project.priceMinWages != null ? project.priceMinWages : '—' }}</p>
           <p class="text-sm text-muted-foreground md:col-span-1 md:text-center">{{ project.sortOrder }}</p>
           <div class="flex gap-3 md:col-span-2 md:justify-end">
-            <a [routerLink]="['/admin/proyectos', project.id]" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+            <a [routerLink]="['/admin/proyectos', project.id]" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
               <svg lucidePencil class="h-4 w-4" /> Editar
             </a>
-            <button type="button" (click)="onDelete(project)" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+            <button type="button" (click)="onDelete(project)" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
               <svg lucideTrash2 class="h-4 w-4" /> Eliminar
             </button>
           </div>

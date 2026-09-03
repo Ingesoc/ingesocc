@@ -11,6 +11,7 @@ import { ServicesService } from '../data-access/services.service';
 import { SERVICE_ICON_NAMES, serviceIconFor } from '../data-access/service-icons';
 import type { ServiceInput } from '../data-access/service.model';
 import { slugify } from '../../../core/slugify';
+import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../../core/image-utils';
 
 @Component({
   selector: 'app-service-form',
@@ -100,6 +101,11 @@ export class ServiceFormComponent {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
+
+    if (!isAcceptableImageFile(file)) {
+      this.error.set(`Solo se aceptan imágenes (${ACCEPTED_IMAGE_TYPES_LABEL}).`);
+      return;
+    }
 
     let processed = file;
     try {

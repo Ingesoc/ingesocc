@@ -1,7 +1,7 @@
 <div class="flex min-h-screen bg-background text-foreground">
   <aside class="hidden w-64 shrink-0 flex-col bg-primary text-white md:flex">
     <a routerLink="/admin" class="flex items-center gap-3 px-6 py-6">
-      <img src="/ingesocc-logo.jpg" alt="Ingesocc S.A.S." width="40" height="40" class="h-10 w-10 rounded-full object-cover" />
+      <img src="/logo/logo.png" alt="Ingesocc S.A.S." width="40" height="40" class="h-10 w-10 rounded-full object-cover" />
       <div>
         <p class="text-sm font-bold uppercase tracking-[0.2em]">Ingesocc</p>
         <p class="mt-0.5 text-[10px] uppercase tracking-[0.25em] text-white/50">Panel admin</p>
@@ -35,11 +35,40 @@
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col">
-    <header class="flex items-center justify-between border-b border-border bg-background px-5 py-4 md:hidden">
-      <p class="text-xs font-bold uppercase tracking-[0.2em]">Ingesocc · Panel admin</p>
-      <button type="button" (click)="logout()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
-        <svg lucideLogOut class="h-4 w-4" /> Salir
-      </button>
+    <header class="relative border-b border-border bg-background md:hidden">
+      <div class="flex items-center justify-between px-5 py-4">
+        <p class="text-xs font-bold uppercase tracking-[0.2em]">Ingesocc · Panel admin</p>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            (click)="toggleMobileMenu()"
+            [attr.aria-expanded]="mobileMenuOpen()"
+            aria-label="Abrir menú del panel"
+            class="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent-deep hover:text-accent-deep"
+          >
+            <svg lucideMenu class="h-4 w-4" />
+          </button>
+          <button type="button" (click)="logout()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
+            <svg lucideLogOut class="h-4 w-4" /> Salir
+          </button>
+        </div>
+      </div>
+
+      @if (mobileMenuOpen()) {
+        <nav class="absolute inset-x-4 top-full z-30 rounded-2xl border border-border bg-secondary p-2 shadow-lg" aria-label="Navegación móvil del panel">
+          @for (item of navItems; track item.link) {
+            <a
+              [routerLink]="item.link"
+              [routerLinkActiveOptions]="{ exact: item.exact }"
+              routerLinkActive="bg-background text-foreground"
+              (click)="toggleMobileMenu()"
+              class="block rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </nav>
+      }
     </header>
     <main class="flex-1 p-5 md:p-10">
       <router-outlet />
