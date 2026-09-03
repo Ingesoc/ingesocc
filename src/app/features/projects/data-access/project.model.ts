@@ -26,3 +26,55 @@ export function projectCoverUrl(project: Project): string {
     ''
   );
 }
+
+/** Opción de categoría cargada desde la tabla `categories` (plan 3.1). */
+export interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  sortOrder: number;
+}
+
+/** Imagen de proyecto vista por el admin (con id y ruta de storage). */
+export interface AdminProjectImage {
+  id: string;
+  storagePath: string;
+  url: string;
+  isCover: boolean;
+  sortOrder: number;
+}
+
+/** Proyecto completo visto por el admin (incluye borradores). */
+export interface AdminProject {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  priceMinWages: number | null;
+  status: ProjectStatus;
+  featured: boolean;
+  sortOrder: number;
+  categoryIds: string[];
+  images: AdminProjectImage[];
+}
+
+/** Campos que el admin diligencia al crear/editar (plan 1.2). */
+export interface ProjectInput {
+  title: string;
+  slug: string;
+  description: string;
+  priceMinWages: number | null;
+  status: ProjectStatus;
+  featured: boolean;
+  sortOrder: number;
+}
+
+/** Slug a partir del título (minúsculas, sin acentos, guiones). */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

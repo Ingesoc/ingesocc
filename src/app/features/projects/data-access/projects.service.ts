@@ -1,6 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
-import type { Project, ProjectImage } from './project.model';
+import {
+  slugify,
+  type AdminProject,
+  type AdminProjectImage,
+  type CategoryOption,
+  type Project,
+  type ProjectImage,
+  type ProjectInput,
+} from './project.model';
 
 /**
  * Catálogo de proyectos (tabla `projects` del plan, sección 3.2).
@@ -207,6 +215,15 @@ export class ProjectsService {
 
   private readonly projects = signal<Project[]>(SEED_PROJECTS);
 
+  /** Todos los proyectos visto por el admin (incluye borradores). */
+  private readonly adminProjectsSignal = signal<AdminProject[]>([]);
+
+  /** Categorías disponibles para asignar (tabla `categories`). */
+  private readonly categoriesSignal = signal<CategoryOption[]>([]);
+
+  readonly adminProjects = this.adminProjectsSignal.asReadonly();
+  readonly categories = this.categoriesSignal.asReadonly();
+
   /** Proyectos publicados, en orden manual del admin. */
   readonly published = computed(() =>
     this.projects()
@@ -223,6 +240,12 @@ export class ProjectsService {
 
   constructor() {
     void this.load();
+    void this.loadCategories();
+  }
+
+  /** Recarga todo lo que consume el panel admin y el sitio público. */
+  async refreshAll(): Promise<void> {
+    await Promise.all([this.load(), this.loadAll(), this.loadCategories()]);
   }
 
   /** Carga proyectos + categorías + imágenes desde Supabase; si falla, mantiene el seed. */
@@ -284,5 +307,189 @@ export class ProjectsService {
         images: imagesByProject.get(row.id) ?? [],
       })),
     );
+  }
+
+  /** Carga TODOS los proyectos para el panel admin (RLS permite todo a rol admin). */
+  async loadAll(): Promise<void> {
+    const client = this.supabase.client;
+
+    const { data: rows, error } = await client
+      .from('projects')
+      .select('id, title, slug, description, price_min_wages, status, featured, sort_order')
+      .order('sort_order');
+
+    if (error) {
+      console.warn('[projects/admin] sin datos:', error.message);
+      return;
+    }
+    if (!rows || rows.length === 0) {
+      this.adminProjectsSignal.set([]);
+      return;
+    }
+
+    const { data: links } = await client.from('project_categories').select('project_id, category_id');
+    const { data: images } = await client
+      .from('project_images')
+      .select('id, project_id, storage_path, is_cover, sort_order')
+      .order('sort_order');
+
+    const categoryIdsByProject = new Map<string, string[]>();
+    for (const link of (links ?? []) as { project_id: string; category_id: string }[]) {
+      const list = categoryIdsByProject.get(link.project_id) ?? [];
+      list.push(link.category_id);
+      categoryIdsByProject.set(link.project_id, list);
+    }
+
+    const imagesByProject = new Map<string, AdminProjectImage[]>();
+    for (const image of (images ?? []) as {
+      id: string;
+      project_id: string;
+      storage_path: string;
+      is_cover: boolean;
+      sort_order: number;
+    }[]) {
+      const list = imagesByProject.get(image.project_id) ?? [];
+      list.push({
+        id: image.id,
+        storagePath: image.storage_path,
+        url: this.supabase.resolvePublicUrl('project-images', image.storage_path),
+        isCover: image.is_cover,
+        sortOrder: image.sort_order,
+      });
+      imagesByProject.set(image.project_id, list);
+    }
+
+    this.adminProjectsSignal.set(
+      (rows as ProjectRow[]).map((row) => ({
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        description: row.description,
+        priceMinWages: row.price_min_wages != null ? Number(row.price_min_wages) : null,
+        status: row.status,
+        featured: row.featured,
+        sortOrder: row.sort_order,
+        categoryIds: categoryIdsByProject.get(row.id) ?? [],
+        images: imagesByProject.get(row.id) ?? [],
+      })),
+    );
+  }
+
+  /** Carga las categorías; si la tabla no existe, respaldo con las 4 del plan. */
+  async loadCategories(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('categories')
+      .select('id, name, slug, sort_order')
+      .order('sort_order');
+
+    if (error || !data || data.length === 0) {
+      if (error) {
+        console.warn('[projects] categorías: respaldo estático:', error.message);
+      }
+      this.categoriesSignal.set(
+        PROJECT_CATEGORIES.map((name, index) => ({
+          id: slugify(name),
+          name,
+          slug: slugify(name),
+          sortOrder: index + 1,
+        })),
+      );
+      return;
+    }
+
+    this.categoriesSignal.set(
+      (data as { id: string; name: string; slug: string; sort_order: number }[]).map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        sortOrder: row.sort_order,
+      })),
+    );
+  }
+
+  /** Crea un proyecto y devuelve su id. */
+  async createProject(input: ProjectInput): Promise<string> {
+    const { data, error } = await this.supabase.client
+      .from('projects')
+      .insert(input)
+      .select('id')
+      .single();
+    if (error) throw new Error(error.message);
+    return (data as { id: string }).id;
+  }
+
+  /** Actualiza los datos básicos de un proyecto. */
+  async updateProject(id: string, input: ProjectInput): Promise<void> {
+    const { error } = await this.supabase.client.from('projects').update(input).eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Elimina un proyecto (cascade a project_images/project_categories) + objetos de storage. */
+  async deleteProject(id: string): Promise<void> {
+    const project = this.adminProjectsSignal().find((item) => item.id === id);
+    const paths = (project?.images ?? []).map((image) => image.storagePath).filter(Boolean);
+    if (paths.length > 0) {
+      await this.supabase.client.storage.from('project-images').remove(paths);
+    }
+    const { error } = await this.supabase.client.from('projects').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Reemplaza las categorías asignadas a un proyecto (plan 1.2: una o varias). */
+  async replaceCategories(projectId: string, categoryIds: string[]): Promise<void> {
+    const client = this.supabase.client;
+    await client.from('project_categories').delete().eq('project_id', projectId);
+    if (categoryIds.length > 0) {
+      const { error } = await client.from('project_categories').insert(
+        categoryIds.map((categoryId) => ({ project_id: projectId, category_id: categoryId })),
+      );
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  /** Sube una imagen al bucket project-images y registra su fila; devuelve el id de la fila. */
+  async addProjectImage(projectId: string, file: File): Promise<string> {
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const path = `${projectId}/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await this.supabase.client.storage
+      .from('project-images')
+      .upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data, error } = await this.supabase.client
+      .from('project_images')
+      .insert({ project_id: projectId, storage_path: path, is_cover: false, sort_order: 0 })
+      .select('id')
+      .single();
+    if (error) throw new Error(error.message);
+    return (data as { id: string }).id;
+  }
+
+  /** Elimina una imagen: objeto de storage + fila de project_images. */
+  async removeProjectImage(imageId: string, storagePath: string): Promise<void> {
+    if (storagePath) {
+      await this.supabase.client.storage.from('project-images').remove([storagePath]);
+    }
+    const { error } = await this.supabase.client.from('project_images').delete().eq('id', imageId);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Sincroniza orden y portada de las imágenes de un proyecto. */
+  async syncProjectImages(
+    projectId: string,
+    rows: { id: string; sortOrder: number; isCover: boolean }[],
+  ): Promise<void> {
+    for (const row of rows) {
+      const { error } = await this.supabase.client
+        .from('project_images')
+        .update({ sort_order: row.sortOrder, is_cover: row.isCover })
+        .eq('id', row.id);
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  /** Busca un proyecto por id entre TODOS (incluye borradores, para el panel). */
+  byId(id: string): AdminProject | undefined {
+    return this.adminProjectsSignal().find((item) => item.id === id);
   }
 }

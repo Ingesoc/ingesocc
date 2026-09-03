@@ -6,11 +6,7 @@ import { ServicesPageComponent } from './features/services/public/services-page.
 import { ProjectsPageComponent } from './features/projects/public/projects-page.component';
 import { ProjectDetailComponent } from './features/projects/public/project-detail.component';
 import { ContactComponent } from './features/contact/contact.component';
-import { LoginComponent } from './features/auth/login.component';
 import { authGuard } from './features/auth/auth.guard';
-import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
-import { AdminDashboardComponent } from './features/admin/admin-dashboard.component';
-import { AdminPlaceholderComponent } from './features/admin/admin-placeholder.component';
 
 /** Rutas públicas (plan, sección 6). */
 export const routes: Routes = [
@@ -28,26 +24,34 @@ export const routes: Routes = [
   },
 
   /** Admin: /admin/login es público; el resto exige sesión con rol admin (authGuard). */
-  { path: 'admin/login', component: LoginComponent },
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./features/auth/login.component').then((m) => m.LoginComponent),
+  },
   {
     path: 'admin',
-    component: AdminLayoutComponent,
+    loadComponent: () =>
+      import('./layouts/admin-layout/admin-layout.component').then((m) => m.AdminLayoutComponent),
     canActivate: [authGuard],
     children: [
-      { path: '', component: AdminDashboardComponent },
       {
-        path: 'proyectos',
-        component: AdminPlaceholderComponent,
-        data: {
-          title: 'CRUD Proyectos',
-          phase: 'Fase 4',
-          description:
-            'Listar, crear, editar y eliminar proyectos, subir imágenes, asignar categorías, destacar en el Home y paginar el listado público.',
-        },
+        path: '',
+        loadComponent: () =>
+          import('./features/admin/admin-dashboard.component').then((m) => m.AdminDashboardComponent),
       },
       {
+        path: 'proyectos',
+        loadComponent: () =>
+          import('./features/projects/admin/projects-admin-page.component').then(
+            (m) => m.ProjectsAdminPageComponent,
+          ),
+      },
+      { path: 'proyectos/nuevo', loadComponent: () => import('./features/projects/admin/project-form.component').then((m) => m.ProjectFormComponent) },
+      { path: 'proyectos/:id', loadComponent: () => import('./features/projects/admin/project-form.component').then((m) => m.ProjectFormComponent) },
+      {
         path: 'servicios',
-        component: AdminPlaceholderComponent,
+        loadComponent: () =>
+          import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
         data: {
           title: 'CRUD Servicios',
           phase: 'Fase 5',
@@ -56,7 +60,8 @@ export const routes: Routes = [
       },
       {
         path: 'contenido',
-        component: AdminPlaceholderComponent,
+        loadComponent: () =>
+          import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
         data: {
           title: 'Contenido editable',
           phase: 'Fase 6',
@@ -66,7 +71,8 @@ export const routes: Routes = [
       },
       {
         path: 'mensajes',
-        component: AdminPlaceholderComponent,
+        loadComponent: () =>
+          import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
         data: {
           title: 'Bandeja de mensajes',
           phase: 'Fase 7',
