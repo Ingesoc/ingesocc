@@ -68,8 +68,16 @@ alter table public.profiles enable row level security;
 create policy "profiles_select_own" on public.profiles
   for select using (id = auth.uid());
 
+-- Cada usuario puede actualizar su propia fila, pero NUNCA su rol: el with check
+-- (id = auth.uid() and role = 'user') impide la auto-promoción a 'admin' (sin with
+-- check, una policy FOR UPDATE lo hereda del using y cualquiera podía ejecutar
+-- `update profiles set role = 'admin' where id = auth.uid()`). El rol se asigna
+-- por SQL con rol postgres/dashboard, nunca desde el cliente. El bloque drop +
+-- create permite re-aplicar solo este fix sobre una DB ya creada.
+drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own" on public.profiles
-  for update using (id = auth.uid());
+  for update using (id = auth.uid())
+  with check (id = auth.uid() and role = 'user');
 
 -- ----------------------------------------------------------------------------
 -- 2. categories (sección 3.1 del plan)
@@ -213,6 +221,13 @@ create policy "contact_messages_admin_select" on public.contact_messages
 
 create policy "contact_messages_admin_update" on public.contact_messages
   for update using (public.is_admin());
+
+-- Sin una política de delete, el DELETE de la bandeja admin afecta 0 filas por RLS
+-- (el inbox lo quitaba de la UI de forma optimista y el mensaje reaparecía al
+-- recargar). Solo admin puede borrar.
+drop policy if exists "contact_messages_admin_delete" on public.contact_messages;
+create policy "contact_messages_admin_delete" on public.contact_messages
+  for delete using (public.is_admin());
 
 -- Escritura solo admin
 create policy "categories_admin_all" on public.categories
