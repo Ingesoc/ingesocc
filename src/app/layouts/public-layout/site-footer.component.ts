@@ -1,9 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
+import { EditableTextComponent } from '../../features/content-blocks/editable-text.component';
 
 @Component({
   selector: 'app-site-footer',
   standalone: true,
+  imports: [EditableTextComponent],
   templateUrl: './site-footer.component.html',
 })
 export class SiteFooterComponent {

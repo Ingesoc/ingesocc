@@ -1,12 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
+import { EditableTextComponent } from '../content-blocks/editable-text.component';
 import { ContactMessagesService } from './data-access/contact-messages.service';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, EditableTextComponent],
   templateUrl: './contact.component.html',
 })
 export class ContactComponent {

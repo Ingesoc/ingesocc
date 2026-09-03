@@ -1,0 +1,16 @@
+@if (canEdit()) {
+  <button
+    type="button"
+    (click)="toggle()"
+    [attr.aria-pressed]="isEditing()"
+    [class]="isEditing()
+      ? 'fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-xs font-bold uppercase tracking-widest text-primary shadow-lg'
+      : 'fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-xs font-bold uppercase tracking-widest text-white shadow-lg'"
+  >
+    @if (isEditing()) {
+      <svg lucideX class="h-4 w-4" /> Terminar edición
+    } @else {
+      <svg lucidePencil class="h-4 w-4" /> Modo edición
+    }
+  </button>
+}

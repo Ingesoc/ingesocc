@@ -1,8 +1,8 @@
 <section class="relative bg-primary px-5 pb-20 pt-40 text-white md:px-10 md:pb-28">
   <div class="mx-auto max-w-[1440px]">
     <p class="mb-6 text-xs font-semibold uppercase tracking-[0.28em] text-accent">Hablemos</p>
-    <h1 class="text-balance text-5xl font-bold leading-[0.95] tracking-[-0.055em] md:text-7xl">{{ title() }}</h1>
-    <p class="mt-6 max-w-xl text-base leading-7 text-white/75">{{ subtitle() }}</p>
+    <h1 class="text-balance text-5xl font-bold leading-[0.95] tracking-[-0.055em] md:text-7xl"><app-editable-text page="contact" sectionKey="title" [fallback]="title()" /></h1>
+    <p class="mt-6 max-w-xl text-base leading-7 text-white/75"><app-editable-text page="contact" sectionKey="subtitle" [fallback]="subtitle()" /></p>
   </div>
 </section>
 
@@ -63,22 +63,22 @@
         </form>
       }
 
-      <p class="mt-6 text-xs leading-5 text-muted-foreground">{{ privacyNote() }}</p>
+      <p class="mt-6 text-xs leading-5 text-muted-foreground"><app-editable-text page="contact" sectionKey="privacy_note" [fallback]="privacyNote()" /></p>
     </div>
 
     <aside class="md:col-span-4 md:col-start-9">
       <p class="mb-8 text-xs font-bold uppercase tracking-[0.25em] text-accent">Información de contacto</p>
       <div class="border-t border-border py-6">
         <p class="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Escríbanos</p>
-        <a [href]="'mailto:' + email()" class="text-sm transition-colors hover:text-accent">{{ email() }}</a>
+        <a [href]="'mailto:' + email()" class="text-sm transition-colors hover:text-accent"><app-editable-text page="contact" sectionKey="email" [fallback]="email()" /></a>
       </div>
       <div class="border-t border-border py-6">
         <p class="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Llámenos</p>
-        <a [href]="'tel:' + phone()" class="text-sm transition-colors hover:text-accent">{{ phone() }}</a>
+        <a [href]="'tel:' + phone()" class="text-sm transition-colors hover:text-accent"><app-editable-text page="contact" sectionKey="phone" [fallback]="phone()" /></a>
       </div>
       <div class="border-t border-border py-6">
         <p class="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Encuéntrenos</p>
-        <p class="text-sm">{{ address() }}</p>
+        <p class="text-sm"><app-editable-text page="contact" sectionKey="address" [fallback]="address()" /></p>
       </div>
     </aside>
   </div>

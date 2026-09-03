@@ -152,4 +152,73 @@ export class ContentBlocksService {
   image(page: string, sectionKey: string, fallback = ''): string {
     return this.block(page, sectionKey)?.valueImagePath ?? fallback;
   }
+
+  /**
+   * Persiste un cambio de bloque en `content_blocks` (plan 7.3/7.4).
+   * Si la tabla aún no existe en Supabase, aplica el cambio en memoria
+   * para que el modo edición funcione igual en desarrollo.
+   */
+  async updateBlock(
+    page: string,
+    sectionKey: string,
+    changes: { valueText?: string | null; valueNumber?: number | null; valueImagePath?: string | null },
+  ): Promise<void> {
+    const type: ContentBlock['type'] =
+      changes.valueImagePath != null ? 'image' : changes.valueNumber != null ? 'number' : 'text';
+    const existing = this.block(page, sectionKey);
+
+    if (existing) {
+      const { error } = await this.supabase.client
+        .from('content_blocks')
+        .update(changes)
+        .eq('page', page)
+        .eq('section_key', sectionKey);
+      if (!error) {
+        // Sin sobrescribir `type`: se conserva el del bloque existente (richtext, number, image…).
+        this.applyLocalUpdate(page, sectionKey, changes);
+        return;
+      }
+      console.warn('[content_blocks] cambio en memoria (tabla sin aplicar):', error.message);
+    } else {
+      const { error } = await this.supabase.client.from('content_blocks').insert({
+        page,
+        section_key: sectionKey,
+        type,
+        ...changes,
+      });
+      if (!error) {
+        await this.load();
+        return;
+      }
+      console.warn('[content_blocks] insert en memoria (tabla sin aplicar):', error.message);
+    }
+
+    this.applyLocalUpdate(page, sectionKey, { ...changes, type });
+  }
+
+  private applyLocalUpdate(
+    page: string,
+    sectionKey: string,
+    changes: Partial<ContentBlock>,
+  ): void {
+    this.blocks.update((blocks) => {
+      const index = blocks.findIndex((b) => b.page === page && b.sectionKey === sectionKey);
+      if (index >= 0) {
+        const updated = [...blocks];
+        updated[index] = { ...updated[index], ...changes };
+        return updated;
+      }
+      return [
+        ...blocks,
+        {
+          page,
+          sectionKey,
+          type: (changes.type as ContentBlock['type']) ?? 'text',
+          valueText: changes.valueText ?? null,
+          valueNumber: changes.valueNumber ?? null,
+          valueImagePath: changes.valueImagePath ?? null,
+        },
+      ];
+    });
+  }
 }

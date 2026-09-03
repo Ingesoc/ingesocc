@@ -8,7 +8,7 @@
       @for (item of navItems; track item.link) {
         <a [routerLink]="item.link" routerLinkActive="text-accent" [routerLinkActiveOptions]="{ exact: item.link === '/' }" class="transition-colors hover:text-accent">{{ item.label }}</a>
       }
-      <a routerLink="/contacto" class="rounded-full border border-white/50 px-5 py-3 transition-colors hover:border-accent hover:bg-accent hover:text-primary-foreground">{{ ctaLabel() }}</a>
+      <a routerLink="/contacto" class="rounded-full border border-white/50 px-5 py-3 transition-colors hover:border-accent hover:bg-accent hover:text-primary-foreground"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /></a>
     </nav>
     <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-white/50 lg:hidden" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Abrir menú">
       <svg lucideMenu class="h-5 w-5" />
@@ -19,7 +19,7 @@
       @for (item of navItems; track item.link) {
         <a [routerLink]="item.link" (click)="toggleMenu()">{{ item.label }}</a>
       }
-      <a routerLink="/contacto" (click)="toggleMenu()" class="text-accent">{{ ctaLabel() }}</a>
+      <a routerLink="/contacto" (click)="toggleMenu()" class="text-accent"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /></a>
     </nav>
   }
 </header>

@@ -2,6 +2,8 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight, LucideChevronDown } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
+import { EditableTextComponent } from '../content-blocks/editable-text.component';
+import { EditableImageComponent } from '../content-blocks/editable-image.component';
 import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
@@ -19,7 +21,7 @@ const MASONRY_CLASSES = [
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, ProjectCardComponent],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, ProjectCardComponent, EditableTextComponent, EditableImageComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
@@ -40,14 +42,17 @@ export class HomeComponent {
   readonly capacidadDescription = computed(() => this.blocks.text('home', 'capacidad.description', ''));
   readonly capacidadCards = computed(() => [
     {
+      key: 'card1',
       title: this.blocks.text('home', 'capacidad.card1.title'),
       description: this.blocks.text('home', 'capacidad.card1.description'),
     },
     {
+      key: 'card2',
       title: this.blocks.text('home', 'capacidad.card2.title'),
       description: this.blocks.text('home', 'capacidad.card2.description'),
     },
     {
+      key: 'card3',
       title: this.blocks.text('home', 'capacidad.card3.title'),
       description: this.blocks.text('home', 'capacidad.card3.description'),
     },

@@ -1,0 +1,53 @@
+@if (isEditingMode()) {
+  @if (editing()) {
+    <span class="inline-flex flex-col gap-1" (click)="$event.stopPropagation()">
+      @if (isNumber()) {
+        <input
+          type="number"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          class="w-full rounded-sm border border-accent bg-background px-2 py-1 text-sm text-foreground outline-none"
+        />
+      } @else if (multiline()) {
+        <textarea
+          rows="3"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          class="w-full rounded-sm border border-accent bg-background px-2 py-1 text-sm text-foreground outline-none"
+        ></textarea>
+      } @else {
+        <input
+          type="text"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          class="w-full rounded-sm border border-accent bg-background px-2 py-1 text-sm text-foreground outline-none"
+        />
+      }
+      <span class="flex items-center gap-1">
+        <button type="button" (click)="save()" [disabled]="saving()" class="flex h-6 w-6 items-center justify-center rounded-sm bg-accent text-primary disabled:opacity-50" title="Guardar">
+          <svg lucideCheck class="h-3.5 w-3.5" />
+        </button>
+        <button type="button" (click)="cancel()" class="flex h-6 w-6 items-center justify-center rounded-sm bg-secondary text-muted-foreground" title="Cancelar">
+          <svg lucideX class="h-3.5 w-3.5" />
+        </button>
+        @if (error()) {
+          <span class="text-[10px] font-semibold text-accent">{{ error() }}</span>
+        }
+      </span>
+    </span>
+  } @else {
+    <span class="group relative inline-flex items-center gap-1.5">
+      {{ value() }}
+      <button
+        type="button"
+        (click)="startEdit(); $event.stopPropagation(); $event.preventDefault()"
+        class="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-accent text-primary opacity-60 transition-opacity hover:opacity-100"
+        title="Editar"
+      >
+        <svg lucidePencil class="h-3 w-3" />
+      </button>
+    </span>
+  }
+} @else {
+  {{ value() }}
+}

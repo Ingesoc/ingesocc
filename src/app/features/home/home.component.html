@@ -1,15 +1,15 @@
 <main class="min-h-screen overflow-hidden bg-background text-foreground">
   <section id="inicio" class="relative flex min-h-[720px] items-end bg-primary px-5 pb-16 pt-32 text-white md:min-h-screen md:px-10 md:pb-20">
-    <img [src]="heroBackground()" alt="" class="absolute inset-0 h-full w-full object-cover opacity-55" />
+    <app-editable-image page="home" sectionKey="hero.background_image" [fallback]="heroBackground()" [fill]="true" imageClass="opacity-55" />
     <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-primary/10"></div>
     <div class="relative mx-auto grid w-full max-w-[1440px] gap-10 md:grid-cols-12 md:items-end">
       <div class="md:col-span-9">
         <p class="mb-6 text-xs font-semibold uppercase tracking-[0.28em] text-accent">Arquitectura · Ingeniería · Construcción</p>
-        <h1 class="max-w-4xl text-balance font-sans text-5xl font-bold leading-[0.95] tracking-[-0.055em] md:text-8xl lg:text-[7.5rem]">{{ heroTitle() }}</h1>
+        <h1 class="max-w-4xl text-balance font-sans text-5xl font-bold leading-[0.95] tracking-[-0.055em] md:text-8xl lg:text-[7.5rem]"><app-editable-text page="home" sectionKey="hero.title" [fallback]="heroTitle()" /></h1>
       </div>
       <div class="md:col-span-3 md:pb-2">
-        <p class="max-w-xs text-sm leading-6 text-white/75">{{ heroSubtitle() }}</p>
-        <a routerLink="/contacto" class="mt-6 inline-flex items-center gap-2 border-b border-accent pb-2 text-xs font-bold uppercase tracking-[0.18em] text-accent">{{ heroCtaLabel() }} <svg lucideArrowUpRight class="h-4 w-4" /></a>
+        <p class="max-w-xs text-sm leading-6 text-white/75"><app-editable-text page="home" sectionKey="hero.subtitle" [fallback]="heroSubtitle()" /></p>
+        <a routerLink="/contacto" class="mt-6 inline-flex items-center gap-2 border-b border-accent pb-2 text-xs font-bold uppercase tracking-[0.18em] text-accent"><app-editable-text page="home" sectionKey="hero.cta_label" [fallback]="heroCtaLabel()" /> <svg lucideArrowUpRight class="h-4 w-4" /></a>
       </div>
     </div>
     <a href="#stats" class="absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-white/60"><span>Descubrir</span><svg lucideChevronDown class="h-4 w-4 animate-bounce" /></a>
@@ -18,15 +18,15 @@
   <section id="stats" class="bg-secondary px-5 py-16 md:px-10">
     <div class="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 sm:grid-cols-3">
       <div class="text-center md:text-left">
-        <p class="text-5xl font-bold tracking-[-0.08em]">{{ years() }}<span class="text-accent">+</span></p>
+        <p class="text-5xl font-bold tracking-[-0.08em]"><app-editable-text page="home" sectionKey="stats.years_experience" [fallback]="years()" /><span class="text-accent">+</span></p>
         <p class="mt-2 text-xs uppercase tracking-widest text-muted-foreground">Años de experiencia</p>
       </div>
       <div class="text-center md:text-left">
-        <p class="text-5xl font-bold tracking-[-0.08em]">{{ projectsExecuted() }}<span class="text-accent">+</span></p>
+        <p class="text-5xl font-bold tracking-[-0.08em]"><app-editable-text page="home" sectionKey="stats.projects_executed" [fallback]="projectsExecuted()" /><span class="text-accent">+</span></p>
         <p class="mt-2 text-xs uppercase tracking-widest text-muted-foreground">Proyectos ejecutados</p>
       </div>
       <div class="text-center md:text-left">
-        <p class="text-5xl font-bold tracking-[-0.08em]">{{ sectorsServed() }}<span class="text-accent">+</span></p>
+        <p class="text-5xl font-bold tracking-[-0.08em]"><app-editable-text page="home" sectionKey="stats.sectors_served" [fallback]="sectorsServed()" /><span class="text-accent">+</span></p>
         <p class="mt-2 text-xs uppercase tracking-widest text-muted-foreground">Sectores atendidos</p>
       </div>
     </div>
@@ -77,15 +77,15 @@
       <div class="mb-14 grid gap-6 md:grid-cols-12">
         <p class="text-xs font-bold uppercase tracking-[0.25em] text-accent md:col-span-2">03 / Capacidad</p>
         <div class="md:col-span-9">
-          <h2 class="text-4xl font-bold tracking-[-0.04em] md:text-6xl">{{ capacidadTitle() }}</h2>
-          <p class="mt-6 max-w-2xl text-base leading-7 text-muted-foreground">{{ capacidadDescription() }}</p>
+          <h2 class="text-4xl font-bold tracking-[-0.04em] md:text-6xl"><app-editable-text page="home" sectionKey="capacidad.title" [fallback]="capacidadTitle()" /></h2>
+          <p class="mt-6 max-w-2xl text-base leading-7 text-muted-foreground"><app-editable-text page="home" sectionKey="capacidad.description" [fallback]="capacidadDescription()" [multiline]="true" /></p>
         </div>
       </div>
       <div class="grid gap-6 md:grid-cols-3">
-        @for (card of capacidadCards(); track card.title) {
+        @for (card of capacidadCards(); track card.key) {
           <div class="bg-background p-8">
-            <h3 class="text-xl font-bold tracking-tight">{{ card.title }}</h3>
-            <p class="mt-4 text-sm leading-6 text-muted-foreground">{{ card.description }}</p>
+            <h3 class="text-xl font-bold tracking-tight"><app-editable-text [page]="'home'" [sectionKey]="'capacidad.' + card.key + '.title'" [fallback]="card.title" /></h3>
+            <p class="mt-4 text-sm leading-6 text-muted-foreground"><app-editable-text [page]="'home'" [sectionKey]="'capacidad.' + card.key + '.description'" [fallback]="card.description" [multiline]="true" /></p>
           </div>
         }
       </div>
@@ -96,8 +96,8 @@
     <div class="mx-auto max-w-[1440px]">
       <div class="max-w-4xl">
         <p class="mb-5 text-xs font-bold uppercase tracking-[0.25em] text-accent">04 / Hablemos</p>
-        <h2 class="text-balance text-5xl font-bold leading-[0.98] tracking-[-0.055em] md:text-8xl">{{ ctaTitle() }}</h2>
-        <a routerLink="/contacto" class="mt-10 inline-flex items-center gap-3 rounded-full bg-accent px-7 py-4 text-sm font-bold text-primary transition-transform hover:scale-105">{{ ctaLabel() }} <svg lucideArrowUpRight class="h-5 w-5" /></a>
+        <h2 class="text-balance text-5xl font-bold leading-[0.98] tracking-[-0.055em] md:text-8xl"><app-editable-text page="home" sectionKey="cta.title" [fallback]="ctaTitle()" /></h2>
+        <a routerLink="/contacto" class="mt-10 inline-flex items-center gap-3 rounded-full bg-accent px-7 py-4 text-sm font-bold text-primary transition-transform hover:scale-105"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /> <svg lucideArrowUpRight class="h-5 w-5" /></a>
       </div>
     </div>
   </section>

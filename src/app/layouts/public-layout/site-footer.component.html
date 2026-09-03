@@ -8,9 +8,9 @@
       </div>
     </div>
     <div class="flex gap-6 text-xs uppercase tracking-widest text-white/60">
-      <a [href]="instagram()" target="_blank" rel="noopener" class="hover:text-accent">Instagram</a>
-      <a [href]="linkedin()" target="_blank" rel="noopener" class="hover:text-accent">LinkedIn</a>
-      <a [href]="facebook()" target="_blank" rel="noopener" class="hover:text-accent">Facebook</a>
+      <a [href]="instagram()" target="_blank" rel="noopener" class="hover:text-accent"><app-editable-text page="global" sectionKey="social_instagram" [fallback]="instagram()" /></a>
+      <a [href]="linkedin()" target="_blank" rel="noopener" class="hover:text-accent"><app-editable-text page="global" sectionKey="social_linkedin" [fallback]="linkedin()" /></a>
+      <a [href]="facebook()" target="_blank" rel="noopener" class="hover:text-accent"><app-editable-text page="global" sectionKey="social_facebook" [fallback]="facebook()" /></a>
       <span>© {{ year }}</span>
     </div>
   </div>

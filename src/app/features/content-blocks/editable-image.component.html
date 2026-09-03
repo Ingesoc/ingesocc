@@ -1,0 +1,19 @@
+<div class="group relative overflow-hidden" [class]="wrapperClass()">
+  @if (image()) {
+    <img [src]="image()" [alt]="alt()" class="h-full w-full object-cover" [class]="imageClass()" />
+  } @else {
+    <div class="flex h-full w-full items-center justify-center bg-secondary text-muted-foreground"></div>
+  }
+
+  @if (isEditingMode()) {
+    <label class="absolute inset-0 flex cursor-pointer items-center justify-center bg-primary/60 text-white opacity-0 transition-opacity group-hover:opacity-100">
+      <span class="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary">
+        <svg lucideImagePlus class="h-4 w-4" /> {{ uploading() ? 'Subiendo…' : 'Cambiar imagen' }}
+      </span>
+      <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)" />
+    </label>
+    @if (error()) {
+      <p class="absolute inset-x-0 bottom-0 bg-accent px-3 py-1 text-center text-[10px] font-semibold text-primary">{{ error() }}</p>
+    }
+  }
+</div>

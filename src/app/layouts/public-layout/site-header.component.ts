@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideMenu } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
+import { EditableTextComponent } from '../../features/content-blocks/editable-text.component';
 
 /** Navegación única del sitio, 100% en español (plan 1.1). */
 const NAV_ITEMS = [
@@ -15,7 +16,7 @@ const NAV_ITEMS = [
 @Component({
   selector: 'app-site-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, LucideMenu],
+  imports: [RouterLink, RouterLinkActive, LucideMenu, EditableTextComponent],
   templateUrl: './site-header.component.html',
 })
 export class SiteHeaderComponent {

@@ -14,12 +14,60 @@ export const routes: Routes = [
     path: '',
     component: PublicLayoutComponent,
     children: [
-      { path: '', component: HomeComponent },
-      { path: 'quienes-somos', component: AboutComponent },
-      { path: 'servicios', component: ServicesPageComponent },
-      { path: 'proyectos', component: ProjectsPageComponent },
-      { path: 'proyectos/:slug', component: ProjectDetailComponent },
-      { path: 'contacto', component: ContactComponent },
+      {
+        path: '',
+        component: HomeComponent,
+        data: {
+          title: 'Inicio',
+          description:
+            'Arquitectura, ingeniería y construcción con propósito. Conozca los proyectos y servicios de Ingesocc S.A.S. en Colombia.',
+        },
+      },
+      {
+        path: 'quienes-somos',
+        component: AboutComponent,
+        data: {
+          title: 'Quiénes Somos',
+          description:
+            'Trayectoria, misión, visión y equipo de Ingesocc S.A.S.: más de 15 años construyendo infraestructura, industria y salud.',
+        },
+      },
+      {
+        path: 'servicios',
+        component: ServicesPageComponent,
+        data: {
+          title: 'Servicios',
+          description:
+            'Proyectos de infraestructura, hospitalarios, industriales, de vivienda, consultoría y diseño, y fabricación metálica a medida.',
+        },
+      },
+      {
+        path: 'proyectos',
+        component: ProjectsPageComponent,
+        data: {
+          title: 'Proyectos',
+          description:
+            'Portafolio de obras de Ingesocc S.A.S.: puentes, estructuras metálicas, edificaciones y proyectos especiales ejecutados.',
+        },
+      },
+      {
+        path: 'proyectos/:slug',
+        component: ProjectDetailComponent,
+        data: {
+          title: 'Proyectos',
+          description:
+            'Detalle de un proyecto ejecutado por Ingesocc S.A.S.: descripción, valor y galería de imágenes.',
+        },
+      },
+      {
+        path: 'contacto',
+        component: ContactComponent,
+        data: {
+          title: 'Contacto',
+          description:
+            'Solicite una cotización o escríbanos: cuéntenos sobre su proyecto y le responderemos a la brevedad.',
+        },
+      },
     ],
   },
 
@@ -71,9 +119,9 @@ export const routes: Routes = [
           import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
         data: {
           title: 'Contenido editable',
-          phase: 'Fase 6',
+          phase: 'Fase 6 — lista',
           description:
-            'Modo edición de content_blocks: reemplazar textos e imágenes en Home, Quiénes Somos y Contacto.',
+            'La edición es in-place: con sesión admin, en las páginas públicas activa el toggle flotante "Modo edición" y usa los lápices sobre cada texto/imagen (plan 1.4/§7).',
         },
       },
       {

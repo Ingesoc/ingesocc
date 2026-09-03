@@ -22,10 +22,10 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 - [x] **Fase 3** — Login admin + `authGuard` (`CanActivateFn`) + layout admin (auth real vía Supabase Auth, rol desde `profiles`)
 - [x] **Fase 4** — CRUD Proyectos contra Supabase: listar (con borradores), crear, editar, eliminar, subir imágenes al bucket con compresión y portada, asignar categorías, destacar y estado draft/published (la paginación pública "Cargar Más" ya estaba en Fase 2, 1.2.3)
 - [x] **Fase 5** — CRUD Servicios contra Supabase: listar (con borradores), crear, editar, eliminar, subir/quitar foto al bucket, ícono de respaldo y estado draft/published
-- [ ] **Fase 6** — Modo edición de `content_blocks` (EditableText/EditableImage + EditModeService)
+- [x] **Fase 6** — Modo edición de `content_blocks` (plan §7): `EditModeService` + toggle flotante solo-admin + `EditableText`/`EditableImage` integrados en Home, Quiénes Somos, Contacto y el header/footer global (timeline y equipo como slots fijos, plan 1.4)
 - [x] **Fase 7** — Formulario de contacto guardando en `contact_messages` (insert público por RLS, validación plan 1.5) + bandeja admin con leído/no leído y eliminación
-- [ ] **Fase 8** — Proyectos destacados en Home (ya implementado con `featured`, 1.2.2) + filtros (ya implementados)
-- [ ] **Fase 9** — Datos reales, SEO, QA, despliegue
+- [x] **Fase 8** — Proyectos destacados en Home con `featured` (1.2.2) y filtros de categoría (implementados en Fases 2 y 4)
+- [x] **Fase 9** — SEO básico (títulos/descripciones por ruta, Open Graph, canonical, sitemap/robots, JSON-LD) + preparación de despliegue (Vercel). **Pendiente operativo**: reemplazar los datos de relleno (contacto, equipo, redes) por los reales — se editan en el panel sin tocar código (`content_blocks`), o en `supabase/seed.sql`
 
 ## Rutas públicas
 
@@ -50,7 +50,7 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 | `/admin/servicios` | Listado de servicios (editar/eliminar) |
 | `/admin/servicios/nuevo` | Crear servicio |
 | `/admin/servicios/:id` | Editar servicio (foto, ícono, estado) |
-| `/admin/contenido` | Editor de `content_blocks` (Fase 6) |
+| `/admin/contenido` | Nota: el contenido se edita **in-place** en las páginas públicas (toggle "Modo edición" con sesión admin) |
 | `/admin/mensajes` | Bandeja de `contact_messages` (leído/no leído, eliminar) |
 
 **Acceso admin**: crea el usuario en Supabase (Authentication → Users) y asigna `role = 'admin'` en la tabla `profiles` (ver abajo).
@@ -62,6 +62,21 @@ pnpm install
 pnpm start      # http://localhost:4200
 pnpm build      # build de producción en dist/ingesocc-web
 ```
+
+## Despliegue (Vercel)
+
+El repo incluye `vercel.json` (SPA: `outputDirectory` = `dist/ingesocc-web/browser`, URLs limpias y rewrites a `index.html` para las rutas profundas de `/proyectos/:slug`).
+
+```bash
+pnpm build
+npx vercel --prod
+```
+
+**Antes de desplegar a producción**:
+
+1. **Dominio real**: reemplazar el placeholder `https://ingesocc.com` en `src/app/core/seo.service.ts` (constante `SITE_URL`), `src/index.html` (canonical, og:image, JSON-LD) y `public/sitemap.xml` / `public/robots.txt`.
+2. **Datos reales** (plan 1.7): teléfono, email, dirección y redes de la empresa; nombres/roles del equipo — hoy son placeholders editables desde el panel (toggle "Modo edición" con sesión admin) o directamente en `supabase/seed.sql` antes de aplicarlo.
+3. **Aplicar el esquema**: `supabase/schema.sql` + `supabase/seed.sql`, crear el usuario admin y asignar `role='admin'` en `profiles` (ver sección Supabase).
 
 ## Supabase
 
@@ -83,7 +98,7 @@ src/app/
   layouts/
     public-layout/       # header (nav + CTA global) + footer (redes desde content_blocks)
   features/
-    content-blocks/      # data-access/ (modelo + servicio de content_blocks)
+    content-blocks/      # data-access/ (modelo + servicio) + EditModeService + EditableText/EditableImage + toggle
     projects/            # data-access/ (modelo + servicio) + public/ (card, listado, detalle)
     services/            # data-access/ (modelo + servicio) + public/ (card, página)
     auth/                # AuthService (data-access/), authGuard.ts, LoginComponent
