@@ -1,0 +1,48 @@
+<div class="flex min-h-screen bg-background text-foreground">
+  <aside class="hidden w-64 shrink-0 flex-col bg-primary text-white md:flex">
+    <a routerLink="/admin" class="flex items-center gap-3 px-6 py-6">
+      <img src="/ingesocc-logo.jpg" alt="Ingesocc S.A.S." width="40" height="40" class="h-10 w-10 rounded-full object-cover" />
+      <div>
+        <p class="text-sm font-bold uppercase tracking-[0.2em]">Ingesocc</p>
+        <p class="mt-0.5 text-[10px] uppercase tracking-[0.25em] text-white/50">Panel admin</p>
+      </div>
+    </a>
+
+    <nav class="flex flex-1 flex-col gap-1 px-4" aria-label="Navegación del panel">
+      <a routerLink="/admin" routerLinkActive="bg-white/10 text-white" [routerLinkActiveOptions]="{ exact: true }" class="flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+        <svg lucideLayoutDashboard class="h-4 w-4" /> Dashboard
+      </a>
+      <a routerLink="/admin/proyectos" routerLinkActive="bg-white/10 text-white" class="flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+        <svg lucideFolderKanban class="h-4 w-4" /> Proyectos
+      </a>
+      <a routerLink="/admin/servicios" routerLinkActive="bg-white/10 text-white" class="flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+        <svg lucideWrench class="h-4 w-4" /> Servicios
+      </a>
+      <a routerLink="/admin/contenido" routerLinkActive="bg-white/10 text-white" class="flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+        <svg lucidePenLine class="h-4 w-4" /> Contenido
+      </a>
+      <a routerLink="/admin/mensajes" routerLinkActive="bg-white/10 text-white" class="flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+        <svg lucideInbox class="h-4 w-4" /> Mensajes
+      </a>
+    </nav>
+
+    <div class="border-t border-white/10 px-6 py-5">
+      <p class="truncate text-xs text-white/60">{{ userEmail() }}</p>
+      <button type="button" (click)="logout()" class="mt-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/60 transition-colors hover:text-accent">
+        <svg lucideLogOut class="h-4 w-4" /> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex items-center justify-between border-b border-border bg-background px-5 py-4 md:hidden">
+      <p class="text-xs font-bold uppercase tracking-[0.2em]">Ingesocc · Panel admin</p>
+      <button type="button" (click)="logout()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent">
+        <svg lucideLogOut class="h-4 w-4" /> Salir
+      </button>
+    </header>
+    <main class="flex-1 p-5 md:p-10">
+      <router-outlet />
+    </main>
+  </div>
+</div>

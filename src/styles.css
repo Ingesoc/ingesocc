@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --font-sans: 'Arial', 'Helvetica Neue', sans-serif;
+  --font-mono: 'Courier New', monospace;
+}
+
+:root {
+  color-scheme: light;
+  --background: #f6f6f4;
+  --foreground: #171717;
+  --primary: #171717;
+  --primary-foreground: #f6f6f4;
+  --secondary: #dedede;
+  --secondary-foreground: #171717;
+  --muted: #ededeb;
+  --muted-foreground: #666664;
+  --accent: #f25623;
+  --accent-foreground: #171717;
+  --border: #d7d7d3;
+  --radius: 0.15rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, 'Helvetica Neue', sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--primary);
+}

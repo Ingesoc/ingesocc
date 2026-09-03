@@ -1,0 +1,58 @@
+<main class="flex min-h-screen items-center justify-center bg-primary px-5 py-16 text-white">
+  <div class="w-full max-w-md">
+    <div class="mb-10 flex flex-col items-center gap-4 text-center">
+      <img src="/ingesocc-logo.jpg" alt="Ingesocc S.A.S." width="64" height="64" class="h-16 w-16 rounded-full object-cover" />
+      <div>
+        <h1 class="text-2xl font-bold tracking-[-0.03em]">Panel de administración</h1>
+        <p class="mt-2 text-xs font-bold uppercase tracking-[0.25em] text-white/60">Ingesocc S.A.S.</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-5 rounded-2xl bg-background p-8 text-foreground">
+      <div>
+        <label for="email" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          formControlName="email"
+          class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
+        />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="mt-1 text-xs text-accent">Ingrese un email válido.</p>
+        }
+      </div>
+      <div>
+        <label for="password" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="mt-1 text-xs text-accent">La contraseña debe tener al menos 6 caracteres.</p>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="rounded-md border border-accent bg-secondary px-4 py-3 text-xs leading-5 text-accent">{{ error() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="loading()"
+        class="rounded-full bg-accent px-8 py-4 text-sm font-bold text-primary transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+
+      <p class="text-xs leading-5 text-muted-foreground">
+        ¿Primera vez? Crea el usuario en Supabase (Authentication → Users) y asígnale
+        <span class="font-mono text-foreground">role = 'admin'</span> en la tabla
+        <span class="font-mono text-foreground">profiles</span>.
+      </p>
+    </form>
+  </div>
+</main>

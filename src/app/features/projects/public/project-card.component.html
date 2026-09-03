@@ -1,0 +1,30 @@
+<a
+  [routerLink]="['/proyectos', project().slug]"
+  class="group relative block h-full overflow-hidden bg-primary"
+  [class]="className()"
+>
+  @if (coverUrl()) {
+    <img
+      [src]="coverUrl()"
+      [alt]="project().title"
+      class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+    />
+  } @else {
+    <div class="absolute inset-0 bg-secondary"></div>
+  }
+  <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/10 to-transparent"></div>
+  <div class="absolute inset-x-5 bottom-5 text-white md:inset-x-7 md:bottom-7">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">{{ project().categories[0] }}</p>
+        <h3 [class]="compact() ? 'text-xl font-bold tracking-tight' : 'text-2xl font-bold tracking-tight md:text-3xl'">{{ project().title }}</h3>
+        @if (project().priceMinWages != null) {
+          <p class="mt-1 text-sm text-white/70">{{ project().priceMinWages }} salarios mínimos</p>
+        }
+      </div>
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/50 transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-primary">
+        <svg lucideArrowUpRight class="h-4 w-4" />
+      </span>
+    </div>
+  </div>
+</a>
