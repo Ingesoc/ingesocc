@@ -72,7 +72,7 @@
 
       <div class="grid auto-rows-[260px] grid-cols-1 gap-4 md:auto-rows-[300px] md:grid-cols-12">
         @for (project of featuredProjects(); track project.slug; let i = $index) {
-          <app-project-card [project]="project" [className]="masonryClass(i)" />
+          <app-project-card [project]="project" [className]="masonryClass(i, featuredProjects().length)" />
         }
       </div>
 

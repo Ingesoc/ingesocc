@@ -498,7 +498,9 @@ subrayado animado en nav, CTA outline y **menú móvil fullscreen** numerado;
 footer completo de 3 columnas (marca + redes, navegación, contacto con bloques
 editables) con barra legal. Redes en modo edición muestran el enlace editable.
 3. **Home**: hero editorial a sangre con headline display (`92px` en xl), banda
-de stats separada por hairlines, mosaico de destacados, listado editorial de
+de stats separada por hairlines, mosaico de destacados con **composición
+editorial alterna** (bloques apaisado 7×2+5/5 ↔ vertical 4×2×3; resto 1 → banda
+12×2 o 2 → mitades 6×2, sin huecos para cualquier total), listado editorial de
 servicios, capacidad y CTA final oscuro de cierre.
 4. **Proyectos**: hero tipográfico, filtros pill elegantes (manteniendo el chip
 activo naranja que valida el QA), grid editorial de tarjetas **panel** (imagen

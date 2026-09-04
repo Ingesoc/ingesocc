@@ -8,15 +8,17 @@ import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
 
-/** Patrón del masonry de proyectos destacados (mismo lenguaje visual del diseño actual). */
-const MASONRY_CLASSES = [
-  'md:col-span-7 md:row-span-2',
-  'md:col-span-5',
-  'md:col-span-5',
-  'md:col-span-7 md:row-span-2',
-  'md:col-span-5',
-  'md:col-span-5',
-];
+/** Composición editorial del mosaico de destacados (Home).
+ *
+ *  Bloques de 3 tarjetas que se alternan para que 6+ proyectos no repitan
+ *  ritmo visual:
+ *    - Bloque A (apaisado): un protagonista grande 7×2 + dos apaisados 5/5.
+ *    - Bloque B (vertical): tres tarjetas altas 4×2.
+ *  Si el total no es múltiplo de 3, el resto se resuelve sin dejar huecos
+ *  en la cuadrícula: 1 → banda completa 12×2; 2 → dos mitades 6×2.
+ */
+const BLOCK_A = ['md:col-span-7 md:row-span-2', 'md:col-span-5', 'md:col-span-5'];
+const BLOCK_B = ['md:col-span-4 md:row-span-2', 'md:col-span-4 md:row-span-2', 'md:col-span-4 md:row-span-2'];
 
 @Component({
   selector: 'app-home',
@@ -66,7 +68,14 @@ export class HomeComponent {
 
   readonly previewServices = computed(() => this.services.published().slice(0, 3));
 
-  masonryClass(index: number): string {
-    return MASONRY_CLASSES[index % MASONRY_CLASSES.length];
+  /** Span de la tarjeta `index` dentro del mosaico (ver patrón arriba). */
+  masonryClass(index: number, total: number): string {
+    const full = Math.floor(total / 3) * 3;
+    if (index < full) {
+      const group = Math.floor(index / 3);
+      return (group % 2 === 0 ? BLOCK_A : BLOCK_B)[index % 3];
+    }
+    const tail = total - full; // total % 3 ∈ {1, 2}
+    return tail === 1 ? 'md:col-span-12 md:row-span-2' : 'md:col-span-6 md:row-span-2';
   }
 }
