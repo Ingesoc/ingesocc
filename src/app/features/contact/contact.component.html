@@ -1,91 +1,136 @@
-<section class="relative bg-primary px-5 pb-20 pt-40 text-white md:px-10 md:pb-28">
-  <div class="mx-auto max-w-[1440px]">
-    <p class="mb-6 text-xs font-semibold uppercase tracking-[0.28em] text-accent">Hablemos</p>
-    <h1 class="text-balance text-5xl font-bold leading-[0.95] tracking-[-0.055em] md:text-7xl"><app-editable-text page="contact" sectionKey="title" [fallback]="title()" /></h1>
-    <p class="mt-6 max-w-xl text-base leading-7 text-white/75"><app-editable-text page="contact" sectionKey="subtitle" [fallback]="subtitle()" /></p>
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section class="relative overflow-hidden bg-primary text-white">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(242,86,35,0.14),transparent_55%)]"></div>
+  <div class="wrap relative pb-16 pt-36 md:pb-20 md:pt-44">
+    <p class="kicker mb-5 text-accent">Hablemos</p>
+    <h1 class="text-balance text-5xl font-bold leading-[0.98] tracking-[-0.03em] md:text-7xl">
+      <app-editable-text page="contact" sectionKey="title" [fallback]="title()" />
+    </h1>
+    <p class="mt-6 max-w-xl text-base leading-7 text-white/70">
+      <app-editable-text page="contact" sectionKey="subtitle" [fallback]="subtitle()" />
+    </p>
   </div>
 </section>
 
-<section class="px-5 py-16 md:px-10 md:py-24">
-  <div class="mx-auto grid max-w-[1440px] gap-12 md:grid-cols-12">
-    <div class="md:col-span-7">
-      <p class="mb-8 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Envíenos su mensaje</p>
+<!-- ── CONTENIDO ────────────────────────────────────────── -->
+<section class="bg-background py-20 md:py-28">
+  <div class="wrap grid gap-16 md:grid-cols-12">
+    <!-- Información -->
+    <div class="md:col-span-5">
+      <p class="kicker text-accent-deep mb-5">Información de contacto</p>
+      <h2 class="text-balance text-3xl font-bold leading-tight tracking-[-0.02em] md:text-4xl">Cuéntenos sobre su proyecto.</h2>
+      <p class="mt-5 max-w-md text-base leading-7 text-muted-foreground">
+        Un ingeniero revisará su solicitud y le responderá a la brevedad con una propuesta clara y sin compromiso.
+      </p>
 
-      @if (submitted()) {
-        <div class="border border-accent bg-secondary p-8">
-          <p class="text-lg font-bold tracking-tight">¡Gracias por escribirnos!</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">Hemos recibido su mensaje y le responderemos a la brevedad.</p>
+      <div class="mt-12 grid gap-0">
+        <div class="flex items-start gap-5 border-t border-border py-7">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
+            <svg lucideMail class="h-4 w-4" />
+          </span>
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Escríbanos</p>
+            <a [href]="'mailto:' + email()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep"><app-editable-text page="contact" sectionKey="email" [fallback]="email()" /></a>
+          </div>
         </div>
-      } @else {
-        @if (submitError()) {
-          <p class="mb-5 rounded-md border border-accent-deep bg-secondary px-4 py-3 text-xs leading-5 text-accent-deep">{{ submitError() }}</p>
-        }
-
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-5">
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label for="name" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Nombre *</label>
-              <input id="name" type="text" formControlName="name" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
-              @if (fieldError('name')) {
-                <p class="mt-1 text-xs text-accent-deep">{{ fieldError('name') }}</p>
-              }
-            </div>
-            <div>
-              <label for="email" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Email *</label>
-              <input id="email" type="email" formControlName="email" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
-              @if (fieldError('email')) {
-                <p class="mt-1 text-xs text-accent-deep">{{ fieldError('email') }}</p>
-              }
-            </div>
-          </div>
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label for="phone" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Teléfono</label>
-              <input id="phone" type="tel" formControlName="phone" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
-              @if (fieldError('phone')) {
-                <p class="mt-1 text-xs text-accent-deep">{{ fieldError('phone') }}</p>
-              }
-            </div>
-            <div>
-              <label for="subject" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Asunto</label>
-              <input id="subject" type="text" formControlName="subject" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
-              @if (fieldError('subject')) {
-                <p class="mt-1 text-xs text-accent-deep">{{ fieldError('subject') }}</p>
-              }
-            </div>
-          </div>
+        <div class="flex items-start gap-5 border-t border-border py-7">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
+            <svg lucidePhone class="h-4 w-4" />
+          </span>
           <div>
-            <label for="message" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Mensaje *</label>
-            <textarea id="message" rows="5" formControlName="message" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"></textarea>
-            @if (fieldError('message')) {
-              <p class="mt-1 text-xs text-accent-deep">{{ fieldError('message') }}</p>
-            }
+            <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Llámenos</p>
+            <a [href]="'tel:' + phone()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep"><app-editable-text page="contact" sectionKey="phone" [fallback]="phone()" /></a>
           </div>
+        </div>
+        <div class="flex items-start gap-5 border-t border-b border-border py-7">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
+            <svg lucideMapPin class="h-4 w-4" />
+          </span>
           <div>
-            <button type="submit" [disabled]="submitting()" class="rounded-full bg-accent px-8 py-4 text-sm font-bold text-primary transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60">
-              {{ submitting() ? 'Enviando…' : 'Enviar mensaje' }}
-            </button>
+            <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Encuéntrenos</p>
+            <p class="mt-1.5 text-base font-medium"><app-editable-text page="contact" sectionKey="address" [fallback]="address()" [multiline]="true" /></p>
           </div>
-        </form>
-      }
-
-      <p class="mt-6 text-xs leading-5 text-muted-foreground"><app-editable-text page="contact" sectionKey="privacy_note" [fallback]="privacyNote()" /></p>
+        </div>
+      </div>
     </div>
 
-    <aside class="md:col-span-4 md:col-start-9">
-      <p class="mb-8 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Información de contacto</p>
-      <div class="border-t border-border py-6">
-        <p class="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Escríbanos</p>
-        <a [href]="'mailto:' + email()" class="text-sm transition-colors hover:text-accent-deep"><app-editable-text page="contact" sectionKey="email" [fallback]="email()" /></a>
-      </div>
-      <div class="border-t border-border py-6">
-        <p class="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Llámenos</p>
-        <a [href]="'tel:' + phone()" class="text-sm transition-colors hover:text-accent-deep"><app-editable-text page="contact" sectionKey="phone" [fallback]="phone()" /></a>
-      </div>
-      <div class="border-t border-border py-6">
-        <p class="mb-2 text-xs uppercase tracking-widest text-muted-foreground">Encuéntrenos</p>
-        <p class="text-sm"><app-editable-text page="contact" sectionKey="address" [fallback]="address()" /></p>
-      </div>
-    </aside>
+    <!-- Formulario -->
+    <div class="md:col-span-6 md:col-start-7">
+      @if (submitted()) {
+        <div class="panel p-10 md:p-12">
+          <span class="flex h-12 w-12 items-center justify-center rounded-full bg-success-soft text-success">
+            <svg lucideMail class="h-5 w-5" />
+          </span>
+          <p class="mt-6 text-2xl font-bold tracking-tight">¡Gracias por escribirnos!</p>
+          <p class="mt-3 text-base leading-7 text-muted-foreground">
+            Hemos recibido su mensaje y le responderemos a la brevedad.
+          </p>
+          <a routerLink="/" class="btn btn-solid mt-8">Volver al inicio</a>
+        </div>
+      } @else {
+        <div class="panel p-8 md:p-10">
+          <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Formulario de contacto</p>
+          <p class="mt-2 text-lg font-bold tracking-tight">Envíenos su mensaje</p>
+
+          @if (submitError()) {
+            <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ submitError() }}</p>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-8 grid gap-6" novalidate>
+            <div class="grid gap-6 sm:grid-cols-2">
+              <div>
+                <label for="name" class="field-label">Nombre *</label>
+                <input id="name" type="text" formControlName="name" autocomplete="name" class="field" />
+                @if (fieldError('name')) {
+                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('name') }}</p>
+                }
+              </div>
+              <div>
+                <label for="email" class="field-label">Email *</label>
+                <input id="email" type="email" formControlName="email" autocomplete="email" class="field" />
+                @if (fieldError('email')) {
+                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('email') }}</p>
+                }
+              </div>
+            </div>
+            <div class="grid gap-6 sm:grid-cols-2">
+              <div>
+                <label for="phone" class="field-label">Teléfono</label>
+                <input id="phone" type="tel" formControlName="phone" autocomplete="tel" class="field" />
+                @if (fieldError('phone')) {
+                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('phone') }}</p>
+                }
+              </div>
+              <div>
+                <label for="subject" class="field-label">Asunto</label>
+                <input id="subject" type="text" formControlName="subject" class="field" />
+                @if (fieldError('subject')) {
+                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('subject') }}</p>
+                }
+              </div>
+            </div>
+            <div>
+              <label for="message" class="field-label">Mensaje *</label>
+              <textarea id="message" rows="5" formControlName="message" class="field"></textarea>
+              @if (fieldError('message')) {
+                <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('message') }}</p>
+              }
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
+              <p class="text-xs leading-5 text-muted-foreground"><app-editable-text page="contact" sectionKey="privacy_note" [fallback]="privacyNote()" /></p>
+              <button type="submit" [disabled]="submitting()" class="btn btn-solid shrink-0">
+                @if (submitting()) {
+                  Enviando…
+                } @else {
+                  Enviar mensaje
+                }
+                <svg lucideMail class="h-4 w-4" />
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
   </div>
 </section>

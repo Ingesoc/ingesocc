@@ -10,7 +10,7 @@ Estado al cierre:
 ```bash
 pnpm build     # ✅ OK — bundle de producción sin errores
 pnpm test:ci   # ✅ 30/30 SUCCESS (suite unitaria restaurada)
-pnpm test:e2e  # ✅ 5 passed · 2 skipped sin credenciales (Playwright)
+pnpm test:e2e  # ✅ 8 passed con credenciales admin (Playwright, contra Supabase de pruebas)
 pnpm test:perf # ✅ Lighthouse OK — Perf Desktop ~95-97 · Mobile ~65-66 · A11y 100 en las 4 corridas
 ```
 
@@ -126,11 +126,17 @@ Suite E2E en `e2e/` con `playwright.config.ts` (levanta el dev server solo):
 |---|---|---|
 | `public-flows.spec.ts` | Home → navegación → Proyectos → detalle → 404 propio → sin overflow móvil | — |
 | `admin-projects.spec.ts` | Login → crear → editar → publicar → verificar público → eliminar | `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` |
+| `admin-services.spec.ts` | Login → crear (ícono + foto) → verificar público → editar → quitar foto → verificar fallback de ícono → eliminar | `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` |
 | `contact-inbox.spec.ts` | Formulario de contacto → bandeja admin → marcar leído → eliminar | `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` |
 
 ```bash
 pnpm test:e2e   # flujos públicos (solo lectura)
 E2E_ADMIN_EMAIL=... E2E_ADMIN_PASSWORD=... pnpm test:e2e   # + flujos admin (escribe datos reales → usar Supabase de pruebas)
+
+Contra el proyecto de pruebas con schema+seed aplicados: **8/8 passed**
+(5 públicos + CRUD proyectos + CRUD servicios + contacto/bandeja), con
+limpieza verificada (0 proyectos/servicios/mensajes residuales y 0 fotos
+huérfanas en storage).
 ```
 
 La suite destapó y permitió corregir un **bug real de UI**: las tarjetas del
@@ -362,6 +368,88 @@ corrigió:
 - **TEST**: checker de aridad automático sobre los 4 bloques `insert … values`.
 - **RESULT**: ✅ Resuelto.
 
+### 17. CRUD contra DB real: insert/update con columnas camelCase (PGRST204)
+
+- **PROBLEM**: el E2E `admin-projects` (crear → editar → publicar → verificar
+  → eliminar) fallaba al guardar: el form mostraba
+  `Could not find the 'priceMinWages' column of 'projects' in the schema cache`
+  y no salía de `/admin/proyectos/nuevo`.
+- **CAUSE**: los payloads de `createProject`/`updateProject` y
+  `createService`/`updateService` enviaban el `ProjectInput`/`ServiceInput`
+  camelCase tal cual (`priceMinWages`, `sortOrder`, `iconName`) contra
+  PostgREST, cuyas columnas son snake_case (`price_min_wages`, `sort_order`,
+  `icon_name`). Con la DB de seeds estáticos esto nunca se ejecutó (el fallback
+  no toca la red); al aplicar schema+seed y correr contra Supabase real, el
+  insert fallaba. El servicio de servicios tenía el mismo bug latente
+  (descubierto por inspección, no cubierto por el E2E).
+- **SOLUTION**: mapear el input a columnas reales en la capa data-access
+  (`toProjectRow`/`toServiceRow`) antes de insert/update; el resto del flujo ya
+  usaba snake_case. Tests unitarios nuevos que verifican el payload exacto
+  enviado por `createProject` y `updateProject`.
+- **FILES**: `projects.service.ts`, `services.service.ts`,
+  `projects.service.spec.ts`.
+- **TEST**: `pnpm test:ci` → **32/32 SUCCESS**; `pnpm test:e2e` con
+  credenciales → **7/7 passed** (incluye el CRUD completo de proyectos contra
+  la DB real).
+- **RESULT**: ✅ Resuelto.
+
+### 18. `load()` rompía con el embed to-one de categorías (TypeError)
+
+- **PROBLEM**: tras arreglar el insert, el mismo E2E fallaba con
+  `object is not iterable (cannot read property Symbol(Symbol.iterator))`
+  después de crear el proyecto (el proyecto SÍ se creaba; fallaba al volver al
+  listado).
+- **CAUSE**: en `load()`, `select('project_id, categories(name)')` sobre
+  `project_categories` devuelve la relación **to-one** como OBJETO
+  (`{ name: "Edificaciones" }`), no como array, y el código iteraba
+  `for (const category of link.categories ?? [])`. El sitio público pasaba los
+  E2E porque el throw dejaba la señal en el seed estático (error oculto, el
+  patrón que el plan §20 prohíbe); el panel admin sí lo mostraba.
+- **SOLUTION**: normalizar en `load()` — `link.categories` puede ser objeto,
+  array o null (`Array.isArray` con envoltura). Ajustado el tipo
+  `CategoryLinkRow` para reflejar la forma real de PostgREST.
+- **FILES**: `projects.service.ts`.
+- **TEST**: `pnpm test:e2e` → **7/7 passed** contra la DB real; verificado el
+  shape de la respuesta de PostgREST (objeto, no array).
+- **RESULT**: ✅ Resuelto. Además, al correr el E2E completo con la DB
+  aplicada, las páginas públicas ahora muestran los datos REALES de Supabase
+  (antes, el fallback estático ocultaba el error).
+
+### 19. E2E CRUD de servicios (ícono + foto + fallback)
+
+- **PROBLEM**: el CRUD de servicios no estaba cubierto por la suite E2E
+  (proyectos y bandeja sí).
+- **SOLUTION**: nuevo `e2e/admin-services.spec.ts` con el flujo completo:
+  login → crear (ícono `hard-hat` + foto PNG subida al bucket `service-images`)
+  → verificar card pública con foto → editar descripción e ícono (`warehouse`)
+  → quitar foto → verificar que la card pública usa el ícono de respaldo (sin
+  `<img>`) → eliminar → verificar que desaparece del admin y del sitio público.
+  La foto de prueba es un PNG 1×1 inline (sin fixture en disco) que pasa la
+  compresión del form.
+- **FILES**: `e2e/admin-services.spec.ts`, `README.md`, `docs/cambios-auditoria-final.md`.
+- **TEST**: `pnpm test:e2e` con credenciales → **8/8 passed** (2 ejecuciones
+  consecutivas); DB y storage verificados limpios después (0 residuales, 0
+  fotos huérfanas).
+- **RESULT**: ✅ Resuelto.
+
+### 20. Carrera foto/guardar en el form de servicios (pérdida silenciosa de foto)
+
+- **PROBLEM**: al correr la suite en paralelo, el E2E de servicios fallaba
+  intermitentemente: la card pública salía sin foto aunque el flujo de la UI
+  la había subido.
+- **CAUSE**: `onPhotoSelected` es async (comprime con `imageCompression` +
+  web worker). `setInputFiles` dispara el handler pero NO espera a que termine;
+  si el admin (o el test) hacía clic en "Crear servicio" antes, `photo()` aún
+  era null y `onSave` guardaba el servicio **sin foto y sin error**.
+- **SOLUTION**: señal `photoProcessing` que deshabilita el botón de guardar
+  (con label "Procesando foto…") mientras dura la compresión, y el E2E espera
+  la preview (`img[alt="Foto del servicio"]`) antes de enviar.
+- **FILES**: `service-form.component.ts`, `service-form.component.html`,
+  `e2e/admin-services.spec.ts`.
+- **TEST**: `pnpm test:e2e` → **8/8 passed en 2 ejecuciones consecutivas**
+  (antes fallaba 1 de cada 3 bajo carga paralela); `pnpm test:ci` → 32/32.
+- **RESULT**: ✅ Resuelto.
+
 ### 16. seed.sql: imágenes sin URL (paridad con seeds estáticos)
 
 - **PROBLEM**: al aplicar la DB, los bloques de imagen (hero del Home, historia,
@@ -387,17 +475,86 @@ corrigió:
 
 ---
 
+## Rediseño integral UI/UX (fase completa — 2026-09-04)
+
+**PROBLEM**: la interfaz era funcional pero genérica (Arial, cards uniformes,
+radios excesivos, botones de estilo inconsistente entre público y panel, layout
+administrativo básico, footer mínimo, galería sin lightbox).
+
+**SOLUTION** — sistema de diseño único aplicado por fases, sin tocar la
+arquitectura, rutas, backend ni la identidad (`#171717` / `#f25623`):
+
+1. **Design tokens + tipografía**: fuente variable **Archivo 100–900
+autoalojada** en `public/fonts/` (latin + latin-ext, `font-display: swap`,
+preload en `index.html`); escala neutral cálida (`--background #f3f1ec`,
+`--surface #fff`, `--secondary`, `--muted`, `--border` nuevos); `--accent-soft`,
+`--success`/`--success-soft` para estados; utilidades compartidas en
+`styles.css`: `.wrap` (container editorial), `.kicker`, `.btn` (+`.btn-solid`,
+`.btn-accent`, `.btn-outline`, `.btn-sm`), `.field`/`.field-label`/`.field-joined`
+(formularios idénticos en todo el sitio), `.badge` (ok/neutral/accent/dark),
+`.panel`, `.media-zoom`, y `:focus-visible` global.
+2. **Header/footer**: header compacto editorial sobre los heroes oscuros con
+subrayado animado en nav, CTA outline y **menú móvil fullscreen** numerado;
+footer completo de 3 columnas (marca + redes, navegación, contacto con bloques
+editables) con barra legal. Redes en modo edición muestran el enlace editable.
+3. **Home**: hero editorial a sangre con headline display (`92px` en xl), banda
+de stats separada por hairlines, mosaico de destacados, listado editorial de
+servicios, capacidad y CTA final oscuro de cierre.
+4. **Proyectos**: hero tipográfico, filtros pill elegantes (manteniendo el chip
+activo naranja que valida el QA), grid editorial de tarjetas **panel** (imagen
++ metadata debajo + hairline). Detalle: portada a sangre, ficha lateral
+(Valor/categorías), **galería mosaico con lightbox fullscreen** (prev/next/ESC,
+navegación circular, contador).
+5. **Servicios**: de "6 cards idénticas" a **listado editorial numerado** (fila
+con índice 01/02, nombre display, descripción y foto o ícono de respaldo).
+6. **Quiénes Somos**: storytelling con foto enmarcada, timeline por hitos,
+propósito en columnas separadas por hairlines y equipo con numeración.
+7. **Contacto**: layout split — información a la izquierda (iconos + datos
+editables), formulario en panel blanco con el sistema de campos compartido,
+estado de éxito, banner de error y microcopy.
+8. **Login**: split-screen con panel de marca oscuro + formulario limpio.
+9. **Admin**: shell enterprise con **sidebar fija** (secciones, indicador naranja
+activo), **topbar sticky** con breadcrumb/sección actual y sesión; tablas
+limpias sobre `--surface` con `badge` de estado y acciones consistentes;
+formularios en paneles numerados con el mismo vocabulario de campos;
+skelletons en lugar de textos sueltos de carga; bandeja con tarjeta resaltada
+para no leídos.
+
+**FILES**: `src/styles.css`, `src/index.html`, `public/fonts/` (×2 woff2),
+header/footer (html+ts), home, proyectos (listado, card, detalle+ts), servicios
+(página, card+ts), about, contacto (html+ts), login, admin-layout (html+ts),
+dashboard, listados y formularios admin (proyectos/servicios), bandeja,
+placeholder de contenido, toggle de edición.
+
+**TEST PERFORMED**: `pnpm build` ✅ (0 errores) · `pnpm test:ci` ✅ 32/32 ·
+`pnpm test:e2e` ✅ **8/8** contra la DB real con credenciales admin (flujos
+públicos + CRUD proyectos + CRUD servicios + contacto→bandeja) · QA visual
+Playwright ✅ **28 screenshots (14 rutas × desktop/mobile), 0 FAIL** (overflow,
+contraste `accent-deep` ≥4.5:1, chip activo, errores de validación) ·
+Lighthouse ✅ Performance desktop 93–95 / móvil 64–66 (dentro de presupuestos),
+A11y 95, Best practices 100, SEO 100 · verificación DOM: fuente Archivo cargada
+en todas las rutas y jerarquía de encabezados sin saltos.
+
+**RESULT**: ✅ Interfaz premium, corporativa y editorial (tipografía propia,
+composición con fotografía protagonista, estados completos, responsive y
+accesible) manteniendo 100% de la funcionalidad previa. La DB quedó intacta
+(10 proyectos, 6 servicios, 0 mensajes, sin datos E2E huérfanos).
+
+Nota: el QA visual queda activo como red de seguridad (regenera las 28
+capturas con `pnpm test:visual`); los textos e imágenes siguen siendo editables
+desde `content_blocks`/panel.
+
+---
+
 ## Pendiente manual (requiere intervención humana)
 
 1. **Dominio real**: reemplazar `https://ingesocc.com` (SITE_URL en
    `core/seo.service.ts`, canonical/og:image/JSON-LD en `index.html`,
    `public/sitemap.xml`, `public/robots.txt`) cuando exista el dominio de
    producción.
-2. **Aplicar `supabase/schema.sql` + `seed.sql`** en el proyecto Supabase de
-   pruebas y producción (ahora sí aplicables de cero; puntos 14–16).
-3. **Crear el usuario admin** (Auth → Users) y
-   `update public.profiles set role = 'admin' where id = '<user id>';`.
-4. **Datos reales de empresa** (contacto, equipo, redes, proyectos e imágenes)
-   vía panel admin / `content_blocks` / seeds.
-5. Ejecutar `supabase/rls-checks.sql` contra el proyecto de pruebas (no prod) para
+2. **Aplicar `supabase/schema.sql` + `seed.sql` en el proyecto de producción**
+   (en el de pruebas ya está aplicado y verificado — puntos 14–18).
+3. **Datos reales de empresa** (contacto, equipo, redes, proyectos e imágenes)
+   vía panel admin / `content_blocks` / seeds (los seeds son ilustrativos).
+4. Ejecutar `supabase/rls-checks.sql` contra el proyecto de pruebas (no prod) para
    la regresión RLS.

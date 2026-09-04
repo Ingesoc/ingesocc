@@ -1,25 +1,26 @@
 <div class="mx-auto max-w-3xl">
-  <p class="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Panel de administración</p>
-  <h1 class="text-4xl font-bold tracking-[-0.04em]">{{ title() }}</h1>
+  <p class="kicker text-accent-deep mb-3">Panel de administración</p>
+  <h1 class="text-3xl font-bold tracking-[-0.02em] md:text-4xl">{{ title() }}</h1>
   @if (phase()) {
-    <p class="mt-6 inline-block rounded-full border border-border px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-muted-foreground">{{ phase() }}</p>
+    <span class="badge badge-accent mt-6">{{ phase() }}</span>
   }
-  <p class="mt-6 max-w-xl text-sm leading-6 text-muted-foreground">
+  <p class="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">
     {{ description() }}
   </p>
-  <div class="mt-8 rounded-2xl border border-border bg-secondary p-6">
-    <p class="text-xs font-bold uppercase tracking-widest text-muted-foreground">Cómo funciona</p>
-    <ol class="mt-4 grid list-none gap-4 text-sm leading-6 text-muted-foreground md:grid-cols-3">
-      <li class="border-l-2 border-accent pl-4">
-        <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-foreground">1 · Ingresa</span>
+
+  <div class="panel mt-8 p-7">
+    <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Cómo funciona</p>
+    <ol class="mt-6 grid list-none gap-6 text-sm leading-6 text-muted-foreground md:grid-cols-3">
+      <li class="border-l-2 border-accent pl-5">
+        <span class="mb-1.5 block text-xs font-bold uppercase tracking-[0.14em] text-foreground">1 · Ingresa</span>
         Abre la página pública que quieres editar con tu sesión de administrador.
       </li>
-      <li class="border-l-2 border-accent pl-4">
-        <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-foreground">2 · Activa</span>
+      <li class="border-l-2 border-accent pl-5">
+        <span class="mb-1.5 block text-xs font-bold uppercase tracking-[0.14em] text-foreground">2 · Activa</span>
         Usa el botón flotante "Modo edición" (abajo a la derecha).
       </li>
-      <li class="border-l-2 border-accent pl-4">
-        <span class="mb-1 block text-xs font-bold uppercase tracking-widest text-foreground">3 · Edita</span>
+      <li class="border-l-2 border-accent pl-5">
+        <span class="mb-1.5 block text-xs font-bold uppercase tracking-[0.14em] text-foreground">3 · Edita</span>
         Haz clic en el lápiz de cada texto o imagen y guarda. Los cambios se publican al instante.
       </li>
     </ol>

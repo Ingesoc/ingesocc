@@ -13,11 +13,11 @@ import { projectCoverUrl } from '../data-access/project.model';
 export class ProjectCardComponent {
   readonly project = input.required<Project>();
 
-  /** Clases extra aplicadas a la tarjeta (p. ej. spans del masonry o altura fija). */
+  /** Clases extra aplicadas a la tarjeta (p. ej. spans del masonry). */
   readonly className = input('');
 
-  /** Variante compacta para grids densos. */
-  readonly compact = input(false);
+  /** 'overlay' = imagen a sangre con texto encima (Home); 'panel' = imagen + metadata debajo (Proyectos). */
+  readonly variant = input<'overlay' | 'panel'>('overlay');
 
   readonly coverUrl = computed(() => projectCoverUrl(this.project()));
 }

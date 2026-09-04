@@ -212,7 +212,9 @@ interface ProjectRow {
 
 interface CategoryLinkRow {
   project_id: string;
-  categories: { name: string }[] | null;
+  // PostgREST devuelve la relación to-one `categories` como OBJETO
+  // ({ name }) y no como array — se normaliza en load() con `asArray`.
+  categories: { name: string } | { name: string }[] | null;
 }
 
 interface ProjectImageRow {
@@ -296,7 +298,8 @@ export class ProjectsService {
 
     const categoriesByProject = new Map<string, string[]>();
     for (const link of (links ?? []) as CategoryLinkRow[]) {
-      for (const category of link.categories ?? []) {
+      const linkCategories = link.categories == null ? [] : Array.isArray(link.categories) ? link.categories : [link.categories];
+      for (const category of linkCategories) {
         const list = categoriesByProject.get(link.project_id) ?? [];
         list.push(category.name);
         categoriesByProject.set(link.project_id, list);
@@ -432,12 +435,33 @@ export class ProjectsService {
     );
   }
 
+  /** Traduce ProjectInput (camelCase) a las columnas reales de `projects`. */
+  private toProjectRow(input: ProjectInput): {
+    title: string;
+    slug: string;
+    description: string;
+    price_min_wages: number | null;
+    status: string;
+    featured: boolean;
+    sort_order: number;
+  } {
+    return {
+      title: input.title,
+      slug: input.slug,
+      description: input.description,
+      price_min_wages: input.priceMinWages,
+      status: input.status,
+      featured: input.featured,
+      sort_order: input.sortOrder,
+    };
+  }
+
   /** Crea un proyecto y devuelve su id. */
   async createProject(input: ProjectInput): Promise<string> {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('projects')
-      .insert(input)
+      .insert(this.toProjectRow(input))
       .select('id')
       .single();
     if (error) throw mapProjectWriteError(error);
@@ -447,7 +471,10 @@ export class ProjectsService {
   /** Actualiza los datos básicos de un proyecto. */
   async updateProject(id: string, input: ProjectInput): Promise<void> {
     await this.supabase.clientPromise;
-    const { error } = await this.supabase.client.from('projects').update(input).eq('id', id);
+    const { error } = await this.supabase.client
+      .from('projects')
+      .update(this.toProjectRow(input))
+      .eq('id', id);
     if (error) throw mapProjectWriteError(error);
   }
 

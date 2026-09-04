@@ -1,25 +1,76 @@
-<header class="absolute inset-x-0 top-0 z-20 px-5 py-5 text-white md:px-10 md:py-7">
-  <div class="mx-auto flex max-w-[1440px] items-center justify-between">
-    <a routerLink="/" class="flex items-center gap-3">
-      <img src="/logo/logo.png" alt="Ingesocc S.A.S." width="52" height="52" class="h-12 w-12 rounded-full object-cover" />
-      <span class="hidden text-xs font-bold uppercase tracking-[0.24em] sm:block">Ingesocc S.A.S.</span>
+<header class="absolute inset-x-0 top-0 z-40 text-white">
+  <div class="wrap relative z-10 flex items-center justify-between py-5 md:py-6">
+    <!-- Marca -->
+    <a routerLink="/" class="group flex items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">
+      <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/20">
+        <img src="/logo/logo.png" alt="" width="40" height="40" class="h-full w-full object-cover" />
+      </span>
+      <span class="flex flex-col leading-none">
+        <span class="text-[15px] font-bold uppercase tracking-[0.18em]">Ingesocc</span>
+        <span class="mt-1 text-[9px] font-semibold uppercase tracking-[0.34em] text-white/50">Ingeniería · Construcción</span>
+      </span>
     </a>
-    <nav class="hidden items-center gap-8 text-[11px] font-semibold uppercase tracking-[0.18em] lg:flex" aria-label="Navegación principal">
+
+    <!-- Navegación desktop -->
+    <nav class="hidden items-center gap-9 lg:flex" aria-label="Navegación principal">
       @for (item of navItems; track item.link) {
-        <a [routerLink]="item.link" routerLinkActive="text-accent" [routerLinkActiveOptions]="{ exact: item.link === '/' }" class="transition-colors hover:text-accent">{{ item.label }}</a>
+        <a
+          [routerLink]="item.link"
+          routerLinkActive="text-accent"
+          [routerLinkActiveOptions]="{ exact: item.link === '/' }"
+          class="relative py-1 text-[12px] font-semibold uppercase tracking-[0.2em] text-white/75 transition-colors duration-200 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-300 hover:text-white hover:after:scale-x-100"
+        >
+          {{ item.label }}
+        </a>
       }
-      <a routerLink="/contacto" class="rounded-full border border-white/50 px-5 py-3 transition-colors hover:border-accent hover:bg-accent hover:text-primary"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /></a>
+      <a
+        routerLink="/contacto"
+        class="btn btn-outline btn-sm ml-1 border-white/40 text-white"
+      >
+        <app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" />
+        <svg lucideArrowUpRight class="h-3.5 w-3.5" />
+      </a>
     </nav>
-    <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-white/50 lg:hidden" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Abrir menú">
-      <svg lucideMenu class="h-5 w-5" />
+
+    <!-- Botón móvil -->
+    <button
+      type="button"
+      class="flex h-11 w-11 items-center justify-center rounded-sm border border-white/30 text-white transition-colors hover:border-accent hover:bg-accent hover:text-primary lg:hidden"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+    >
+      @if (menuOpen()) {
+        <svg lucideX class="h-5 w-5" />
+      } @else {
+        <svg lucideMenu class="h-5 w-5" />
+      }
     </button>
   </div>
+
+  <!-- Menú móvil: pantalla completa -->
   @if (menuOpen()) {
-    <nav class="mt-4 flex flex-col gap-4 rounded-2xl bg-primary p-5 text-sm uppercase tracking-widest lg:hidden" aria-label="Menú móvil">
-      @for (item of navItems; track item.link) {
-        <a [routerLink]="item.link" (click)="toggleMenu()">{{ item.label }}</a>
-      }
-      <a routerLink="/contacto" (click)="toggleMenu()" class="text-accent"><app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" /></a>
+    <nav class="fixed inset-0 z-0 flex flex-col bg-primary lg:hidden" aria-label="Menú móvil">
+      <div class="wrap flex flex-1 flex-col justify-center gap-1 py-24">
+        @for (item of navItems; track item.link; let i = $index) {
+          <a
+            [routerLink]="item.link"
+            (click)="toggleMenu()"
+            class="group flex items-baseline gap-5 border-b border-white/10 py-5"
+          >
+            <span class="text-xs font-bold tracking-[0.3em] text-accent">0{{ i + 1 }}</span>
+            <span class="text-4xl font-bold tracking-tight text-white transition-colors group-hover:text-accent">{{ item.label }}</span>
+            <svg lucideArrowUpRight class="ml-auto h-6 w-6 text-white/40 transition-colors group-hover:text-accent" />
+          </a>
+        }
+      </div>
+      <div class="wrap pb-12">
+        <a routerLink="/contacto" (click)="toggleMenu()" class="btn btn-accent w-full">
+          <app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" />
+          <svg lucideArrowUpRight class="h-4 w-4" />
+        </a>
+        <p class="mt-6 text-center text-[10px] uppercase tracking-[0.3em] text-white/40">Ingesocc S.A.S.</p>
+      </div>
     </nav>
   }
 </header>

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { LucideChevronDown } from '@lucide/angular';
 import { ProjectCardComponent } from './project-card.component';
 import { ProjectsService } from '../data-access/projects.service';
 
@@ -8,7 +9,7 @@ const PAGE_SIZE = 8;
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  imports: [ProjectCardComponent],
+  imports: [ProjectCardComponent, LucideChevronDown],
   templateUrl: './projects-page.component.html',
 })
 export class ProjectsPageComponent {

@@ -1,31 +1,68 @@
-<a
-  [routerLink]="['/proyectos', project().slug]"
-  class="group relative block h-full overflow-hidden bg-primary"
-  [class]="className()"
->
-  @if (coverUrl()) {
-    <img
-      [src]="coverUrl()"
-      [alt]="project().title"
-      loading="lazy"
-      class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-    />
-  } @else {
-    <div class="absolute inset-0 bg-secondary"></div>
-  }
-  <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/10 to-transparent"></div>
-  <div class="absolute inset-x-5 bottom-5 text-white md:inset-x-7 md:bottom-7">
-    <div class="flex items-end justify-between gap-4">
-      <div>
-        <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">{{ project().categories[0] }}</p>
-        <h2 [class]="compact() ? 'text-xl font-bold tracking-tight' : 'text-2xl font-bold tracking-tight md:text-3xl'">{{ project().title }}</h2>
-        @if (project().priceMinWages != null) {
-          <p class="mt-1 text-sm text-white/70">{{ project().priceMinWages }} salarios mínimos</p>
-        }
+@if (variant() === 'overlay') {
+  <!-- Variante mosaico (Home): la imagen llena la tarjeta y la información va sobre ella. -->
+  <a
+    [routerLink]="['/proyectos', project().slug]"
+    class="group relative block h-full overflow-hidden bg-primary text-white"
+    [class]="className()"
+  >
+    @if (coverUrl()) {
+      <img [src]="coverUrl()" [alt]="project().title" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+    } @else {
+      <div class="absolute inset-0 bg-secondary"></div>
+    }
+    <div class="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/25 to-primary/5 transition-opacity duration-500"></div>
+
+    <div class="absolute inset-x-5 bottom-5 md:inset-x-7 md:bottom-7">
+      @if (project().categories[0]) {
+        <p class="mb-3 inline-block border border-white/30 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.24em] text-white/85 backdrop-blur-[2px]">
+          {{ project().categories[0] }}
+        </p>
+      }
+      <h2 class="text-balance text-2xl font-bold leading-[1.05] tracking-tight md:text-3xl">{{ project().title }}</h2>
+      <div class="mt-4 flex items-end justify-between gap-4 border-t border-white/20 pt-4">
+        <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-white/60">
+          @if (project().priceMinWages != null) {
+            {{ project().priceMinWages }} salarios mínimos
+          } @else {
+            Ver proyecto
+          }
+        </p>
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 text-white/80 transition-all duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-primary">
+          <svg lucideArrowUpRight class="h-4 w-4" />
+        </span>
       </div>
-      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/50 transition-colors group-hover:border-accent group-hover:bg-accent group-hover:text-primary">
-        <svg lucideArrowUpRight class="h-4 w-4" />
-      </span>
     </div>
-  </div>
-</a>
+  </a>
+} @else {
+  <!-- Variante editorial (Proyectos): imagen dominante y metadata debajo, sin caja. -->
+  <a
+    [routerLink]="['/proyectos', project().slug]"
+    class="group block"
+    [class]="className()"
+  >
+    <div class="media-zoom aspect-[4/3] w-full bg-secondary">
+      @if (coverUrl()) {
+        <img [src]="coverUrl()" [alt]="project().title" loading="lazy" class="h-full w-full object-cover" />
+      } @else {
+        <div class="flex h-full w-full items-center justify-center bg-secondary"></div>
+      }
+    </div>
+    <div class="pt-5">
+      <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-accent-deep">{{ project().categories[0] || 'Proyecto' }}</p>
+      <h2 class="mt-2 text-balance text-xl font-bold leading-snug tracking-tight">{{ project().title }}</h2>
+      <div class="mt-4 flex items-center justify-between gap-4 border-t border-border pt-4">
+        <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+          @if (project().priceMinWages != null) {
+            {{ project().priceMinWages }} salarios mínimos
+          } @else {
+            Ver obra
+          }
+        </p>
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-foreground transition-colors group-hover:text-accent-deep">
+          Ver proyecto
+          <svg lucideArrowUpRight class="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </div>
+  </a>
+}

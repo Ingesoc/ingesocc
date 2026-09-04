@@ -1,75 +1,107 @@
 <div class="mx-auto max-w-4xl">
-  <a routerLink="/admin/proyectos" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-accent-deep">
+  <a routerLink="/admin/proyectos" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-accent-deep">
     <svg lucideChevronLeft class="h-4 w-4" /> Volver a proyectos
   </a>
 
-  <h1 class="mt-6 text-4xl font-bold tracking-[-0.04em]">{{ isEdit() ? 'Editar Proyecto' : 'Nuevo Proyecto' }}</h1>
+  <h1 class="mt-6 text-3xl font-bold tracking-[-0.02em] md:text-4xl">{{ isEdit() ? 'Editar Proyecto' : 'Nuevo Proyecto' }}</h1>
+  <p class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+    La primera imagen subida se marca como portada y aparece en las tarjetas del sitio.
+  </p>
 
   @if (error()) {
-    <p class="mt-6 rounded-md border border-accent-deep bg-secondary px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
+    <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
   }
 
   @if (loading()) {
-    <p class="mt-10 text-sm text-muted-foreground">Cargando proyecto…</p>
+    <div class="mt-10 grid gap-3" aria-label="Cargando proyecto">
+      @for (skeleton of [1, 2, 3]; track skeleton) {
+        <div class="h-32 animate-pulse rounded-sm border border-border bg-surface"></div>
+      }
+    </div>
   } @else {
-    <form [formGroup]="form" (ngSubmit)="onSave()" class="mt-10 grid gap-8">
-      <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
-        <p class="mb-6 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Información general</p>
-        <div class="grid gap-5">
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="mt-10 grid gap-6">
+      <!-- Información general -->
+      <section class="panel p-6 md:p-8">
+        <div class="mb-7 flex items-center gap-3 border-b border-border pb-5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-sm bg-secondary text-[11px] font-bold text-muted-foreground">1</span>
           <div>
-            <label for="title" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Título *</label>
-            <input id="title" type="text" formControlName="title" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
+            <p class="text-sm font-bold tracking-tight">Información general</p>
+            <p class="text-xs text-muted-foreground">Los campos con * son obligatorios.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-6">
+          <div>
+            <label for="title" class="field-label">Título *</label>
+            <input id="title" type="text" formControlName="title" class="field" />
             @if (form.controls.title.touched && form.controls.title.invalid) {
-              <p class="mt-1 text-xs text-accent-deep">Ingrese un título (mínimo 3 caracteres).</p>
+              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese un título (mínimo 3 caracteres).</p>
             }
           </div>
-          <div>
-            <label for="slug" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Slug (URL)</label>
-            <div class="flex items-center gap-2">
-              <span class="text-sm text-muted-foreground">/proyectos/</span>
-              <input id="slug" type="text" formControlName="slug" (input)="onSlugInput()" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
-            </div>
-            <p class="mt-1 text-xs text-muted-foreground">Se genera automáticamente desde el título.</p>
-          </div>
-          <div>
-            <label for="description" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Descripción *</label>
-            <textarea id="description" rows="5" formControlName="description" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent"></textarea>
-            @if (form.controls.description.touched && form.controls.description.invalid) {
-              <p class="mt-1 text-xs text-accent-deep">Ingrese una descripción (mínimo 10 caracteres).</p>
-            }
-          </div>
-          <div class="grid gap-5 sm:grid-cols-3">
+
+          <div class="grid gap-6 md:grid-cols-2">
             <div>
-              <label for="price" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Valor (salarios mínimos)</label>
-              <input id="price" type="number" min="0" step="0.01" formControlName="priceMinWages" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
+              <label for="slug" class="field-label">Slug (URL)</label>
+              <div class="flex items-stretch gap-0">
+                <span class="inline-flex items-center rounded-l-sm border border-r-0 border-border bg-background px-3 text-xs text-muted-foreground">/proyectos/</span>
+                <input id="slug" type="text" formControlName="slug" (input)="onSlugInput()" class="field field-joined" />
+              </div>
+              <p class="mt-1.5 text-xs text-muted-foreground">Se genera automáticamente desde el título.</p>
             </div>
             <div>
-              <label for="sortOrder" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Orden</label>
-              <input id="sortOrder" type="number" formControlName="sortOrder" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent" />
-            </div>
-            <div>
-              <label for="status" class="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Estado</label>
-              <select id="status" formControlName="status" class="w-full rounded-none border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-accent">
+              <label for="status" class="field-label">Estado</label>
+              <select id="status" formControlName="status" class="field">
                 <option value="draft">Borrador</option>
                 <option value="published">Publicado</option>
               </select>
             </div>
           </div>
-          <label class="flex items-center gap-3 text-sm">
-            <input type="checkbox" formControlName="featured" class="h-4 w-4 accent-accent" />
-            Destacado en el Home (sección "Proyectos Destacados")
+
+          <div>
+            <label for="description" class="field-label">Descripción *</label>
+            <textarea id="description" rows="5" formControlName="description" class="field"></textarea>
+            @if (form.controls.description.touched && form.controls.description.invalid) {
+              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese una descripción (mínimo 10 caracteres).</p>
+            }
+          </div>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            <div>
+              <label for="price" class="field-label">Valor (salarios mínimos)</label>
+              <input id="price" type="number" min="0" step="0.01" formControlName="priceMinWages" class="field" />
+            </div>
+            <div>
+              <label for="sortOrder" class="field-label">Orden</label>
+              <input id="sortOrder" type="number" formControlName="sortOrder" class="field" />
+              <p class="mt-1.5 text-xs text-muted-foreground">Menor número = aparece primero.</p>
+            </div>
+          </div>
+
+          <label class="flex cursor-pointer items-start gap-3 rounded-sm border border-border bg-background px-4 py-3.5 transition-colors hover:border-accent/60">
+            <input type="checkbox" formControlName="featured" class="mt-0.5 h-4 w-4 accent-accent" />
+            <span class="text-sm leading-6">
+              <span class="font-semibold">Destacado en el Home</span>
+              <span class="block text-xs text-muted-foreground">Aparece en la sección "Proyectos Destacados" de la página principal.</span>
+            </span>
           </label>
         </div>
       </section>
 
-      <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
-        <p class="mb-6 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Categorías</p>
-        <div class="flex flex-wrap gap-3">
+      <!-- Categorías -->
+      <section class="panel p-6 md:p-8">
+        <div class="mb-6 flex items-center gap-3 border-b border-border pb-5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-sm bg-secondary text-[11px] font-bold text-muted-foreground">2</span>
+          <div>
+            <p class="text-sm font-bold tracking-tight">Categorías</p>
+            <p class="text-xs text-muted-foreground">Selecciona una o varias.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2.5">
           @for (category of categories(); track category.id) {
-            <label class="flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
+            <label class="flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors"
               [class]="selectedCategoryIds().includes(category.id)
                 ? 'border-accent bg-accent text-primary'
-                : 'border-border text-muted-foreground hover:border-accent-deep hover:text-accent-deep'">
+                : 'border-border text-muted-foreground hover:border-accent hover:text-accent-deep'">
               <input type="checkbox" class="hidden" [checked]="selectedCategoryIds().includes(category.id)" (change)="toggleCategory(category.id)" />
               {{ category.name }}
             </label>
@@ -80,13 +112,17 @@
         }
       </section>
 
-      <section class="rounded-2xl border border-border bg-secondary p-6 md:p-8">
-        <p class="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-accent-deep">Imágenes</p>
-        <p class="mb-6 text-sm leading-6 text-muted-foreground">
-          La primera imagen es la portada (se ve en las cards). Sube varias para la galería del detalle; se comprimen antes de subir.
-        </p>
+      <!-- Imágenes -->
+      <section class="panel p-6 md:p-8">
+        <div class="mb-6 flex items-center gap-3 border-b border-border pb-5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-sm bg-secondary text-[11px] font-bold text-muted-foreground">3</span>
+          <div>
+            <p class="text-sm font-bold tracking-tight">Imágenes</p>
+            <p class="text-xs text-muted-foreground">La primera con estrella es la portada. Se comprimen antes de subir.</p>
+          </div>
+        </div>
 
-        <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-border px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent-deep hover:text-accent-deep">
+        <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-dashed border-border bg-background px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep">
           <svg lucideUpload class="h-4 w-4" /> Subir imágenes
           <input type="file" accept="image/*" multiple class="hidden" (change)="onFilesSelected($event)" />
         </label>
@@ -94,8 +130,8 @@
         @if (imageSlots().length > 0) {
           <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             @for (slot of imageSlots(); track slot.key) {
-              <div class="group relative">
-                <img [src]="slot.url" [alt]="'Imagen del proyecto'" class="aspect-video w-full object-cover" />
+              <div class="group relative overflow-hidden rounded-sm border border-border">
+                <img [src]="slot.url" [alt]="'Imagen del proyecto'" loading="lazy" class="aspect-video w-full object-cover" />
                 <div class="absolute inset-x-0 top-0 flex items-center justify-between p-2">
                   <button type="button" (click)="setCover(slot)" title="Marcar como portada"
                     [class]="slot.isCover ? 'flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary' : 'flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary'">
@@ -107,7 +143,7 @@
                   </button>
                 </div>
                 @if (slot.isCover) {
-                  <span class="absolute bottom-2 left-2 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">Portada</span>
+                  <span class="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-primary-foreground">Portada</span>
                 }
               </div>
             }
@@ -115,11 +151,19 @@
         }
       </section>
 
-      <div class="flex flex-wrap gap-4">
-        <button type="submit" [disabled]="saving()" class="rounded-full bg-accent px-8 py-4 text-xs font-bold uppercase tracking-widest text-primary transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60">
-          {{ saving() ? 'Guardando…' : (isEdit() ? 'Guardar cambios' : 'Crear proyecto') }}
+      <!-- Acciones -->
+      <div class="flex flex-wrap items-center gap-4 pb-4">
+        <button type="submit" [disabled]="saving()" class="btn btn-solid">
+          @if (saving()) {
+            Guardando…
+          } @else if (isEdit()) {
+            Guardar cambios
+          } @else {
+            Crear proyecto
+          }
+          <svg lucideCheck class="h-4 w-4" />
         </button>
-        <a routerLink="/admin/proyectos" class="rounded-full border border-border px-8 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-accent-deep hover:text-accent-deep">Cancelar</a>
+        <a routerLink="/admin/proyectos" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
       </div>
     </form>
   }

@@ -190,12 +190,31 @@ export class ServicesService {
     );
   }
 
+  /** Traduce ServiceInput (camelCase) a las columnas reales de `services`. */
+  private toServiceRow(input: ServiceInput): {
+    name: string;
+    slug: string;
+    description: string;
+    icon_name: string | null;
+    status: string;
+    sort_order: number;
+  } {
+    return {
+      name: input.name,
+      slug: input.slug,
+      description: input.description,
+      icon_name: input.iconName,
+      status: input.status,
+      sort_order: input.sortOrder,
+    };
+  }
+
   /** Crea un servicio y devuelve su id. */
   async createService(input: ServiceInput): Promise<string> {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
-      .insert(input)
+      .insert(this.toServiceRow(input))
       .select('id')
       .single();
     if (error) throw mapServiceWriteError(error);
@@ -205,7 +224,10 @@ export class ServicesService {
   /** Actualiza los datos básicos de un servicio. */
   async updateService(id: string, input: ServiceInput): Promise<void> {
     await this.supabase.clientPromise;
-    const { error } = await this.supabase.client.from('services').update(input).eq('id', id);
+    const { error } = await this.supabase.client
+      .from('services')
+      .update(this.toServiceRow(input))
+      .eq('id', id);
     if (error) throw mapServiceWriteError(error);
   }
 

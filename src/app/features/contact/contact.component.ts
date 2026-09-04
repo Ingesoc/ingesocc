@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { LucideMail, LucideMapPin, LucidePhone } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { EditableTextComponent } from '../content-blocks/editable-text.component';
 import { ContactMessagesService } from './data-access/contact-messages.service';
@@ -7,7 +9,7 @@ import { ContactMessagesService } from './data-access/contact-messages.service';
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ReactiveFormsModule, EditableTextComponent],
+  imports: [ReactiveFormsModule, RouterLink, EditableTextComponent, LucideMail, LucidePhone, LucideMapPin],
   templateUrl: './contact.component.html',
 })
 export class ContactComponent {
@@ -21,7 +23,7 @@ export class ContactComponent {
   readonly address = computed(() => this.blocks.text('contact', 'address'));
   readonly privacyNote = computed(() => this.blocks.text('contact', 'privacy_note'));
 
-  /** Obligatorios según supuesto del plan 1.5: Nombre, Email, Mensaje. Teléfono y Asunto opcionales. */
+  /** Obligatorios: Nombre, Email, Mensaje. Teléfono y Asunto opcionales. */
   readonly form = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]),
     email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(254)]),

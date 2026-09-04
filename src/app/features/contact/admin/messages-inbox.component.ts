@@ -15,6 +15,8 @@ export class MessagesInboxComponent {
   readonly loading = signal(true);
   readonly error = signal('');
 
+  readonly unreadCount = () => this.items().filter((item) => !item.read).length;
+
   async ngOnInit(): Promise<void> {
     try {
       await this.messages.load();

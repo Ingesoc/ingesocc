@@ -1,17 +1,86 @@
-<footer class="bg-primary px-5 py-10 text-white md:px-10">
-  <div class="mx-auto flex max-w-[1440px] flex-col justify-between gap-8 md:flex-row md:items-end">
-    <div class="flex items-center gap-3">
-      <img src="/logo/logo.png" alt="Ingesocc S.A.S." width="42" height="42" class="h-10 w-10 rounded-full object-cover" />
-      <div>
-        <p class="text-sm font-bold uppercase tracking-[0.2em]">Ingesocc S.A.S.</p>
-        <p class="mt-1 text-xs text-white/50">Visionarios del diseño</p>
+<footer class="bg-primary text-white">
+  <div class="wrap pb-10 pt-16 md:pt-20">
+    <div class="grid gap-12 lg:grid-cols-12">
+      <!-- Marca + redes -->
+      <div class="lg:col-span-5">
+        <a routerLink="/" class="flex items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">
+          <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/20">
+            <img src="/logo/logo.png" alt="" width="44" height="44" class="h-full w-full object-cover" />
+          </span>
+          <span class="flex flex-col leading-none">
+            <span class="text-base font-bold uppercase tracking-[0.18em]">Ingesocc S.A.S.</span>
+            <span class="mt-1 text-[9px] font-semibold uppercase tracking-[0.34em] text-white/50">Ingeniería · Construcción</span>
+          </span>
+        </a>
+        <p class="mt-6 max-w-sm text-sm leading-6 text-white/55">
+          Arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.
+        </p>
+        <div class="mt-8 flex items-center gap-3">
+          @if (isEditing()) {
+            <!-- Modo edición: muestra el enlace editable para poder corregir la URL. -->
+            <a [href]="linkedin()" target="_blank" rel="noopener" class="text-xs text-white/70"><app-editable-text page="global" sectionKey="social_linkedin" [fallback]="linkedin()" /></a>
+            <a [href]="instagram()" target="_blank" rel="noopener" class="text-xs text-white/70"><app-editable-text page="global" sectionKey="social_instagram" [fallback]="instagram()" /></a>
+            <a [href]="facebook()" target="_blank" rel="noopener" class="text-xs text-white/70"><app-editable-text page="global" sectionKey="social_facebook" [fallback]="facebook()" /></a>
+          } @else {
+            <a [href]="linkedin()" target="_blank" rel="noopener" aria-label="LinkedIn de Ingesocc"
+              class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
+              LinkedIn
+              <svg lucideExternalLink class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            </a>
+            <a [href]="instagram()" target="_blank" rel="noopener" aria-label="Instagram de Ingesocc"
+              class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
+              Instagram
+              <svg lucideExternalLink class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            </a>
+            <a [href]="facebook()" target="_blank" rel="noopener" aria-label="Facebook de Ingesocc"
+              class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
+              Facebook
+              <svg lucideExternalLink class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            </a>
+          }
+        </div>
+      </div>
+
+      <!-- Navegación -->
+      <nav class="lg:col-span-3" aria-label="Navegación del pie de página">
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Navegación</p>
+        <ul class="grid gap-3">
+          @for (item of navItems; track item.link) {
+            <li>
+              <a [routerLink]="item.link"
+                class="text-sm font-medium text-white/70 transition-colors duration-200 hover:text-accent">
+                {{ item.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      <!-- Contacto -->
+      <div class="lg:col-span-4">
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Contacto</p>
+        <ul class="grid gap-3">
+          <li class="flex items-baseline gap-3 border-b border-white/10 pb-3">
+            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Email</span>
+            <a [href]="'mailto:' + email()" class="text-sm text-white/75 transition-colors hover:text-accent"><app-editable-text page="contact" sectionKey="email" [fallback]="email()" /></a>
+          </li>
+          <li class="flex items-baseline gap-3 border-b border-white/10 pb-3">
+            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Teléfono</span>
+            <a [href]="'tel:' + phone()" class="text-sm text-white/75 transition-colors hover:text-accent"><app-editable-text page="contact" sectionKey="phone" [fallback]="phone()" /></a>
+          </li>
+          <li class="flex items-baseline gap-3">
+            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Ubicación</span>
+            <span class="text-sm leading-6 text-white/75"><app-editable-text page="contact" sectionKey="address" [fallback]="address()" [multiline]="true" /></span>
+          </li>
+        </ul>
       </div>
     </div>
-    <div class="flex flex-wrap gap-x-6 gap-y-2 text-xs uppercase tracking-widest text-white/60">
-      <a [href]="instagram()" target="_blank" rel="noopener" class="hover:text-accent"><app-editable-text page="global" sectionKey="social_instagram" [fallback]="instagram()" /></a>
-      <a [href]="linkedin()" target="_blank" rel="noopener" class="hover:text-accent"><app-editable-text page="global" sectionKey="social_linkedin" [fallback]="linkedin()" /></a>
-      <a [href]="facebook()" target="_blank" rel="noopener" class="hover:text-accent"><app-editable-text page="global" sectionKey="social_facebook" [fallback]="facebook()" /></a>
-      <span>© {{ year }}</span>
+  </div>
+
+  <div class="border-t border-white/10">
+    <div class="wrap flex flex-col items-center justify-between gap-3 py-6 text-[11px] uppercase tracking-[0.2em] text-white/40 md:flex-row">
+      <p>© {{ year }} Ingesocc S.A.S. · Todos los derechos reservados</p>
+      <p class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span> Ingeniería · Arquitectura · Construcción</p>
     </div>
   </div>
 </footer>

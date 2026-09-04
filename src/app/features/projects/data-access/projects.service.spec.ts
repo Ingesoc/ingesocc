@@ -4,11 +4,14 @@ import { ProjectsService } from './projects.service';
 
 type TableResult = { data?: unknown[]; error?: { message: string; code?: string } | null };
 
+type WrittenRow = { table: string; payload: Record<string, unknown> };
+
 /**
  * Cliente Supabase simulado: cadenas de métodos (select/order/eq…) devuelven
  * un objeto thenable que resuelve con el resultado configurado por tabla.
+ * Registra el payload de cada insert/update en `writes` para poder verificarlo.
  */
-function createFakeClient(results: Record<string, TableResult>) {
+function createFakeClient(results: Record<string, TableResult>, writes: WrittenRow[] = []) {
   const chainFor = (table: string) => {
     const result = () => results[table] ?? { data: [], error: null };
     const chain = {
@@ -16,8 +19,14 @@ function createFakeClient(results: Record<string, TableResult>) {
       order: () => chain,
       eq: () => chain,
       single: () => chain,
-      update: () => chain,
-      insert: () => chain,
+      insert: (payload: Record<string, unknown>) => {
+        writes.push({ table, payload });
+        return chain;
+      },
+      update: (payload: Record<string, unknown>) => {
+        writes.push({ table, payload });
+        return chain;
+      },
       delete: () => chain,
       then: (resolve: (v: unknown) => void, reject: (e: unknown) => void) =>
         Promise.resolve(result()).then(resolve, reject),
@@ -29,6 +38,7 @@ function createFakeClient(results: Record<string, TableResult>) {
 
 describe('ProjectsService', () => {
   let results: Record<string, TableResult>;
+  let writes: WrittenRow[];
 
   function setup(): ProjectsService {
     TestBed.configureTestingModule({
@@ -36,7 +46,7 @@ describe('ProjectsService', () => {
         {
           provide: SupabaseService,
           useValue: {
-            client: createFakeClient(results),
+            client: createFakeClient(results, writes),
             ready: true,
             resolvePublicUrl: (bucket: string, path: string) =>
               path.startsWith('http') ? path : `https://cdn.test/${bucket}/${path}`,
@@ -49,6 +59,7 @@ describe('ProjectsService', () => {
 
   beforeEach(() => {
     results = {};
+    writes = [];
     spyOn(console, 'warn');
     spyOn(console, 'info');
   });
@@ -110,5 +121,65 @@ describe('ProjectsService', () => {
 
     expect(service.categoryNames()).toEqual(['Puentes', 'Edificaciones']);
     expect(service.categories().length).toBe(2);
+  });
+
+  it('createProject envía las columnas snake_case de la tabla projects', async () => {
+    results['projects'] = { data: [{ id: 'nuevo-id' }] };
+    const service = setup();
+
+    await service.createProject({
+      title: 'Casa',
+      slug: 'casa',
+      description: 'Desc',
+      priceMinWages: 180,
+      status: 'published',
+      featured: true,
+      sortOrder: 4,
+    });
+
+    expect(writes).toEqual([
+      {
+        table: 'projects',
+        payload: {
+          title: 'Casa',
+          slug: 'casa',
+          description: 'Desc',
+          price_min_wages: 180,
+          status: 'published',
+          featured: true,
+          sort_order: 4,
+        },
+      },
+    ]);
+  });
+
+  it('updateProject envía las columnas snake_case de la tabla projects', async () => {
+    results['projects'] = { data: [] };
+    const service = setup();
+
+    await service.updateProject('abc', {
+      title: 'Casa 2',
+      slug: 'casa-2',
+      description: 'Desc 2',
+      priceMinWages: null,
+      status: 'draft',
+      featured: false,
+      sortOrder: 1,
+    });
+
+    expect(writes).toEqual([
+      {
+        table: 'projects',
+        payload: {
+          title: 'Casa 2',
+          slug: 'casa-2',
+          description: 'Desc 2',
+          price_min_wages: null,
+          status: 'draft',
+          featured: false,
+          sort_order: 1,
+        },
+      },
+    ]);
   });
 });

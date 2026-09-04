@@ -41,6 +41,8 @@ export class ServiceFormComponent {
   readonly saving = signal(false);
   readonly error = signal('');
   readonly photo = signal<{ url: string; file?: File; existingPath?: string } | null>(null);
+  /** true mientras se comprime una foto recién seleccionada (evita guardar sin ella). */
+  readonly photoProcessing = signal(false);
 
   private slugEditedByUser = false;
 
@@ -107,17 +109,22 @@ export class ServiceFormComponent {
       return;
     }
 
-    let processed = file;
+    this.photoProcessing.set(true);
     try {
-      processed = await imageCompression(file, {
-        maxSizeMB: 2,
-        maxWidthOrHeight: 1600,
-        useWebWorker: true,
-      });
-    } catch {
-      // Sin compresión si falla; se sube el original.
+      let processed = file;
+      try {
+        processed = await imageCompression(file, {
+          maxSizeMB: 2,
+          maxWidthOrHeight: 1600,
+          useWebWorker: true,
+        });
+      } catch {
+        // Sin compresión si falla; se sube el original.
+      }
+      this.photo.set({ url: URL.createObjectURL(processed), file: processed });
+    } finally {
+      this.photoProcessing.set(false);
     }
-    this.photo.set({ url: URL.createObjectURL(processed), file: processed });
   }
 
   /** Quita la foto actual (la existente se borra del storage al guardar). */

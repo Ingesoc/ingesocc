@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideArrowUpRight } from '@lucide/angular';
 import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
@@ -8,7 +9,7 @@ import { ContactMessagesService } from '../contact/data-access/contact-messages.
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, LucideArrowUpRight],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent {

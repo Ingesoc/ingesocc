@@ -4,6 +4,17 @@ Sitio corporativo de Ingesocc S.A.S. construido con **Angular 19** (standalone c
 
 Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje visual del sitio). Sigue el plan técnico del proyecto: dos capas de contenido (CRUD total para Proyectos/Servicios, edición in-place para `content_blocks`).
 
+## Documentación (vault Obsidian)
+
+La documentación técnica del proyecto vive también como un **vault de Obsidian** en
+`docs/obsidian/` — 23 notas interconectadas (wikilinks, frontmatter, mapas de
+contenido) que cubren arquitectura, Supabase/RLS/storage, los CRUD, auth,
+content blocks, SEO, performance, testing y los pendientes operativos.
+
+Abrir en Obsidian: *Open folder as vault* → `docs/obsidian/` → empezar por
+`Inicio.md` (el mapa del vault). Los docs `docs/cambios-auditoria-final.md` y
+`docs/test-plan-audit.md` siguen siendo la fuente cronológica de la auditoría.
+
 ## Stack
 
 | Capa | Elección |
@@ -73,10 +84,10 @@ pnpm test:visual # QA visual: accent-deep + contraste + overflow + screenshots
 > base de datos disponible.
 >
 > Los tests E2E (Playwright) levantan el dev server automáticamente y cubren
-> Home → Proyectos → Detalle, el CRUD completo de proyectos y el flujo
-> contacto → bandeja admin. Los flujos de escritura (admin/bandeja) necesitan
-> credenciales y **escriben datos reales**: apúntalos a un proyecto Supabase de
-> pruebas.
+> Home → Proyectos → Detalle, el CRUD completo de proyectos y de servicios
+> (con foto e ícono) y el flujo contacto → bandeja admin. Los flujos de
+> escritura (admin/bandeja) necesitan credenciales y **escriben datos reales**:
+> apúntalos a un proyecto Supabase de pruebas.
 >
 > ```bash
 > pnpm test:e2e                                  # solo lectura pública
