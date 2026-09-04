@@ -3,7 +3,6 @@ import {
   acceptDialogs,
   hasAdminCredentials,
   loginAsAdmin,
-  slugify,
   uniqueSuffix,
 } from './helpers';
 
@@ -46,7 +45,6 @@ test.describe('Admin · CRUD de servicios', () => {
   test('crea (con ícono y foto), edita, verifica el fallback de ícono y elimina un servicio', async ({ page }) => {
     const suffix = uniqueSuffix();
     const name = `E2E Servicio ${suffix}`;
-    const slug = `e2e-servicio-${slugify(suffix)}`;
     const description = 'Servicio creado por la suite E2E para validar el CRUD completo con foto e ícono.';
     const editedDescription = 'Descripción editada por la suite E2E para validar la edición.';
 

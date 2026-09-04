@@ -7,10 +7,7 @@
       ? 'btn btn-accent fixed bottom-6 right-6 z-50 shadow-lg'
       : 'btn btn-solid fixed bottom-6 right-6 z-50 shadow-lg'"
   >
-    @if (isEditing()) {
-      <svg lucideX class="h-4 w-4" /> Terminar edición
-    } @else {
-      <svg lucidePencil class="h-4 w-4" /> Modo edición
-    }
+    <app-morph-icon [icon]="isEditing() ? closeIcon : editIcon" class="h-4 w-4" />
+    {{ isEditing() ? 'Terminar edición' : 'Modo edición' }}
   </button>
 }

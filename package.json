@@ -9,6 +9,7 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
     "test:e2e": "playwright test",
+    "lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js .",
     "test:perf": "pnpm build && node tools/lighthouse-ci.mjs",
     "test:visual": "pnpm build && node tools/visual-qa.mjs"
   },
@@ -24,6 +25,7 @@
     "@lucide/angular": "^1.39.0",
     "@supabase/supabase-js": "^2.114.0",
     "browser-image-compression": "^2.0.2",
+    "morphicons": "^1.7.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -32,10 +34,13 @@
     "@angular-devkit/build-angular": "^19.2.27",
     "@angular/cli": "^19.2.27",
     "@angular/compiler-cli": "^19.2.0",
+    "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/jasmine": "~5.1.0",
+    "angular-eslint": "^19.8.1",
     "chrome-launcher": "^1.2.1",
+    "eslint": "^9.39.5",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -44,6 +49,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "lighthouse": "^13.4.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.69.0"
   }
 }

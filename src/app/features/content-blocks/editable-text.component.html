@@ -1,6 +1,6 @@
 @if (isEditingMode()) {
   @if (editing()) {
-    <span class="inline-flex flex-col gap-1" (click)="$event.stopPropagation()">
+    <span class="inline-flex flex-col gap-1" tabindex="-1" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
       @if (isNumber()) {
         <input
           type="number"

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -19,7 +19,7 @@ import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../../core
   imports: [ReactiveFormsModule, RouterLink, NgComponentOutlet, LucideChevronLeft, LucideUpload, LucideTrash2],
   templateUrl: './service-form.component.html',
 })
-export class ServiceFormComponent {
+export class ServiceFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly services = inject(ServicesService);

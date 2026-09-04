@@ -39,7 +39,7 @@
               <dt class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Categoría</dt>
               <dd class="mt-1.5 text-sm font-medium">{{ project.categories.join(', ') || '—' }}</dd>
             </div>
-            @if (project.priceMinWages != null) {
+            @if (project.priceMinWages !== null) {
               <div class="border-t border-border pt-5">
                 <dt class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Valor de la obra:</dt>
                 <dd class="mt-1.5 text-2xl font-bold tracking-tight text-accent-deep">{{ project.priceMinWages }} <span class="text-sm font-semibold text-foreground">salarios mínimos</span></dd>
@@ -97,7 +97,9 @@
       role="dialog"
       aria-modal="true"
       aria-label="Galería ampliada"
+      tabindex="-1"
       (click)="closeLightbox()"
+      (keydown.escape)="closeLightbox()"
     >
       <button type="button" (click)="closeLightbox()" aria-label="Cerrar galería"
         class="absolute right-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8 md:top-8">
@@ -115,7 +117,12 @@
         </button>
       }
 
-      <figure class="max-h-full max-w-6xl" (click)="$event.stopPropagation()">
+      <figure
+        class="max-h-full max-w-6xl"
+        tabindex="-1"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+      >
         <img [src]="lightboxImageUrl()" [alt]="project.title" class="max-h-[78vh] w-auto object-contain" />
         <figcaption class="mt-4 flex items-center justify-between gap-4">
           <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/60">{{ project.title }}</span>

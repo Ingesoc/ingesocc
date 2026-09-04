@@ -11,7 +11,14 @@ estado: activo
 
 # Testing
 
-Tres suites + una herramienta de QA visual. Estado actual: **unit 32/32 · E2E 8/8 · QA visual 28/28 screenshots · Lighthouse A11y 100**.
+Tres suites + una herramienta de QA visual. Estado actual: **unit 32/32 · E2E 8/8 · QA visual 28/28 screenshots · Lighthouse A11y 95** (post-rediseño; ver [[Performance y Lighthouse]]).
+
+## Lint (ESLint)
+
+`pnpm lint` → **0 problemas** (flat config estándar Angular 19: TS + Angular + plantillas + a11y). Se añadió junto con la limpieza de código muerto (knip) en el nº 23 de [[Auditoría y Correcciones]]; `knip.json` documenta los 2 falsos positivos (`src/styles.css`, `tools/serve-dist.mjs`).
+
+> [!note] `angular-doctor`
+> El scan ESLint de `angular-doctor` v1.3.0 es incompatible con cualquier `eslint.config.js` estándar ("Cannot redefine plugin @typescript-eslint", limitación upstream) — usar `npx angular-doctor --no-lint` para dead-code/score (100/100).
 
 ## Unit (Jasmine + Karma, sin red)
 
@@ -41,7 +48,7 @@ Los E2E contra la DB real destaparon 3 bugs reales: camelCase en insert/update (
 
 ## QA visual (`pnpm test:visual`, `tools/visual-qa.mjs`)
 
-Verifica en vivo contra el build de producción: color exacto `#a53a0c` en todo `text-accent-deep`, contraste ≥ 4.5:1 contra el **fondo efectivo** del elemento, chip de filtro activo de `/proyectos`, errores de validación de `/contacto` y ausencia de overflow horizontal. Screenshots en `test-results/visual-qa/`.
+Verifica en vivo contra el build de producción: color exacto `#a53a0c` en todo `text-accent-deep`, contraste ≥ 4.5:1 contra el **fondo efectivo** del elemento, chip de filtro activo de `/proyectos`, errores de validación de `/contacto` y ausencia de overflow horizontal. Screenshots en `test-results/visual-qa/`. Tras el rediseño: **28 capturas (14 rutas × desktop/mobile) · 0 FAIL** — también confirma que la fuente Archivo está activa y la jerarquía `h1→h3` sin saltos.
 
 Con credenciales añade la **fase admin** (login real + dashboard, listados, formularios, bandeja, contenido). Intercepta solo la lectura de `profiles` (→ rol admin) para cuando el esquema no está aplicado; el resto va a la red real, de solo lectura.
 

@@ -15,6 +15,7 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 > [!info] Ficha rápida
 > - **Producto**: sitio corporativo + panel admin (Angular 19 SPA, CSR)
 > - **Backend**: Supabase (Postgres + Auth + Storage + RLS)
+> - **UI**: rediseño integral UI/UX completado (2026-09-04) — ver [[Guía de Estilo Visual]] y [[Auditoría y Correcciones]] nº 21
 > - **Estado**: production-ready en desarrollo — ver [[Pendientes Manuales]]
 > - **Docs fuente (repo)**: [[Auditoría y Correcciones]] · [[Testing]]
 

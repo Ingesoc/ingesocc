@@ -1,9 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
 
-export type AuthRole = 'admin' | 'user';
+type AuthRole = 'admin' | 'user';
 
-export interface AuthUser {
+interface AuthUser {
   id: string;
   email: string;
   role: AuthRole;

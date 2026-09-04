@@ -2,9 +2,15 @@ import { TestBed } from '@angular/core/testing';
 import { SupabaseService } from '../../../core/supabase.service';
 import { ProjectsService } from './projects.service';
 
-type TableResult = { data?: unknown[]; error?: { message: string; code?: string } | null };
+interface TableResult {
+  data?: unknown[];
+  error?: { message: string; code?: string } | null;
+}
 
-type WrittenRow = { table: string; payload: Record<string, unknown> };
+interface WrittenRow {
+  table: string;
+  payload: Record<string, unknown>;
+}
 
 /**
  * Cliente Supabase simulado: cadenas de métodos (select/order/eq…) devuelven

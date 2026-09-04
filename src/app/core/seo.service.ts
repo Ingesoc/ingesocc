@@ -3,13 +3,13 @@ import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
-export const SITE_NAME = 'Ingesocc S.A.S.';
+const SITE_NAME = 'Ingesocc S.A.S.';
 
 /**
  * Dominio público del sitio. TODO Fase 9: reemplazar por el dominio real de
  * Ingesocc antes del despliegue (ver README → Despliegue).
  */
-export const SITE_URL = 'https://ingesocc.com';
+const SITE_URL = 'https://ingesocc.com';
 
 const DEFAULT_DESCRIPTION =
   'Ingesocc S.A.S. — arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.';

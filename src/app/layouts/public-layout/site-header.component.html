@@ -40,11 +40,7 @@
       [attr.aria-expanded]="menuOpen()"
       [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'"
     >
-      @if (menuOpen()) {
-        <svg lucideX class="h-5 w-5" />
-      } @else {
-        <svg lucideMenu class="h-5 w-5" />
-      }
+      <app-morph-icon [icon]="menuOpen() ? closeIcon : menuIcon" class="h-5 w-5" />
     </button>
   </div>
 

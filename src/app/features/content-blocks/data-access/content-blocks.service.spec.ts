@@ -2,7 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { SupabaseService } from '../../../core/supabase.service';
 import { ContentBlocksService } from './content-blocks.service';
 
-type Result = { data?: unknown[]; error?: { message: string; code?: string } | null };
+interface Result {
+  data?: unknown[];
+  error?: { message: string; code?: string } | null;
+}
 
 /**
  * Cliente simulado que responde según (tabla, operación): select/update/insert.

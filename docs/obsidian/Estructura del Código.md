@@ -19,9 +19,10 @@ src/app/
     seo.service.ts             # title/description/OG/canonical por ruta
     image-utils.ts             # isAcceptableImageFile (MIME + extensión)
     slugify.ts                 # slug desde título (acentos NFD, etc.)
+    morph-icon.component.ts    # app-morph-icon: morph de iconos con estado (morphicons/dom, reducedMotion=user)
   layouts/
-    public-layout/             # header (nav + CTA) + footer (redes desde content_blocks)
-    admin-layout/              # panel admin (sidebar + nav móvil)
+    public-layout/             # header editorial (menú móvil fullscreen) + footer (redes desde content_blocks)
+    admin-layout/              # panel admin (sidebar fija + topbar sticky + nav móvil)
   features/
     content-blocks/
       data-access/             # modelo + ContentBlocksService
@@ -54,7 +55,7 @@ src/environments/              # environment.ts / environment.prod.ts (URL + ano
 e2e/                 # specs Playwright (public-flows, admin-projects, admin-services, contact-inbox)
 tools/               # lighthouse-ci.mjs · visual-qa.mjs · serve-dist.mjs
 supabase/            # schema.sql · seed.sql · rls-checks.sql
-public/              # logo/, favicons, site.webmanifest, sitemap.xml, robots.txt
+public/              # logo/, favicons, site.webmanifest, sitemap.xml, robots.txt, fonts/ (Archivo variable latin + latin-ext)
 ```
 
 ## Convenciones

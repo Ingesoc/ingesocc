@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { LucideMail, LucideTrash2 } from '@lucide/angular';
 import { ContactMessagesService } from '../data-access/contact-messages.service';
 
@@ -8,7 +8,7 @@ import { ContactMessagesService } from '../data-access/contact-messages.service'
   imports: [LucideMail, LucideTrash2],
   templateUrl: './messages-inbox.component.html',
 })
-export class MessagesInboxComponent {
+export class MessagesInboxComponent implements OnInit {
   private readonly messages = inject(ContactMessagesService);
 
   readonly items = this.messages.messages;

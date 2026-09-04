@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { NgComponentOutlet } from '@angular/common';
 import { LucidePencil, LucidePlus, LucideTrash2 } from '@lucide/angular';
@@ -12,7 +12,7 @@ import type { AdminService } from '../data-access/service.model';
   imports: [RouterLink, NgComponentOutlet, LucidePlus, LucidePencil, LucideTrash2],
   templateUrl: './services-admin-page.component.html',
 })
-export class ServicesAdminPageComponent {
+export class ServicesAdminPageComponent implements OnInit {
   private readonly services = inject(ServicesService);
   private readonly router = inject(Router);
 

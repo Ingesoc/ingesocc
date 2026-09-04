@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight } from '@lucide/angular';
 import { ProjectsService } from '../projects/data-access/projects.service';
@@ -12,7 +12,7 @@ import { ContactMessagesService } from '../contact/data-access/contact-messages.
   imports: [RouterLink, LucideArrowUpRight],
   templateUrl: './admin-dashboard.component.html',
 })
-export class AdminDashboardComponent {
+export class AdminDashboardComponent implements OnInit {
   private readonly projects = inject(ProjectsService);
   private readonly services = inject(ServicesService);
   private readonly blocks = inject(ContentBlocksService);

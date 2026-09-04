@@ -36,6 +36,10 @@ Registro de los bugs reales encontrados y corregidos durante la auditoría. La v
 | 18 | `load()` rompía con el embed to-one de categorías (TypeError; error oculto por el seed) | [[CRUD Proyectos]] |
 | 19 | CRUD de servicios sin cobertura E2E → `e2e/admin-services.spec.ts` | [[Testing]] |
 | 20 | Carrera foto/guardar en el form de servicios (pérdida silenciosa de foto) | [[CRUD Servicios]] |
+| 21 | Rediseño integral UI/UX (sistema de diseño, tipografía Archivo, hero/mosaico editorial, lightbox, shell admin) | [[Guía de Estilo Visual]] |
+| 22 | Mosaico de destacados: patrón único repetido cada 6 cards → composición alterna A/B sin huecos para cualquier total | [[Guía de Estilo Visual]] |
+| 23 | Sin ESLint en el proyecto + código muerto (knip): toolchain ESLint estándar Angular 19, 20 hallazgos corregidos (`OnInit`, `!==`, a11y teclado), exports/types sin uso eliminados, `knip.json` con 2 falsos positivos | [[Stack Tecnológico]] / [[Testing]] |
+| 24 | Iconos de estado con morph: `morphicons` (vía `morphicons/dom`, sin binding Angular) en `app-morph-icon` para ☰↔✕ (menú móvil) y ✎↔✕ (toggle edición); `d` canónicos de @lucide/angular 21.2.19; estáticos siguen en lucide | [[Guía de Estilo Visual]] |
 
 ## Seguridad (P0)
 
@@ -46,6 +50,7 @@ Registro de los bugs reales encontrados y corregidos durante la auditoría. La v
 
 - **Regla CSS sin capa**: `a { color: inherit }` anulaba todas las utilities de color de Tailwind sobre `<a>` → movida a `@layer base` (ver [[Guía de Estilo Visual]]).
 - Hover del CTA del header: texto claro sobre naranja (3.4:1) → `hover:text-primary` (5.2:1).
+- **NO_FCP en DevTools**: los reportes Lighthouse con "the page did not paint any content" en TODAS las métricas (incluidas las que no dependen del paint) son un artefacto de captura — pestaña no enfocada. El CLI headless da métricas reales (desktop ~92, móvil ~64-65; ver [[Performance y Lighthouse]]).
 
 ## Fuentes
 

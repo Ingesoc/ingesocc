@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { filter } from 'rxjs';
@@ -43,7 +43,7 @@ const ICONS = {
   ],
   templateUrl: './admin-layout.component.html',
 })
-export class AdminLayoutComponent {
+export class AdminLayoutComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 

@@ -192,7 +192,7 @@ function mapProjectWriteError(error: DbError): Error {
 }
 
 /** Categorías reales del filtro (plan 1.2 — "Todos" es el filtro por defecto, no una categoría). */
-export const PROJECT_CATEGORIES: readonly string[] = [
+const PROJECT_CATEGORIES: readonly string[] = [
   'Edificaciones',
   'Estructuras Metálicas',
   'Puentes',

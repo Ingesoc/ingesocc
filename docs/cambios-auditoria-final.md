@@ -548,6 +548,92 @@ desde `content_blocks`/panel.
 
 ---
 
+## 23. ESLint + limpieza de código muerto (hallazgos de `angular-doctor` — 2026-09-04)
+
+**PROBLEM**: el proyecto no tenía ESLint (sin `eslint.config.js`, sin script `lint`,
+sin devDependencies) y `npx angular-doctor` reportaba 1 error de configuración +
+13 warnings de código muerto (knip): exports/types sin uso fuera de su módulo
+(`PROJECT_CATEGORIES`, `SITE_NAME`, `SITE_URL`, `AuthRole`, `AuthUser`,
+`ContactMessage`, `ContactMessageInput`, helpers E2E huérfanos) y 2 falsos
+positivos (`src/styles.css`, `tools/serve-dist.mjs`).
+
+**SOLUTION**:
+
+1. **Toolchain ESLint estándar de Angular 19** (flat config): devDependencies
+   `eslint@^9` · `@eslint/js@^9` · `typescript-eslint@^8` · `angular-eslint@^19`,
+   `eslint.config.js` (recomendado TS + Angular + plantillas + a11y, con
+   `processInlineTemplates`) y script `pnpm lint` (con `--max-old-space-size=4096`
+   porque el scan de flat config OOM en Windows/OneDrive con el heap por defecto).
+2. **20 hallazgos reales corregidos**: 7 componentes sin `implements OnInit`;
+   `!=` → `!==` en 4 plantillas; lightbox y editor in-place sin paridad de
+   teclado (ahora `tabindex` + `keydown`, ESC a nivel de documento y botones
+   enfocables); `type` de objetos → `interface` en 2 specs; `slug` sin uso en
+   `e2e/admin-services.spec.ts`.
+3. **Código muerto eliminado** (knip): símbolos usados solo dentro de su módulo
+   dejaron de exportarse; se borraron `readEnvironment()` y `createAdminClient()`
+   de `e2e/helpers.ts` (sin consumidores).
+4. **`knip.json`** documenta los 2 falsos positivos reales: `src/styles.css`
+   (hoja global registrada en `angular.json`) y `tools/serve-dist.mjs` (script
+   lanzado por `spawn()` desde `lighthouse-ci.mjs`/`visual-qa.mjs`).
+
+**FILES**: `eslint.config.js` (nuevo), `knip.json` (nuevo), `package.json`
+(+`lint`, +4 devDeps), `pnpm-lock.yaml`, `e2e/helpers.ts`,
+`e2e/admin-services.spec.ts`, 2 specs, 7 componentes admin (+`OnInit`),
+4 plantillas (`!==`, a11y lightbox/editor), `projects.service.ts`,
+`seo.service.ts`, `auth.service.ts`, `contact-messages.service.ts`.
+
+**TEST PERFORMED**: `pnpm lint` ✅ 0 problemas (20 corregidos) · `pnpm build` ✅
+· `pnpm test:ci` ✅ 32/32 · `npx angular-doctor --no-lint` ✅ **100/100, sin
+issues** en scan completo (knip limpio con `knip.json`).
+
+**RESULT**: ✅ El proyecto queda con lint real (`pnpm lint`) y sin código muerto.
+Queda **1 limitación upstream documentada**: el plugin ESLint de angular-doctor
+v1.3.0 fusiona su `overrideConfig` (typescript-eslint 8.56 propio) con el
+`eslint.config.js` del proyecto (typescript-eslint 8.69) → "Cannot redefine
+plugin @typescript-eslint". Afecta a **cualquier** proyecto Angular con config
+ESLint estándar, no es un defecto del repo; la puerta de lint real es `pnpm lint`
+y el doctor se usa con `--no-lint` para dead-code/score.
+
+---
+
+## 24. Iconos de estado con morph (morphicons 1.7.1 — 2026-09-04)
+
+**PROBLEM**: los pocos iconos del sitio que cambian de forma según estado (☰↔✕
+del menú móvil, ✎↔✕ del toggle de edición) se intercambiaban con un salto
+instantáneo entre dos componentes de `@lucide/angular`.
+
+**SOLUTION**: se adopta **morphicons** solo donde aporta valor (cambios de
+estado reales), manteniendo `@lucide/angular` para los ~30 iconos estáticos
+(convivencia recomendada por el propio morphicons). Sin binding Angular:
+
+- `pnpm add morphicons` y componente propio **`app-morph-icon`**
+  (`src/app/core/morph-icon.component.ts`) sobre `morphicons/dom` (el driver
+  vanilla `createMorph`): renderiza su propio `<svg>` con los mismos atributos
+  de Lucide (viewBox 24, trazo 2, round, `currentColor`), sin custom elements
+  ni `CUSTOM_ELEMENTS_SCHEMA`. Input `icon` (un `d`) → morph animado con física
+  de muelle; `reducedMotion` por defecto `"user"` (respeta
+  `prefers-reduced-motion`; degrada a intercambio instantáneo).
+- **`d` canónicos extraídos de @lucide/angular 21.2.19** (el mismo paquete que
+  renderiza el resto) → formas idénticas en reposo; el tamaño se controla con
+  clases en el host (`h-5 w-5`) y el `<svg>` rellena el host.
+
+**FILES**: `package.json`/`pnpm-lock.yaml` (+morphicons 1.7.1),
+`src/app/core/morph-icon.component.ts` (nuevo), `site-header.component.{ts,html}`
+(☰↔✕), `edit-mode-toggle.component.{ts,html}` (✎↔✕).
+
+**TEST PERFORMED**: `pnpm build` ✅ · `pnpm lint` ✅ · `pnpm test:ci` ✅ 32/32 ·
+E2E público ✅ 5/5 · probe Playwright (temporal): el `d` del `<path>` cambia en
+vuelo y asienta en el `d` canónico ☰→✕→☰ sin errores de consola ✅ · QA visual
+✅ 14 screenshots públicos · 0 issues · Lighthouse ✅ presupuestos PASS (script
+760 KB ≤ 976 KB; morphicons añade ~10-15 KB).
+
+**RESULT**: ✅ Micro-transiciones de forma (150-400 ms, muelle) exactamente donde
+el icono cambia de identidad; el resto de la interfaz no cambia visualmente.
+Regla para el futuro: morphicons solo para iconos con estado (menú, toggles);
+los iconos decorativos/estáticos siguen con `@lucide/angular`.
+
+---
+
 ## Pendiente manual (requiere intervención humana)
 
 1. **Dominio real**: reemplazar `https://ingesocc.com` (SITE_URL en
