@@ -1,0 +1,11 @@
+# Dependencias y cachés locales: se regeneran en el build remoto de Vercel
+node_modules
+.angular
+dist
+
+# Artefactos de tests/auditoría
+coverage
+.lighthouseci
+test-results
+playwright-report
+blob-report

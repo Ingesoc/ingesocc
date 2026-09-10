@@ -105,6 +105,9 @@ export class ServicesService {
 
   private readonly services = signal<Service[]>(SEED_SERVICES);
 
+  /** Última carga pública falló (seed visible ≠ datos reales). */
+  private readonly loadFailed = signal(false);
+
   /** Todos los servicios visto por el admin (incluye borradores). */
   private readonly adminServicesSignal = signal<AdminService[]>([]);
 
@@ -126,8 +129,11 @@ export class ServicesService {
     await Promise.all([this.load(), this.loadAll()]);
   }
 
-  /** Carga los servicios desde Supabase; si falla, mantiene el seed. */
-  async load(): Promise<void> {
+  /**
+   * Carga los servicios desde Supabase; si falla, mantiene el seed (sitio
+   * público) y devuelve false (el admin muestra error, plan §2).
+   */
+  async load(): Promise<boolean> {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
@@ -136,12 +142,14 @@ export class ServicesService {
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
       console.warn('[services] usando seed estático:', error.message);
-      return;
+      this.loadFailed.set(true);
+      return false;
     }
+    this.loadFailed.set(false);
     if (!data || data.length === 0) {
       // La tabla existe pero está vacía: se muestra la realidad.
       this.services.set([]);
-      return;
+      return true;
     }
 
     this.services.set(
@@ -156,7 +164,11 @@ export class ServicesService {
         sortOrder: row.sort_order,
       })),
     );
+    return true;
   }
+
+  /** Última carga pública falló (seed visible ≠ datos reales). Panel admin. */
+  readonly loadState = this.loadFailed.asReadonly();
 
   /** Carga TODOS los servicios para el panel admin (RLS permite todo a rol admin). */
   async loadAll(): Promise<void> {

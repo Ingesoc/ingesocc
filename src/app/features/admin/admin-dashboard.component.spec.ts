@@ -29,16 +29,27 @@ describe('AdminDashboardComponent', () => {
         // RouterLink (links del template) necesita el router aunque la suite
         // no navegue.
         provideRouter([]),
-        { provide: ProjectsService, useValue: { published: () => [{}], featured: () => [{}] } },
-        { provide: ServicesService, useValue: { published: () => [{}] } },
-        { provide: ContentBlocksService, useValue: { byPage: () => ({ home: { a: {} } }) } },
+        {
+          provide: ProjectsService,
+          useValue: { published: () => [{}], featured: () => [{}], load: () => Promise.resolve(true), loadState: () => false },
+        },
+        {
+          provide: ServicesService,
+          useValue: { published: () => [{}], load: () => Promise.resolve(true), loadState: () => false },
+        },
+        {
+          provide: ContentBlocksService,
+          useValue: { byPage: () => ({ home: { a: {} } }), load: () => Promise.resolve(true), loadState: () => false },
+        },
         { provide: ContactMessagesService, useValue: messagesStub },
       ],
     });
   });
 
-  it('calcula los contadores del dashboard', () => {
+  it('calcula los contadores del dashboard', async () => {
     const fixture = createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
     const component = fixture.componentInstance;
     expect(component.cards().length).toBe(4);
@@ -46,13 +57,27 @@ describe('AdminDashboardComponent', () => {
     expect(component.cards()[3].detail).toContain('2 en total');
   });
 
-  it('carga los mensajes al iniciar y apaga el loading', async () => {
+  it('carga todos los módulos al iniciar y apaga el loading', async () => {
     const fixture = createComponent();
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(messagesStub.load).toHaveBeenCalled();
-    expect(fixture.componentInstance.loadingMessages()).toBeFalse();
+    expect(fixture.componentInstance.loading()).toBeFalse();
+    expect(fixture.componentInstance.failedModules()).toEqual([]);
     expect(fixture.componentInstance.messagesError()).toBe('');
+  });
+
+  it('marca los módulos fallidos cuando Supabase reporta error de carga', async () => {
+    TestBed.inject(ProjectsService).load = () => Promise.resolve(false);
+    TestBed.inject(ContentBlocksService).load = () => Promise.reject(new Error('RLS'));
+
+    const fixture = createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.failedModules()).toEqual(['Proyectos', 'Contenido']);
+    const html = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(html).toContain('No se pudo conectar con Supabase');
   });
 
   it('muestra el estado de error cuando la carga de mensajes falla', async () => {
@@ -64,6 +89,6 @@ describe('AdminDashboardComponent', () => {
 
     const html = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(fixture.componentInstance.messagesError()).toContain('No se pudieron cargar los mensajes');
-    expect(html).toContain('No se pudieron cargar los mensajes');
+    expect(html).toContain('No se pudo conectar con Supabase');
   });
 });

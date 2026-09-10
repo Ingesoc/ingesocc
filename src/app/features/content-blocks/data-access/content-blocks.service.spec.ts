@@ -13,6 +13,8 @@ interface Result {
  * entre llamadas dentro de un mismo test.
  */
 function createFakeClient(getResponder: () => (table: string, operation: string) => Result) {
+  // Último payload enviado a update/insert (para assertar columnas reales).
+  const sent: { lastUpdate?: Record<string, unknown> } = {};
   const chainFor = (table: string) => {
     const ops: string[] = [];
     const chain = {
@@ -32,8 +34,9 @@ function createFakeClient(getResponder: () => (table: string, operation: string)
         ops.push('single');
         return chain;
       },
-      update: () => {
+      update: (payload: Record<string, unknown>) => {
         ops.push('update');
+        sent.lastUpdate = payload;
         return chain;
       },
       insert: () => {
@@ -45,7 +48,7 @@ function createFakeClient(getResponder: () => (table: string, operation: string)
     };
     return chain;
   };
-  return { from: (table: string) => chainFor(table) };
+  return { from: (table: string) => chainFor(table), sent };
 }
 
 const BLOCK_ROW = {
@@ -59,14 +62,16 @@ const BLOCK_ROW = {
 
 describe('ContentBlocksService', () => {
   let responder: (table: string, operation: string) => Result;
+  let fakeClient: ReturnType<typeof createFakeClient>;
 
   function setup(): ContentBlocksService {
+    fakeClient = createFakeClient(() => responder);
     TestBed.configureTestingModule({
       providers: [
         {
           provide: SupabaseService,
           useValue: {
-            client: createFakeClient(() => responder),
+            client: fakeClient,
             ready: true,
             resolvePublicUrl: (_bucket: string, path: string) =>
               path.startsWith('http') ? path : `https://cdn.test/${path}`,
@@ -90,6 +95,9 @@ describe('ContentBlocksService', () => {
     await service.updateBlock('home', 'hero.title', { valueText: 'Otro título' });
 
     expect(service.text('home', 'hero.title')).toBe('Otro título');
+    // PostgREST exige las columnas reales (snake_case), nunca camelCase.
+    expect(Object.keys(fakeClient.sent.lastUpdate ?? {})).toContain('value_text');
+    expect(Object.keys(fakeClient.sent.lastUpdate ?? {})).not.toContain('valueText');
   });
 
   it('re-lanza errores reales de persistencia (RLS) sin aplicar el cambio', async () => {

@@ -89,6 +89,9 @@ export class ContentBlocksService {
 
   private readonly blocks = signal<ContentBlock[]>(SEED_CONTENT_BLOCKS);
 
+  /** Última carga de content_blocks falló (seed visible ≠ datos reales). */
+  private readonly loadFailed = signal(false);
+
   /** Índice page -> sectionKey -> bloque, para consultas reactivas por página. */
   readonly byPage = computed(() => {
     const index: Record<string, Record<string, ContentBlock>> = {};
@@ -102,8 +105,14 @@ export class ContentBlocksService {
     void this.load();
   }
 
-  /** Carga las filas reales de `content_blocks`; si falla o está vacío, mantiene el seed. */
-  async load(): Promise<void> {
+  /**
+   * Carga las filas reales de `content_blocks`.
+   *
+   * Devuelve false si Supabase falló (se conserva el seed: el SITIO PÚBLICO
+   * nunca se rompe). El CMS de /admin NO debe usar este valor como dato: su
+   * página consulta `loadState()` para mostrar un error visible.
+   */
+  async load(): Promise<boolean> {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('content_blocks')
@@ -112,12 +121,14 @@ export class ContentBlocksService {
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
       console.warn('[content_blocks] usando seed estático:', error.message);
-      return;
+      this.loadFailed.set(true);
+      return false;
     }
+    this.loadFailed.set(false);
     if (!data || data.length === 0) {
       // Tabla existente pero vacía: sin bloques reales no hay contenido DB.
       this.blocks.set([]);
-      return;
+      return true;
     }
 
     this.blocks.set(
@@ -133,6 +144,22 @@ export class ContentBlocksService {
             : row.value_image_path,
       })),
     );
+    return true;
+  }
+
+  /** Última carga pública falló (seed visible ≠ datos reales). Panel admin. */
+  readonly loadState = this.loadFailed.asReadonly();
+
+  /** Sube una imagen al bucket content-images y devuelve la ruta de storage. */
+  async uploadContentImage(file: File): Promise<string> {
+    await this.supabase.clientPromise;
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const path = `content/${crypto.randomUUID()}.${ext}`;
+    const { error } = await this.supabase.client.storage
+      .from('content-images')
+      .upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (error) throw new Error(error.message);
+    return path;
   }
 
   /** Bloque por (page, sectionKey). */
@@ -175,10 +202,17 @@ export class ContentBlocksService {
       changes.valueImagePath != null ? 'image' : changes.valueNumber != null ? 'number' : 'text';
     const existing = this.block(page, sectionKey);
 
+    // PostgREST espera las columnas reales (snake_case): el modelo usa
+    // camelCase, así que se mapea antes de tocar la tabla.
+    const columnChanges: Record<string, unknown> = {};
+    if (changes.valueText !== undefined) columnChanges['value_text'] = changes.valueText;
+    if (changes.valueNumber !== undefined) columnChanges['value_number'] = changes.valueNumber;
+    if (changes.valueImagePath !== undefined) columnChanges['value_image_path'] = changes.valueImagePath;
+
     if (existing) {
       const { error } = await this.supabase.client
         .from('content_blocks')
-        .update(changes)
+        .update(columnChanges)
         .eq('page', page)
         .eq('section_key', sectionKey);
       if (!error) {
@@ -194,7 +228,7 @@ export class ContentBlocksService {
       page,
       section_key: sectionKey,
       type,
-      ...changes,
+      ...columnChanges,
     });
     if (!error) {
       await this.load();

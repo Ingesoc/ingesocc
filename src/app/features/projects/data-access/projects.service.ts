@@ -230,6 +230,9 @@ export class ProjectsService {
 
   private readonly projects = signal<Project[]>(SEED_PROJECTS);
 
+  /** Última carga pública falló (seed visible ≠ datos reales). */
+  private readonly loadFailed = signal(false);
+
   /** Todos los proyectos visto por el admin (incluye borradores). */
   private readonly adminProjectsSignal = signal<AdminProject[]>([]);
 
@@ -266,8 +269,11 @@ export class ProjectsService {
     await Promise.all([this.load(), this.loadAll(), this.loadCategories()]);
   }
 
-  /** Carga proyectos + categorías + imágenes desde Supabase; si falla, mantiene el seed. */
-  async load(): Promise<void> {
+  /**
+   * Carga proyectos + categorías + imágenes desde Supabase; si falla, mantiene
+   * el seed (sitio público) y devuelve false (el admin muestra error, plan §2).
+   */
+  async load(): Promise<boolean> {
     await this.supabase.clientPromise;
     const client = this.supabase.client;
 
@@ -278,13 +284,15 @@ export class ProjectsService {
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
       console.warn('[projects] usando seed estático:', error.message);
-      return;
+      this.loadFailed.set(true);
+      return false;
     }
+    this.loadFailed.set(false);
     if (!projects || projects.length === 0) {
       // La tabla existe pero está vacía (p. ej. se eliminaron todos los
       // proyectos): se muestra la realidad, no un seed que ya no está en DB.
       this.projects.set([]);
-      return;
+      return true;
     }
 
     const { data: links } = await client
@@ -330,7 +338,11 @@ export class ProjectsService {
         images: imagesByProject.get(row.id) ?? [],
       })),
     );
+    return true;
   }
+
+  /** Última carga pública falló (seed visible ≠ datos reales). Panel admin. */
+  readonly loadState = this.loadFailed.asReadonly();
 
   /** Carga TODOS los proyectos para el panel admin (RLS permite todo a rol admin). */
   async loadAll(): Promise<void> {

@@ -128,13 +128,9 @@ export const routes: Routes = [
       {
         path: 'contenido',
         loadComponent: () =>
-          import('./features/admin/admin-placeholder.component').then((m) => m.AdminPlaceholderComponent),
-        data: {
-          title: 'Contenido del sitio',
-          phase: 'Edición in-place',
-          description:
-            'Los textos e imágenes de las páginas públicas se editan directamente sobre la página: con sesión admin, activa el botón flotante "Modo edición" y usa los lápices sobre cada bloque.',
-        },
+          import('./features/content-blocks/admin/content-cms-page.component').then(
+            (m) => m.ContentCmsPageComponent,
+          ),
       },
       {
         path: 'mensajes',
