@@ -5,6 +5,13 @@
     Gestiona proyectos, servicios, mensajes y el contenido editable del sitio.
   </p>
 
+  <!-- Error al cargar los mensajes (nº 13 del plan: estado de error explícito) -->
+  @if (messagesError()) {
+    <p role="alert" class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">
+      {{ messagesError() }}
+    </p>
+  }
+
   <!-- Métricas -->
   <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     @for (card of cards(); track card.label) {

@@ -48,7 +48,14 @@ Verificar: `select count(*) from pg_catalog.pg_tables where schemaname = 'public
 
 Ejecutar `supabase/rls-checks.sql` contra el proyecto de **pruebas** (no producción) para validar la matriz anon/user/admin (ver [[Row Level Security]]).
 
-## 5. Rotar credenciales compartidas
+## 5. Recuperación de contraseña (configuración)
+
+La UI de recuperación está implementada (CU-18): enlace "¿Olvidaste tu contraseña?" en `/admin/login`, pantalla de solicitud `/admin/recuperar` y pantalla de contraseña nueva `/admin/nueva-contrasena`. El cliente pide el enlace con `redirectTo: <origin>/admin/nueva-contrasena`.
+
+> [!warning] Pendiente operativo
+> En el dashboard de Supabase (proyecto de producción), añadir el origen del sitio a **Authentication → URL Configuration → Redirect URLs** (p. ej. `https://<dominio>/admin/nueva-contrasena`); sin esto, el enlace del correo no aterrizará en la app. Ver [[Casos de Uso]] CU-18.
+
+## 6. Rotar credenciales compartidas
 
 > [!danger] Seguridad
 > El password admin se compartió en el chat durante la sesión de QA. Rotarlo cuando sea conveniente — solo se lee de variables de entorno en runtime (`E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD`), nada se guarda en el repo.

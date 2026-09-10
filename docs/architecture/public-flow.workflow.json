@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Flujo Público — Ingesocc S.A.S.",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "lectura", "label": "Lectura de contenido", "focus": ["home", "catalogo", "detalle"], "note": "Las páginas públicas solo leen: content_blocks, proyectos publicados e imágenes." },
+      { "id": "contacto", "label": "Envío de contacto", "focus": ["contacto", "valida", "inserta"], "note": "Único punto de escritura del sitio público: insert en contact_messages." }
+    ]
+  },
+  "lanes": [
+    { "id": "user", "label": "Usuario" },
+    { "id": "spa", "label": "Angular 19 SPA" },
+    { "id": "supa", "label": "Supabase" }
+  ],
+  "phases": [
+    { "id": "navegar", "label": "Navegación", "fromCol": 0, "toCol": 1 },
+    { "id": "leer", "label": "Lectura de datos", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "escribir", "label": "Escritura (contacto)", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["usuario", "spa-root", "home", "catalogo", "detalle", "contacto", "valida", "inserta"],
+  "nodes": [
+    { "id": "usuario", "lane": "user", "col": 0, "type": "external", "label": "Usuario", "sublabel": "visitante anónimo" },
+    { "id": "spa-root", "lane": "spa", "col": 0, "type": "frontend", "label": "Public Layout", "sublabel": "header + footer" },
+    { "id": "home", "lane": "spa", "col": 1, "type": "frontend", "label": "Home", "sublabel": "/" },
+    { "id": "catalogo", "lane": "spa", "col": 2, "type": "frontend", "label": "Proyectos", "sublabel": "/proyectos" },
+    { "id": "detalle", "lane": "spa", "col": 3, "type": "frontend", "label": "Detalle", "sublabel": "/proyectos/:slug" },
+    { "id": "contacto", "lane": "spa", "col": 4, "type": "frontend", "label": "Contacto", "sublabel": "/contacto" },
+    { "id": "valida", "lane": "supa", "col": 4, "type": "security", "label": "RLS insert", "sublabel": "política pública" },
+    { "id": "inserta", "lane": "supa", "col": 5, "type": "database", "label": "contact_messages", "sublabel": "INSERT público", "width": 120 }
+  ],
+  "edges": [
+    { "from": "usuario", "to": "spa-root", "label": "abre el sitio" },
+    { "from": "spa-root", "to": "home", "label": "content_blocks + destacados" },
+    { "from": "home", "to": "catalogo", "label": "navega a /proyectos", "variant": "emphasis" },
+    { "from": "catalogo", "to": "detalle", "label": "elige proyecto", "variant": "emphasis" },
+    { "from": "detalle", "to": "contacto", "label": "CTA cotización" },
+    { "from": "contacto", "to": "valida", "label": "INSERT contact_messages", "variant": "security" },
+    { "from": "valida", "to": "inserta", "label": "guarda mensaje", "variant": "security" },
+    { "from": "inserta", "to": "usuario", "label": "confirmación", "variant": "dashed", "route": "outside-right", "fromSide": "right", "toSide": "right" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Lectura pública", "items": ["Home carga content_blocks y proyectos featured", "Proyectos filtra por categorías y pagina con \"Cargar Más\" (bloques de 8)", "El detalle resuelve la galería desde Supabase Storage"] },
+    { "dot": "rose", "title": "Escritura única", "items": ["Solo el formulario de contacto escribe en el sitio público", "Validación reactiva en cliente antes del insert", "RLS permite el INSERT anónimo; leerlos ya exige rol admin"] },
+    { "dot": "emerald", "title": "Filtros verificados", "items": ["Categorías desde la tabla categories con respaldo estático", "activeCategory es una signal; \"Todos\" no es categoría guardable", "Rutas: /, quienes-somos, servicios, proyectos, proyectos/:slug, contacto"] }
+  ]
+}

@@ -41,7 +41,9 @@ update public.profiles set role = 'admin' where id = '<user id>';
 
 ## Casos cubiertos
 
-- Login ok / error (mensajes en español) · logout · sesión persistente tras refresh · sesión expirada · anónimo → `/admin/login` · autenticado sin rol admin → mensaje + logout · deep-link a `/admin/*` con sesión válida.
+- Login ok / error (mensajes en español) · logout · sesión persistente tras refresh · sesión expirada (refresco automático fallido → logout y guard a `/admin/login`) · anónimo → `/admin/login` · autenticado sin rol admin → mensaje + logout · deep-link a `/admin/*` con sesión válida · recuperación de contraseña (CU-18: `/admin/recuperar`, `/admin/nueva-contrasena` y enlace en el login — ver [[Casos de Uso]]).
+
+Ver el detalle formal de estos flujos en [[Casos de Uso]] (CU-06, CU-16 a CU-19).
 
 ## Ver también
 

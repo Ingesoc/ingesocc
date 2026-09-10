@@ -1,8 +1,12 @@
 import { expect, test } from '@playwright/test';
-
+import { navigateTo } from './helpers';
 /**
  * E2E públicos (solo lectura, sin credenciales): Home → Proyectos → Detalle,
  * navegación del sitio, ruta inexistente y SEO básico por ruta.
+ *
+ * Corren en toda la matriz de navegadores (E2E_BROWSERS=all): la navegación
+ * usa el helper `navigateTo`, que elige el nav de desktop o el menú móvil
+ * según el viewport del proyecto.
  */
 test.describe('Sitio público', () => {
   test('Home carga con navegación, hero y footer', async ({ page }) => {
@@ -11,11 +15,16 @@ test.describe('Sitio público', () => {
     // SEO: título base presente en el <head>.
     await expect(page).toHaveTitle(/Ingesocc/);
 
-    // Navegación principal visible.
-    const nav = page.getByRole('navigation', { name: 'Navegación principal' });
-    await expect(nav.getByRole('link', { name: 'Inicio' })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Proyectos' })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Contacto' })).toBeVisible();
+    // Navegación accesible según viewport: en desktop el nav principal; en
+    // móvil el botón hamburguesa (el overlay "Menú móvil" tiene los mismos
+    // enlaces y se abre bajo demanda).
+    const desktopNav = page.getByRole('navigation', { name: 'Navegación principal' });
+    if (await desktopNav.getByRole('link', { name: 'Inicio' }).isVisible()) {
+      await expect(desktopNav.getByRole('link', { name: 'Proyectos' })).toBeVisible();
+      await expect(desktopNav.getByRole('link', { name: 'Contacto' })).toBeVisible();
+    } else {
+      await expect(page.getByRole('button', { name: 'Abrir menú' })).toBeVisible();
+    }
 
     // El hero existe (título editable o fallback).
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -27,17 +36,13 @@ test.describe('Sitio público', () => {
   test('navegación entre páginas públicas', async ({ page }) => {
     await page.goto('/');
 
-    const nav = page.getByRole('navigation', { name: 'Navegación principal' });
-    await nav.getByRole('link', { name: 'Quiénes Somos' }).click();
-    await expect(page).toHaveURL(/\/quienes-somos$/);
+    await navigateTo(page, 'Quiénes Somos', /\/quienes-somos$/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
-    await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('link', { name: 'Servicios' }).click();
-    await expect(page).toHaveURL(/\/servicios$/);
+    await navigateTo(page, 'Servicios', /\/servicios$/);
     await expect(page.getByRole('heading', { name: 'Servicios' })).toBeVisible();
 
-    await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('link', { name: 'Contacto' }).click();
-    await expect(page).toHaveURL(/\/contacto$/);
+    await navigateTo(page, 'Contacto', /\/contacto$/);
     await expect(page.getByRole('heading', { name: 'Contacto' })).toBeVisible();
   });
 
@@ -82,5 +87,44 @@ test.describe('Sitio público', () => {
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );
     expect(overflowProjects).toBe(false);
+  });
+
+  test('el filtro de categorías se sincroniza con ?categoria= y sobrevive un reload', async ({ page }) => {
+    await page.goto('/proyectos');
+
+    // El chip existe siempre (tabla `categories` o respaldo estático del servicio).
+    const chip = page.getByRole('button', { name: 'Edificaciones', exact: true });
+    await expect(chip).toBeVisible();
+
+    // Filtrar escribe el query param en la URL.
+    await chip.click();
+    await expect(page).toHaveURL(/\/proyectos\?categoria=edificaciones$/);
+    await expect(chip).toHaveAttribute('aria-pressed', 'true');
+
+    // El estado sobrevive un refresh (F5 / enlace compartido).
+    const cardsBefore = await page.locator('a[href^="/proyectos/"]').count();
+    await page.reload();
+    await expect(page).toHaveURL(/\/proyectos\?categoria=edificaciones$/);
+    await expect(page.getByRole('button', { name: 'Edificaciones', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    const cardsAfter = await page.locator('a[href^="/proyectos/"]').count();
+    expect(cardsAfter).toBe(cardsBefore);
+
+    // Deep link directo con otra categoría también inicializa el filtro.
+    await page.goto('/proyectos?categoria=puentes');
+    await expect(page.getByRole('button', { name: 'Puentes', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    // Volver a "Todos" elimina el query param.
+    await page.getByRole('button', { name: 'Todos', exact: true }).click();
+    await expect(page).toHaveURL(/\/proyectos$/);
+    await expect(page.getByRole('button', { name: 'Todos', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

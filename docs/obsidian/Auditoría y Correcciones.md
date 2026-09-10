@@ -39,7 +39,7 @@ Registro de los bugs reales encontrados y corregidos durante la auditoría. La v
 | 21 | Rediseño integral UI/UX (sistema de diseño, tipografía Archivo, hero/mosaico editorial, lightbox, shell admin) | [[Guía de Estilo Visual]] |
 | 22 | Mosaico de destacados: patrón único repetido cada 6 cards → composición alterna A/B sin huecos para cualquier total | [[Guía de Estilo Visual]] |
 | 23 | Sin ESLint en el proyecto + código muerto (knip): toolchain ESLint estándar Angular 19, 20 hallazgos corregidos (`OnInit`, `!==`, a11y teclado), exports/types sin uso eliminados, `knip.json` con 2 falsos positivos | [[Stack Tecnológico]] / [[Testing]] |
-| 24 | Iconos de estado con morph: `morphicons` (vía `morphicons/dom`, sin binding Angular) en `app-morph-icon` para ☰↔✕ (menú móvil) y ✎↔✕ (toggle edición); `d` canónicos de @lucide/angular 21.2.19; estáticos siguen en lucide | [[Guía de Estilo Visual]] |
+| 24 | Iconos de estado con morph: `morphicons` (vía `morphicons/dom`, sin binding Angular) en `app-morph-icon` para el menú hamburguesa a cerrar (menú móvil) y editar a cerrar (toggle edición); `d` canónicos de @lucide/angular 21.2.19; estáticos siguen en lucide | [[Guía de Estilo Visual]] |
 
 ## Seguridad (P0)
 

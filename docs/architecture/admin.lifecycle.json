@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Ciclo de Vida del Panel Admin — Ingesocc S.A.S.",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "proyectos", "label": "Proyecto (draft/published)", "focus": ["sesion-on", "draft", "editando", "publicado"], "note": "status check (draft, published) en la tabla projects; featured controla el Home." },
+      { "id": "sesion", "label": "Sesión admin", "focus": ["sesion-off", "sesion-on"], "note": "authGuard exige rol admin; signOut regresa al login." },
+      { "id": "servicios-mensajes", "label": "Servicios y mensajes", "focus": ["sv-draft", "sv-publicado", "nuevo", "leido"], "note": "Los servicios comparten el modelo draft/published; los mensajes alternan leído/no leído." }
+    ]
+  },
+  "lanes": [
+    { "id": "main", "label": "Ciclo principal" },
+    { "id": "servicios", "label": "Servicios" },
+    { "id": "mensajes", "label": "Mensajes de contacto" }
+  ],
+  "states": [
+    { "id": "sesion-off", "type": "start", "label": "Sin sesión", "sublabel": "/admin/login", "lane": "main", "col": 0, "step": "01" },
+    { "id": "sesion-on", "type": "active", "label": "Sesión admin", "sublabel": "authGuard → /admin/*", "lane": "main", "col": 1, "step": "02" },
+    { "id": "draft", "type": "waiting", "label": "Draft", "sublabel": "status='draft'", "lane": "main", "col": 2, "step": "03" },
+    { "id": "editando", "type": "decision", "label": "Editando", "sublabel": "ProjectForm", "lane": "main", "col": 3, "step": "04" },
+    { "id": "publicado", "type": "success", "label": "Publicado", "sublabel": "visible al público", "lane": "main", "col": 4, "step": "05" },
+    { "id": "sv-draft", "type": "waiting", "label": "Draft", "sublabel": "status='draft'", "lane": "servicios", "col": 0 },
+    { "id": "sv-publicado", "type": "success", "label": "Publicado", "sublabel": "visible en /servicios", "lane": "servicios", "col": 1 },
+    { "id": "nuevo", "type": "start", "label": "Nuevo", "sublabel": "read=false", "lane": "mensajes", "col": 0, "yOffset": 110 },
+    { "id": "leido", "type": "neutral", "label": "Leído", "sublabel": "read=true", "lane": "mensajes", "col": 1, "yOffset": 110 }
+  ],
+  "transitions": [
+    { "id": "login-ok", "from": "sesion-off", "to": "sesion-on", "label": "login admin", "variant": "emphasis", "labelAt": [171, 202] },
+    { "id": "logout", "from": "sesion-on", "to": "sesion-off", "label": "signOut", "variant": "security", "labelAt": [171, 222] },
+    { "id": "crear-draft", "from": "sesion-on", "to": "draft", "label": "crear", "variant": "emphasis", "fromSide": "right", "toSide": "left", "via": [[307, 157], [341, 157]] },
+    { "id": "editar", "from": "draft", "to": "editando", "label": "abrir formulario", "labelAt": [479, 202] },
+    { "id": "publicar", "from": "editando", "to": "publicado", "label": "status='published'", "variant": "emphasis", "labelAt": [633, 202] },
+    { "id": "despublicar", "from": "editando", "to": "draft", "label": "status='draft'", "variant": "dashed", "labelAt": [479, 222] },
+    { "id": "sv-crear", "from": "sesion-on", "to": "sv-draft", "label": "crear servicio", "variant": "emphasis" },
+    { "id": "sv-publicar", "from": "sv-draft", "to": "sv-publicado", "label": "status='published'", "fromSide": "top", "toSide": "top", "via": [[402, 250], [556, 250]] },
+    { "id": "sv-editar", "from": "sv-publicado", "to": "sv-draft", "label": "editar", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "via": [[556, 326], [402, 326]], "labelAt": [300, 330] },
+    { "id": "msg-entra", "from": "nuevo", "to": "leido", "label": "marcar leído", "fromSide": "top", "toSide": "top", "via": [[402, 368], [556, 368]], "labelAt": [660, 336] },
+    { "id": "msg-vuelve", "from": "leido", "to": "nuevo", "label": "marcar no leído", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "via": [[556, 436], [402, 436]], "labelAt": [479, 470] }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Estados verificados", "items": ["projects.status y services.status: check (draft, published)", "contact_messages.read: boolean con default false", "featured (boolean) decide la sección destacada del Home; no es un estado"] },
+    { "dot": "rose", "title": "Reglas de acceso", "items": ["Sin sesión admin solo se ven filas published (RLS)", "is_admin() abre insert/update/delete en tablas y buckets", "Eliminar un mensaje exige la política contact_messages_admin_delete"] },
+    { "dot": "emerald", "title": "Sesión", "items": ["El guard restaura la sesión persistida antes de decidir", "El Admin Layout cierra sesión y navega a /admin/login", "Salir del modo edición es automático al perder el rol admin"] }
+  ]
+}

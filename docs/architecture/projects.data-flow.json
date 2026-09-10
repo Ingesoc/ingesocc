@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Flujo de Datos de Proyectos — Ingesocc S.A.S.",
+    "quality_profile": "showcase",
+    "viewBox": [1080, 780],
+    "views": [
+      { "id": "admin-crud", "label": "Alta y edición admin", "focus": ["admin", "form", "service", "supa", "pg"], "note": "El formulario persiste el proyecto, sincroniza imágenes y reemplaza categorías." },
+      { "id": "imagenes", "label": "Imágenes", "focus": ["compress", "storage", "pg"], "note": "Compresión en cliente, upload al bucket y fila en project_images." },
+      { "id": "publico", "label": "Consumo público", "focus": ["user", "page", "service", "rls"], "note": "RLS filtra status='published'; el detalle resuelve la galería." }
+    ]
+  },
+  "stages": [
+    { "label": "Actor" },
+    { "label": "UI Angular" },
+    { "label": "Data Access" },
+    { "label": "Supabase" },
+    { "label": "Persistencia" }
+  ],
+  "nodes": [
+    { "id": "admin", "type": "external", "label": "Administrador", "sublabel": "panel /admin", "stage": 0, "row": 0 },
+    { "id": "user", "type": "external", "label": "Usuario público", "sublabel": "sitio /proyectos", "stage": 0, "row": 4 },
+    { "id": "form", "type": "frontend", "label": "ProjectForm", "sublabel": "nuevo / :id", "stage": 1, "row": 0, "width": 120 },
+    { "id": "page", "type": "frontend", "label": "ProjectsPage", "sublabel": "filtro + paginación", "stage": 1, "row": 4, "width": 120 },
+    { "id": "compress", "type": "frontend", "label": "imageCompression", "sublabel": "≤2 MB · 2000px", "stage": 1, "row": 2, "width": 130 },
+    { "id": "service", "type": "backend", "label": "ProjectsService", "sublabel": "signals", "stage": 2, "row": 2, "width": 120 },
+    { "id": "supa", "type": "cloud", "label": "supabase-js", "sublabel": "clientPromise", "stage": 3, "row": 2, "width": 110 },
+    { "id": "rls", "type": "security", "label": "RLS", "sublabel": "published / is_admin", "stage": 3, "row": 4 },
+    { "id": "pg", "type": "database", "label": "PostgreSQL", "sublabel": "tablas de proyectos", "stage": 4, "row": 2, "width": 130 },
+    { "id": "storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "bucket project-images", "stage": 4, "row": 0, "width": 140 }
+  ],
+  "flows": [
+    { "id": "form-service", "from": "form", "to": "service", "label": "ProjectInput", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "files-compress", "from": "admin", "to": "compress", "label": "archivos" },
+    { "id": "compress-upload", "from": "compress", "to": "storage", "label": "upload", "variant": "dashed", "fromSide": "top", "toSide": "top", "via": [[315, 240], [315, 230], [200, 230], [200, 40], [1020, 40], [1020, 100], [960, 100]] },
+    { "id": "service-supa", "from": "service", "to": "supa", "label": "escrituras", "variant": "emphasis", "fromSide": "right", "toSide": "left", "labelAt": [637, 340] },
+    { "id": "supa-pg", "from": "supa", "to": "pg", "label": "PostgREST", "variant": "emphasis", "fromSide": "right", "toSide": "left", "labelAt": [880, 340] },
+    { "id": "supa-storage", "from": "supa", "to": "storage", "label": "getPublicUrl", "fromSide": "top", "toSide": "left", "via": [[745, 320], [745, 200], [850, 200], [850, 157]] },
+    { "id": "pg-rls", "from": "pg", "to": "rls", "label": "filtra filas", "variant": "security" },
+    { "id": "user-page", "from": "user", "to": "page", "label": "listado + detalle" },
+    { "id": "page-service", "from": "page", "to": "service", "label": "published()/bySlug()" },
+    { "id": "service-rls", "from": "service", "to": "rls", "label": "SELECT publicados", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Escritura admin", "items": ["createProject → INSERT projects; slug único con mensaje claro (23505)", "addProjectImage sube al bucket y registra storage_path en project_images", "syncProjectImages ordena y marca portada; replaceCategories reescribe project_categories"] },
+    { "dot": "orange", "title": "Imágenes", "items": ["Compresión en cliente (máx 2 MB / 2000 px, web worker) antes de subir", "deleteProject elimina también los objetos del bucket", "La URL pública se resuelve con resolvePublicUrl('project-images', path)"] },
+    { "dot": "cyan", "title": "Lectura pública", "items": ["published() expone solo status='published' ordenado por sort_order", "featured alimenta la sección destacada del Home", "Filtros por categoría en cliente sobre las señales; paginación de 8 en 8"] }
+  ]
+}

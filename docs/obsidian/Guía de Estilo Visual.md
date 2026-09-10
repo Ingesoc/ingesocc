@@ -115,9 +115,9 @@ misma tipografía, mismos estados — consistencia estricta):
 - Touch targets ≥ 44 px en móvil; sin overflow horizontal (QA visual lo
   verifica, ver [[Testing]]).
 - **Morph de iconos** ([[Stack Tecnológico]] nº 24): solo para iconos que cambian
-  de identidad según estado (☰↔✕ del menú móvil, ✎↔✕ del toggle de edición),
-  vía `app-morph-icon` con `reducedMotion="user"` (respeta
-  `prefers-reduced-motion`). Los iconos estáticos siguen en `@lucide/angular`;
+  de identidad según estado (menú hamburguesa a cerrar del menú móvil, editar a
+  cerrar del toggle de edición), vía `app-morph-icon` con `reducedMotion="user"`
+  (respeta `prefers-reduced-motion`). Los iconos estáticos siguen en `@lucide/angular`;
   nunca animar iconos decorativos.
 
 > [!warning] Bug de capas CSS (corregido)

@@ -33,7 +33,7 @@ union all select 'project_images', count(*) from public.project_images;
 - **4 categorías** — Edificaciones, Estructuras Metálicas, Puentes, Proyectos Especiales.
 - **6 servicios** publicados — `sort_order` prioriza infraestructura/hospitalario/industrial sobre vivienda.
 - **53 `content_blocks`** — inventario completo por página (`global`, `home`, `about`, `contact`): textos, richtext, números (stats, años de timeline) y 6 imágenes.
-- **10 proyectos** publicados (3 destacados) con **17 filas en `project_images`** (portadas + galería). ⚠️ Son **ilustrativos** — el portafolio real se carga vía el panel admin.
+- **10 proyectos** publicados (3 destacados) con **17 filas en `project_images`** (portadas + galería). Son **ilustrativos** — el portafolio real se carga vía el panel admin.
 
 ## Paridad con los seeds estáticos (regla §22 del plan)
 

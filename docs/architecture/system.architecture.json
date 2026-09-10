@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Ingesocc S.A.S. — Arquitectura del Sistema",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "main-path", "label": "Flujo principal", "focus": ["users", "vercel", "angular", "dataaccess", "postgres"], "note": "Del navegador al dato: la SPA consume Supabase solo a través de los servicios data-access." },
+      { "id": "public-admin", "label": "Público vs Admin", "focus": ["angular", "public", "admin", "dataaccess"], "note": "Mismo runtime Angular: rutas públicas anidadas en Public Layout y /admin/* protegido por authGuard." },
+      { "id": "supabase-platform", "label": "Plataforma Supabase", "focus": ["dataaccess", "auth", "postgres", "storage", "rls"], "note": "Auth, Postgres, Storage y RLS como límite de seguridad real del sistema." }
+    ]
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "Visitantes", "sublabel": "Navegador", "pos": [40, 120], "size": [120, 60] },
+    { "id": "vercel", "type": "cloud", "label": "Vercel", "sublabel": "SPA + rewrites", "pos": [230, 120], "size": [130, 60], "tag": "vercel.json" },
+    { "id": "angular", "type": "frontend", "label": "Angular 19", "sublabel": "Standalone · Signals", "pos": [430, 120], "size": [140, 64], "tag": "Tailwind CSS v4" },
+    { "id": "public", "type": "frontend", "label": "Public Layout", "sublabel": "6 páginas públicas", "pos": [660, 40], "size": [150, 64] },
+    { "id": "admin", "type": "frontend", "label": "Admin Layout", "sublabel": "CRUD + bandeja", "pos": [660, 200], "size": [150, 64], "tag": "authGuard" },
+    { "id": "dataaccess", "type": "frontend", "label": "Data Access", "sublabel": "servicios Signals", "pos": [880, 120], "size": [150, 64] },
+    { "id": "auth", "type": "security", "label": "Supabase Auth", "sublabel": "email + password", "pos": [430, 430], "size": [140, 60] },
+    { "id": "postgres", "type": "database", "label": "PostgreSQL", "sublabel": "8 tablas", "pos": [660, 430], "size": [150, 64] },
+    { "id": "rls", "type": "security", "label": "Row Level Security", "sublabel": "is_admin() · políticas", "pos": [660, 580], "size": [150, 60] },
+    { "id": "storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "3 buckets públicos", "pos": [890, 430], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Navegador — Angular 19 SPA (CSR)", "wraps": ["angular", "public", "admin", "dataaccess"] },
+    { "kind": "region", "label": "Supabase — Backend as a Service", "wraps": ["auth", "postgres", "storage", "rls"] }
+  ],
+  "connections": [
+    { "id": "users-vercel", "from": "users", "to": "vercel", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "vercel-angular", "from": "vercel", "to": "angular", "label": "sirve SPA" },
+    { "id": "angular-public", "from": "angular", "to": "public", "label": "rutas públicas" },
+    { "id": "angular-admin", "from": "angular", "to": "admin", "label": "/admin/* lazy" },
+    { "id": "public-da", "from": "public", "to": "dataaccess", "label": "consume" },
+    { "id": "admin-da", "from": "admin", "to": "dataaccess", "label": "consume" },
+    { "id": "da-auth", "from": "dataaccess", "to": "auth", "label": "signInWithPassword", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "da-pg", "from": "dataaccess", "to": "postgres", "label": "PostgREST", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 70 },
+    { "id": "da-storage", "from": "dataaccess", "to": "storage", "label": "upload / getPublicUrl", "fromSide": "bottom", "toSide": "top", "labelDy": 152 },
+    { "id": "pg-rls", "from": "postgres", "to": "rls", "label": "aplica políticas", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": 26 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Flujo principal", "items": ["El visitante recibe la SPA desde Vercel (rewrites a index.html)", "Todas las páginas son standalone con lazy loading en /admin/*", "Los componentes nunca consultan Supabase: pasa por data-access/"] },
+    { "dot": "rose", "title": "Seguridad", "items": ["authGuard exige sesión con rol admin (profiles.role)", "RLS filtra publicados para anónimos y escritura solo admin", "Storage: lectura pública, insert/update/delete solo admin"] },
+    { "dot": "emerald", "title": "Datos y contenido", "items": ["8 tablas: profiles, categories, projects, project_categories, project_images, services, content_blocks, contact_messages", "Buckets: project-images, service-images, content-images", "content_blocks se edita in-place con el modo edición admin"] }
+  ]
+}

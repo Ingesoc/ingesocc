@@ -18,7 +18,7 @@ estado: activo
 |---|---|
 | Frontend | Angular 19 (standalone) + TypeScript ~5.7, CSR |
 | Estilos | Tailwind CSS v4 (vía `@tailwindcss/postcss`) |
-| Iconos | `@lucide/angular` (estáticos/decorativos) + `morphicons` (morph de iconos con estado: ☰↔✕, ✎↔✕ — sin binding Angular, vía `morphicons/dom` en `app-morph-icon`) |
+| Iconos | `@lucide/angular` (estáticos/decorativos) + `morphicons` (morph de iconos con estado: hamburguesa a cerrar, editar a cerrar — sin binding Angular, vía `morphicons/dom` en `app-morph-icon`) |
 | Backend | Supabase (Postgres + Auth + Storage + RLS) |
 | Estado/datos | Angular Signals + servicios en `data-access/` por feature |
 | Compresión de imágenes | `browser-image-compression` (cliente, ≤2 MB / 2000 px) |

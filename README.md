@@ -7,9 +7,10 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 ## Documentación (vault Obsidian)
 
 La documentación técnica del proyecto vive también como un **vault de Obsidian** en
-`docs/obsidian/` — 23 notas interconectadas (wikilinks, frontmatter, mapas de
+`docs/obsidian/` — 25 notas interconectadas (wikilinks, frontmatter, mapas de
 contenido) que cubren arquitectura, Supabase/RLS/storage, los CRUD, auth,
-content blocks, SEO, performance, testing y los pendientes operativos.
+content blocks, SEO, performance, testing, los pendientes operativos y los
+manuales de uso ([[Guías de Uso]] y [[Casos de Uso]]).
 
 Abrir en Obsidian: *Open folder as vault* → `docs/obsidian/` → empezar por
 `Inicio.md` (el mapa del vault). Los docs `docs/cambios-auditoria-final.md` y
@@ -96,6 +97,15 @@ pnpm test:visual # QA visual: accent-deep + contraste + overflow + screenshots
 >
 > Usa el Chrome instalado (`channel: 'chrome'`); si no existe, corre con
 > Chromium de Playwright instalado y `E2E_CHROMIUM=1`.
+>
+> **Matriz de navegadores** (plan §30): por defecto solo corre Chromium (rápido).
+> Con `E2E_BROWSERS=all` añade **Firefox, WebKit (Safari), Pixel 7 (Android
+> Chrome) e iPhone 14 (iOS Safari)** — requiere `pnpm exec playwright install
+> firefox webkit` la primera vez:
+>
+> ```bash
+> E2E_BROWSERS=all pnpm test:e2e    # 5 proyectos × los mismos flujos (65 tests)
+> ```
 
 ## Auditoría Lighthouse (presupuestos de rendimiento)
 

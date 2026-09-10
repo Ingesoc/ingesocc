@@ -77,6 +77,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'admin/recuperar',
+    loadComponent: () =>
+      import('./features/auth/recovery-request.component').then((m) => m.RecoveryRequestComponent),
+  },
+  {
+    // Destino del enlace del correo de recuperación (CU-18): supabase-js consume
+    // el token del hash (detectSessionInUrl) y la pantalla decide según haya sesión.
+    path: 'admin/nueva-contrasena',
+    loadComponent: () =>
+      import('./features/auth/new-password.component').then((m) => m.NewPasswordComponent),
+  },
+  {
     path: 'admin',
     loadComponent: () =>
       import('./layouts/admin-layout/admin-layout.component').then((m) => m.AdminLayoutComponent),

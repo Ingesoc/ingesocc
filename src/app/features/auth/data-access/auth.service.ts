@@ -99,6 +99,42 @@ export class AuthService {
     return codeOrMessage || 'No se pudo iniciar sesión.';
   }
 
+  /**
+   * Solicita el correo de recuperación de contraseña (CU-18). Supabase envía un
+   * enlace con token; al abrirlo, supabase-js establece una sesión con el
+   * evento PASSWORD_RECOVERY (detectSessionInUrl) y la app muestra la vista de
+   * contraseña nueva.
+   *
+   * Resuelve siempre (Supabase no revela si el email existe); si el envío falla
+   * por red/configuración, se lanza el error para mostrarlo en la UI.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    await this.supabase.clientPromise;
+    // El enlace del correo debe aterrizar en la pantalla de contraseña nueva;
+    // si se omite, Supabase usa el Site URL del dashboard (raíz del sitio) y el
+    // admin perdería el hash del token sin la UI que lo consume. El origen se
+    // toma del navegador para que funcione igual en dev, preview y producción
+    // (el dominio debe estar en la lista "Redirect URLs" de Supabase Auth).
+    const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin/nueva-contrasena`,
+    });
+    if (error) {
+      throw new Error(this.mapAuthError(error.code ?? error.message ?? ''));
+    }
+  }
+
+  /**
+   * Actualiza la contraseña del usuario con sesión activa (paso final de
+   * CU-18: el enlace de recuperación dejó una sesión de solo recuperación).
+   */
+  async updatePassword(password: string): Promise<void> {
+    await this.supabase.clientPromise;
+    const { error } = await this.supabase.client.auth.updateUser({ password });
+    if (error) {
+      throw new Error(this.mapAuthError(error.code ?? error.message ?? ''));
+    }
+  }
+
   async logout(): Promise<void> {
     await this.supabase.clientPromise;
     await this.supabase.client.auth.signOut();

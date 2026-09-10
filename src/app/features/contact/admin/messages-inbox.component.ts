@@ -1,11 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { LucideMail, LucideTrash2 } from '@lucide/angular';
+import { LucideTrash2 } from '@lucide/angular';
 import { ContactMessagesService } from '../data-access/contact-messages.service';
 
 @Component({
   selector: 'app-messages-inbox',
   standalone: true,
-  imports: [LucideMail, LucideTrash2],
+  imports: [LucideTrash2],
   templateUrl: './messages-inbox.component.html',
 })
 export class MessagesInboxComponent implements OnInit {

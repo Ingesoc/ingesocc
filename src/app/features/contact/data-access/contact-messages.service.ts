@@ -33,7 +33,11 @@ export class ContactMessagesService {
   readonly messages = this.messagesSignal.asReadonly();
   readonly unreadCount = computed(() => this.messagesSignal().filter((message) => !message.read).length);
 
-  /** Carga la bandeja (solo admin por RLS). */
+  /**
+   * Carga la bandeja (solo admin por RLS). Lanza en caso de error para que la
+   * UI (dashboard/bandeja) muestre su estado de error en lugar de dejar la
+   * señal vacía como si no hubiera mensajes.
+   */
   async load(): Promise<void> {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
@@ -42,8 +46,7 @@ export class ContactMessagesService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.warn('[mensajes] sin datos:', error.message);
-      return;
+      throw new Error(error.message);
     }
     this.messagesSignal.set((data ?? []) as ContactMessage[]);
   }

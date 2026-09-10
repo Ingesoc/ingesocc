@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from './data-access/auth.service';
@@ -21,6 +21,11 @@ export class LoginComponent implements OnInit {
   readonly error = signal('');
   readonly loading = signal(false);
 
+  /** true cuando el login fue válido pero la cuenta no tiene rol admin. */
+  readonly noAdmin = signal(false);
+
+  private readonly emailInput = viewChild<ElementRef<HTMLInputElement>>('emailInput');
+
   async ngOnInit(): Promise<void> {
     // Espera la restauración de sesión: si un admin ya tiene sesión persistida
     // y cae directo a /admin/login, se le redirige al panel sin pedir login.
@@ -38,18 +43,23 @@ export class LoginComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set('');
+    this.noAdmin.set(false);
 
     try {
       await this.auth.login(this.form.value.email ?? '', this.form.value.password ?? '');
 
       // La sesión es válida pero el usuario no tiene rol admin: no entrar al
-      // panel (el guard lo bloquearía igual); se le informa y se cierra sesión
-      // para que la cuenta no quede en un estado ambiguo.
+      // panel (el guard lo bloquearía igual); se cierra la sesión para que la
+      // cuenta no quede en un estado ambiguo y se informa SIN sugerir que las
+      // credenciales fueron incorrectas (era la ambigüedad previa).
       if (!this.auth.isAdmin()) {
         await this.auth.logout();
+        this.noAdmin.set(true);
         this.error.set(
-          'Tu usuario no tiene permisos de administración. Contacta al administrador del sitio.',
+          'Esta cuenta existe pero no tiene permisos de administración. ' +
+            'Solicita el rol “admin” al administrador del sitio (tabla profiles).',
         );
+        this.emailInput()?.nativeElement.focus();
         return;
       }
 

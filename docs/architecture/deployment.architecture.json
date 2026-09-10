@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Ingesocc S.A.S. — Arquitectura de Despliegue",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "ci-path", "label": "Ruta de publicación", "focus": ["developer", "github", "vercel", "web"], "note": "Cada push a GitHub dispara el build de Angular y el deploy en Vercel." },
+      { "id": "runtime-path", "label": "Ruta en ejecución", "focus": ["web", "supabase", "pg", "storage"], "note": "La app desplegada consume Supabase como backend administrado." }
+    ]
+  },
+  "components": [
+    { "id": "developer", "type": "external", "label": "Developer", "sublabel": "git push", "pos": [40, 240], "size": [120, 60] },
+    { "id": "github", "type": "cloud", "label": "GitHub", "sublabel": "repositorio main", "pos": [230, 240], "size": [130, 60] },
+    { "id": "vercel", "type": "cloud", "label": "Vercel", "sublabel": "ng build → dist", "pos": [430, 240], "size": [140, 64], "tag": "CI/CD" },
+    { "id": "web", "type": "frontend", "label": "Ingesocc Web", "sublabel": "SPA estática", "pos": [650, 240], "size": [150, 64], "tag": "cleanUrls + rewrites" },
+    { "id": "supabase", "type": "cloud", "label": "Supabase", "sublabel": "BaaS administrado", "pos": [900, 240], "size": [140, 64] },
+    { "id": "pg", "type": "database", "label": "PostgreSQL", "sublabel": "datos + auth", "pos": [1100, 160], "size": [130, 60] },
+    { "id": "storage", "type": "cloud", "label": "Storage", "sublabel": "3 buckets públicos", "pos": [1100, 330], "size": [130, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Vercel — Hosting del frontend", "wraps": ["vercel", "web"] },
+    { "kind": "region", "label": "Supabase — Backend as a Service", "wraps": ["supabase", "pg", "storage"] }
+  ],
+  "connections": [
+    { "id": "dev-push", "from": "developer", "to": "github", "label": "push main", "variant": "emphasis" },
+    { "id": "github-vercel", "from": "github", "to": "vercel", "label": "dispara deploy", "variant": "emphasis", "labelAt": [395, 316] },
+    { "id": "vercel-build", "from": "vercel", "to": "web", "label": "publica build" },
+    { "id": "web-superbase", "from": "web", "to": "supabase", "label": "supabase-js (HTTPS)", "variant": "emphasis" },
+    { "id": "superbase-pg", "from": "supabase", "to": "pg", "label": "SQL + Auth" },
+    { "id": "superbase-storage", "from": "supabase", "to": "storage", "label": "objetos" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Build y hosting", "items": ["angular.json: builder application, salida dist/ingesocc-web", "vercel.json: outputDirectory dist/ingesocc-web/browser", "cleanUrls + rewrites a index.html para /proyectos/:slug"] },
+    { "dot": "amber", "title": "Separación de responsabilidades", "items": ["Vercel solo sirve archivos estáticos: no hay backend propio", "Toda la lógica de datos vive en Supabase (Postgres, Auth, Storage)", "RLS es la barrera real: el cliente solo usa la clave publishable"] },
+    { "dot": "emerald", "title": "Credenciales", "items": ["environment.prod.ts lleva URL + clave publishable de Supabase", "La sesión se persiste en el navegador (localStorage)", "No hay secretos de servidor: el rol admin lo resuelve RLS con is_admin()"] }
+  ]
+}

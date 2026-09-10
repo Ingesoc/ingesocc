@@ -19,6 +19,7 @@ export class AdminDashboardComponent implements OnInit {
   private readonly messages = inject(ContactMessagesService);
 
   readonly loadingMessages = signal(true);
+  readonly messagesError = signal('');
 
   readonly projectsCount = computed(() => this.projects.published().length);
   readonly featuredCount = computed(() => this.projects.featured().length);
@@ -57,6 +58,8 @@ export class AdminDashboardComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       await this.messages.load();
+    } catch {
+      this.messagesError.set('No se pudieron cargar los mensajes.');
     } finally {
       this.loadingMessages.set(false);
     }

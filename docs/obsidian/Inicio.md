@@ -8,7 +8,7 @@ fecha: 2026-09-03
 estado: activo
 ---
 
-# 🏗️ Ingesocc SAS — Mapa del Vault
+# Ingesocc SAS — Mapa del Vault
 
 Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada como un vault de Obsidian. Cada nota cubre una pieza de la arquitectura, los flujos funcionales o la operación del proyecto, con enlaces entre sí para navegar por contexto.
 
@@ -19,7 +19,11 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 > - **Estado**: production-ready en desarrollo — ver [[Pendientes Manuales]]
 > - **Docs fuente (repo)**: [[Auditoría y Correcciones]] · [[Testing]]
 
-## 🧭 Clusters
+## Clusters
+
+### Manuales de uso
+- [[Guías de Uso]] — manual operativo completo: sitio público, panel admin paso a paso, edición in-place, desarrollo, base de datos y despliegue
+- [[Casos de Uso]] — catálogo completo de casos de uso (actores, precondiciones, flujos y postcondiciones)
 
 ### Arquitectura
 - [[Arquitectura]] — capas y flujo de datos (UI → components → signals → data-access → Supabase)
@@ -45,12 +49,12 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 ### Calidad y operación
 - [[SEO]] — meta por ruta, OG, canonical, sitemap
 - [[Performance y Lighthouse]] — presupuestos y hallazgos
-- [[Testing]] — unit (32/32), E2E (8/8) y QA visual
+- [[Testing]] — unit (40/40), E2E (12/12) y QA visual
 - [[Despliegue Vercel]] — config SPA y checklist pre-producción
 - [[Auditoría y Correcciones]] — registro de bugs encontrados y corregidos
 - [[Pendientes Manuales]] — lo que requiere intervención humana
 
-## 🔗 Enlaces externos
+## Enlaces externos
 - Repositorio: `https://github.com/Ingesoc/ingesocc`
 - Proyecto Supabase de pruebas: `https://ietjikoddwpdybarcwfk.supabase.co`
 

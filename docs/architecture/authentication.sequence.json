@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Autenticación de Administrador — Ingesocc S.A.S.",
+    "quality_profile": "showcase",
+    "viewBox": [920, 1000],
+    "views": [
+      { "id": "login", "label": "Login y verificación de rol", "focus": ["admin", "login", "auth", "supa", "db"], "note": "signInWithPassword + lectura del rol desde profiles." },
+      { "id": "deep-link", "label": "Sesión restaurada (deep-link)", "focus": ["router", "guard", "auth"], "note": "authGuard espera whenReady() antes de decidir sobre /admin/*." },
+      { "id": "salida", "label": "Cierre de sesión", "focus": ["admin", "auth", "supa"], "note": "signOut desde el Admin Layout redirige a /admin/login." }
+    ]
+  },
+  "participants": [
+    { "id": "admin", "type": "external", "label": "Administrador" },
+    { "id": "login", "type": "frontend", "label": "Login", "sublabel": "pública" },
+    { "id": "auth", "type": "backend", "label": "AuthService", "sublabel": "user · role" },
+    { "id": "supa", "type": "security", "label": "Supabase Auth", "sublabel": "goTrue" },
+    { "id": "db", "type": "database", "label": "profiles", "sublabel": "roles" },
+    { "id": "guard", "type": "security", "label": "authGuard", "sublabel": "CanActivate" },
+    { "id": "router", "type": "frontend", "label": "Router" },
+    { "id": "layout", "type": "frontend", "label": "Admin Layout", "sublabel": "/admin/*" }
+  ],
+  "messages": [
+    { "from": "admin", "to": "login", "y": 180, "label": "credenciales (email + password)", "variant": "emphasis" },
+    { "from": "login", "to": "auth", "y": 222, "label": "login(email, password)", "variant": "emphasis" },
+    { "from": "auth", "to": "supa", "y": 264, "label": "auth.signInWithPassword()" },
+    { "from": "supa", "to": "auth", "y": 306, "label": "session + user", "variant": "return" },
+    { "from": "auth", "to": "db", "y": 348, "label": "SELECT role FROM profiles" },
+    { "from": "db", "to": "auth", "y": 390, "label": "role", "variant": "return" },
+    { "from": "auth", "to": "login", "y": 432, "label": "userSignal.set(user con rol)", "variant": "return" },
+    { "from": "login", "to": "router", "y": 474, "label": "navigate(['/admin'])", "variant": "emphasis" },
+    { "from": "router", "to": "guard", "y": 516, "label": "CanActivate /admin/*" },
+    { "from": "guard", "to": "auth", "y": 558, "label": "whenReady()" },
+    { "from": "guard", "to": "router", "y": 600, "label": "isAdmin() → permitir", "variant": "return" },
+    { "from": "router", "to": "layout", "y": 642, "label": "renderiza panel admin" },
+    { "from": "admin", "to": "layout", "y": 684, "label": "cerrar sesión", "variant": "default" },
+    { "from": "layout", "to": "auth", "y": 726, "label": "logout()" },
+    { "from": "auth", "to": "supa", "y": 768, "label": "auth.signOut()", "variant": "security" },
+    { "from": "auth", "to": "layout", "y": 810, "label": "userSignal.set(null)", "variant": "return" },
+    { "from": "layout", "to": "admin", "y": 852, "label": "redirige a /admin/login", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "login", "from": 174, "to": 480, "type": "frontend" },
+    { "participant": "auth", "from": 216, "to": 600, "type": "backend" },
+    { "participant": "supa", "from": 258, "to": 410, "type": "security" },
+    { "participant": "db", "from": 342, "to": 396, "type": "database" },
+    { "participant": "guard", "from": 510, "to": 606, "type": "security" },
+    { "participant": "layout", "from": 636, "to": 858, "type": "frontend" },
+    { "participant": "supa", "from": 762, "to": 774, "type": "security" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Decisión de rol", "items": ["El rol se lee de profiles.role; la tabla tiene check (role in ('user','admin'))", "Una cuenta sin rol admin hace logout inmediato y muestra el mensaje de permisos", "El trigger on_auth_user_created crea el perfil; el rol se asigna por SQL"] },
+    { "dot": "cyan", "title": "Sesión persistida", "items": ["SupabaseService persiste la sesión (localStorage) con autoRefreshToken", "onAuthStateChange mantiene la señal user al día (login, logout, refresh)", "Un admin con sesión activa que cae en /admin/login es redirigido al panel"] },
+    { "dot": "amber", "title": "Guardia", "items": ["authGuard espera whenReady(): un deep-link no rechaza por restore en curso", "Sin rol admin el guard devuelve createUrlTree(['/admin/login'])", "Navegación de las rutas /admin/* protegida en una sola línea canActivate"] }
+  ]
+}
