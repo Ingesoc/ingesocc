@@ -9,6 +9,12 @@ import { projectCoverUrl } from '../data-access/project.model';
   standalone: true,
   imports: [RouterLink, LucideArrowUpRight],
   templateUrl: './project-card.component.html',
+  // El host del componente es el verdadero grid item en el mosaico de Home:
+  // las clases de layout (p. ej. md:col-span-7) deben vivir aquí, no en el <a> interno.
+  host: {
+    class: 'block h-full min-w-0',
+    '[class]': 'className()',
+  },
 })
 export class ProjectCardComponent {
   readonly project = input.required<Project>();

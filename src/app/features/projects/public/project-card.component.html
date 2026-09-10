@@ -2,8 +2,7 @@
   <!-- Variante mosaico (Home): la imagen llena la tarjeta y la información va sobre ella. -->
   <a
     [routerLink]="['/proyectos', project().slug]"
-    class="group relative block h-full overflow-hidden bg-primary text-white"
-    [class]="className()"
+    class="group relative block h-full min-w-0 overflow-hidden bg-primary text-white"
   >
     @if (coverUrl()) {
       <img [src]="coverUrl()" [alt]="project().title" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
@@ -38,7 +37,6 @@
   <a
     [routerLink]="['/proyectos', project().slug]"
     class="group block"
-    [class]="className()"
   >
     <div class="media-zoom aspect-[4/3] w-full bg-secondary">
       @if (coverUrl()) {
