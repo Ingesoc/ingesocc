@@ -2,8 +2,6 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight, LucideChevronDown } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
-import { EditableTextComponent } from '../content-blocks/editable-text.component';
-import { EditableImageComponent } from '../content-blocks/editable-image.component';
 import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
@@ -23,7 +21,7 @@ const BLOCK_B = ['md:col-span-4 md:row-span-2', 'md:col-span-4 md:row-span-2', '
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, ProjectCardComponent, EditableTextComponent, EditableImageComponent],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, ProjectCardComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {

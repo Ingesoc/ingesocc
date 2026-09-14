@@ -3,13 +3,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { LucideMail, LucideMapPin, LucidePhone } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
-import { EditableTextComponent } from '../content-blocks/editable-text.component';
 import { ContactMessagesService } from './data-access/contact-messages.service';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, EditableTextComponent, LucideMail, LucidePhone, LucideMapPin],
+  imports: [ReactiveFormsModule, RouterLink, LucideMail, LucidePhone, LucideMapPin],
   templateUrl: './contact.component.html',
 })
 export class ContactComponent {

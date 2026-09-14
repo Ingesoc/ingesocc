@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideArrowUpRight } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
-import { EditableTextComponent } from '../../features/content-blocks/editable-text.component';
 import { MorphIconComponent, CLOSE_PATH, MENU_PATH } from '../../core/morph-icon.component';
 
 /** Navegación única del sitio, 100% en español. */
@@ -17,7 +16,7 @@ const NAV_ITEMS = [
 @Component({
   selector: 'app-site-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, LucideArrowUpRight, EditableTextComponent, MorphIconComponent],
+  imports: [RouterLink, RouterLinkActive, LucideArrowUpRight, MorphIconComponent],
   templateUrl: './site-header.component.html',
 })
 export class SiteHeaderComponent {

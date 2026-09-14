@@ -4,10 +4,10 @@
   <div class="wrap relative pb-16 pt-36 md:pb-24 md:pt-48">
     <p class="kicker mb-5 text-accent">Ingesocc S.A.S.</p>
     <h1 class="max-w-3xl text-balance text-5xl font-bold leading-[0.98] tracking-[-0.03em] md:text-7xl">
-      <app-editable-text page="about" sectionKey="hero.title" [fallback]="heroTitle()" />
+      {{ heroTitle() }}
     </h1>
     <p class="mt-6 max-w-xl text-base leading-7 text-white/70">
-      <app-editable-text page="about" sectionKey="hero.subtitle" [fallback]="heroSubtitle()" />
+      {{ heroSubtitle() }}
     </p>
   </div>
 </section>
@@ -19,7 +19,9 @@
       <div class="relative">
         <div class="absolute -left-4 -top-4 h-full w-full border border-accent/40"></div>
         <div class="media-zoom relative aspect-[4/5] w-full bg-secondary">
-          <app-editable-image page="about" sectionKey="historia.image" [fallback]="historiaImage()" [fill]="true" alt="Nuestra historia" />
+          @if (historiaImage()) {
+          <img [src]="historiaImage()" alt="Nuestra historia" class="absolute inset-0 h-full w-full object-cover" />
+        }
         </div>
       </div>
     </div>
@@ -27,7 +29,7 @@
       <p class="kicker text-accent-deep mb-5">01 / Nuestra historia</p>
       <h2 class="text-balance text-4xl font-bold leading-[1.05] tracking-[-0.02em] md:text-5xl">El detalle hace la diferencia.</h2>
       <div class="mt-9 border-l-2 border-accent pl-6 text-base leading-8 text-muted-foreground md:text-lg">
-        <app-editable-text page="about" sectionKey="historia.text" [fallback]="historiaText()" [multiline]="true" />
+        {{ historiaText() }}
       </div>
     </div>
   </div>
@@ -47,10 +49,10 @@
           <span class="absolute -top-[5px] left-0 h-2 w-2 rounded-full bg-accent"></span>
           <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">Hito 0{{ i + 1 }}</p>
           <p class="mt-4 text-5xl font-bold leading-none tracking-tight md:text-6xl">
-            <app-editable-text [page]="'about'" [sectionKey]="'timeline.' + item.key + '.year'" [fallback]="item.year" />
+            {{ item.year }}
           </p>
           <h3 class="mt-4 text-lg font-bold tracking-tight">
-            <app-editable-text [page]="'about'" [sectionKey]="'timeline.' + item.key + '.title'" [fallback]="item.title" />
+            {{ item.title }}
           </h3>
         </li>
       }
@@ -69,15 +71,15 @@
     <div class="grid gap-12 md:grid-cols-3 md:gap-0 md:divide-x md:divide-border">
       <div class="pr-0 md:pr-12">
         <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">A · Misión</p>
-        <p class="mt-5 text-base leading-8 text-muted-foreground"><app-editable-text page="about" sectionKey="mision.text" [fallback]="mision()" [multiline]="true" /></p>
+        <p class="mt-5 text-base leading-8 text-muted-foreground">{{ mision() }}</p>
       </div>
       <div class="md:px-12">
         <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">B · Visión</p>
-        <p class="mt-5 text-base leading-8 text-muted-foreground"><app-editable-text page="about" sectionKey="vision.text" [fallback]="vision()" [multiline]="true" /></p>
+        <p class="mt-5 text-base leading-8 text-muted-foreground">{{ vision() }}</p>
       </div>
       <div class="md:pl-12">
         <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">C · Valores</p>
-        <p class="mt-5 text-base leading-8 text-muted-foreground"><app-editable-text page="about" sectionKey="valores.text" [fallback]="valores()" [multiline]="true" /></p>
+        <p class="mt-5 text-base leading-8 text-muted-foreground">{{ valores() }}</p>
       </div>
     </div>
   </div>
@@ -95,13 +97,15 @@
       @for (member of team(); track member.key; let i = $index) {
         <article class="group">
           <div class="relative aspect-square w-full bg-secondary">
-            <app-editable-image [page]="'about'" [sectionKey]="'equipo.' + member.key + '.photo'" [fallback]="member.photo" [fill]="true" alt="{{ member.name }}" />
+            @if (member.photo) {
+            <img [src]="member.photo" [alt]="member.name" class="absolute inset-0 h-full w-full object-cover" />
+          }
           </div>
           <div class="mt-5 flex items-baseline justify-between gap-4">
-            <h3 class="text-lg font-bold tracking-tight"><app-editable-text [page]="'about'" [sectionKey]="'equipo.' + member.key + '.name'" [fallback]="member.name" /></h3>
+            <h3 class="text-lg font-bold tracking-tight">{{ member.name }}</h3>
             <span class="text-xs font-bold tracking-[0.2em] text-muted-foreground">0{{ i + 1 }}</span>
           </div>
-          <p class="mt-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-accent-deep"><app-editable-text [page]="'about'" [sectionKey]="'equipo.' + member.key + '.role'" [fallback]="member.role" /></p>
+          <p class="mt-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-accent-deep">{{ member.role }}</p>
         </article>
       }
     </div>

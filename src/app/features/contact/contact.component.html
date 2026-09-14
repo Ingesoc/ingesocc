@@ -4,10 +4,10 @@
   <div class="wrap relative pb-16 pt-36 md:pb-20 md:pt-44">
     <p class="kicker mb-5 text-accent">Hablemos</p>
     <h1 class="text-balance text-5xl font-bold leading-[0.98] tracking-[-0.03em] md:text-7xl">
-      <app-editable-text page="contact" sectionKey="title" [fallback]="title()" />
+      {{ title() }}
     </h1>
     <p class="mt-6 max-w-xl text-base leading-7 text-white/70">
-      <app-editable-text page="contact" sectionKey="subtitle" [fallback]="subtitle()" />
+      {{ subtitle() }}
     </p>
   </div>
 </section>
@@ -30,7 +30,7 @@
           </span>
           <div>
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Escríbanos</p>
-            <a [href]="'mailto:' + email()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep"><app-editable-text page="contact" sectionKey="email" [fallback]="email()" /></a>
+            <a [href]="'mailto:' + email()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep">{{ email() }}</a>
           </div>
         </div>
         <div class="flex items-start gap-5 border-t border-border py-7">
@@ -39,7 +39,7 @@
           </span>
           <div>
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Llámenos</p>
-            <a [href]="'tel:' + phone()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep"><app-editable-text page="contact" sectionKey="phone" [fallback]="phone()" /></a>
+            <a [href]="'tel:' + phone()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep">{{ phone() }}</a>
           </div>
         </div>
         <div class="flex items-start gap-5 border-t border-b border-border py-7">
@@ -48,7 +48,7 @@
           </span>
           <div>
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Encuéntrenos</p>
-            <p class="mt-1.5 text-base font-medium"><app-editable-text page="contact" sectionKey="address" [fallback]="address()" [multiline]="true" /></p>
+            <p class="mt-1.5 text-base font-medium">{{ address() }}</p>
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
-              <p class="text-xs leading-5 text-muted-foreground"><app-editable-text page="contact" sectionKey="privacy_note" [fallback]="privacyNote()" /></p>
+              <p class="text-xs leading-5 text-muted-foreground">{{ privacyNote() }}</p>
               <button type="submit" [disabled]="submitting()" class="btn btn-solid shrink-0">
                 @if (submitting()) {
                   Enviando…

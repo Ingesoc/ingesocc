@@ -27,7 +27,7 @@
         routerLink="/contacto"
         class="btn btn-outline btn-sm ml-1 border-white/40 text-white"
       >
-        <app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" />
+        {{ ctaLabel() }}
         <svg lucideArrowUpRight class="h-3.5 w-3.5" />
       </a>
     </nav>
@@ -62,7 +62,7 @@
       </div>
       <div class="wrap pb-12">
         <a routerLink="/contacto" (click)="toggleMenu()" class="btn btn-accent w-full">
-          <app-editable-text page="global" sectionKey="cta_label" [fallback]="ctaLabel()" />
+          {{ ctaLabel() }}
           <svg lucideArrowUpRight class="h-4 w-4" />
         </a>
         <p class="mt-6 text-center text-[10px] uppercase tracking-[0.3em] text-white/40">Ingesocc S.A.S.</p>

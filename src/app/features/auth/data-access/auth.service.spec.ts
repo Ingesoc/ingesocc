@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SupabaseService } from '../../../core/supabase.service';
 import { AuthService } from './auth.service';
-import { EditModeService } from '../../content-blocks/edit-mode.service';
 
 interface FakeAuthOptions {
   /** Usuario que devuelven getSession() y signInWithPassword() (null = sin sesión). */
@@ -125,26 +124,6 @@ describe('AuthService', () => {
     expect(auth.role()).toBeNull();
     expect(auth.isAdmin()).toBeFalse();
     expect(auth.user()).toBeNull();
-  });
-
-  it('CU-19: la expiración de sesión desactiva el modo edición', async () => {
-    const { auth, fake } = setup({
-      sessionUser: { id: 'u1', email: 'admin@test.com' },
-      profileRole: 'admin',
-    });
-    const editMode = TestBed.inject(EditModeService);
-    await auth.whenReady();
-
-    // El admin activa el modo edición…
-    editMode.toggle();
-    expect(editMode.isEditing()).toBeTrue();
-
-    // …y al expirar la sesión se desactiva automáticamente (efecto de EditModeService).
-    fake.emit('SIGNED_OUT', null);
-    TestBed.flushEffects();
-
-    expect(editMode.isEditing()).toBeFalse();
-    expect(editMode.canEdit()).toBeFalse();
   });
 
   it('CU-19: tras expirar, un nuevo login vuelve a establecer la sesión admin', async () => {
