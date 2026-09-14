@@ -13,6 +13,8 @@ import {
   LucideX,
 } from '@lucide/angular';
 import { AuthService } from '../../features/auth/data-access/auth.service';
+// DEBUG TEMPORAL (diagnóstico panel admin): remover con debug-logger.ts.
+import { debugLog } from '../../core/debug-logger';
 
 /** Iconos por sección, usado por el sidebar y el menú móvil. */
 const ICONS = {
@@ -63,6 +65,7 @@ export class AdminLayoutComponent implements OnInit {
   readonly sectionLabel = signal('Dashboard');
 
   constructor() {
+    debugLog.log('admin-layout: CONSTRUCTOR ejecutado — el layout se montó');
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe(() => this.syncSection());
@@ -78,6 +81,7 @@ export class AdminLayoutComponent implements OnInit {
   readonly userEmail = signal('');
 
   async ngOnInit(): Promise<void> {
+    debugLog.log('admin-layout: ngOnInit — userEmail =', this.auth.user()?.email ?? '(vacío)');
     this.userEmail.set(this.auth.user()?.email ?? '');
   }
 

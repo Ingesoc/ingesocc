@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
+// DEBUG TEMPORAL (diagnóstico panel admin): remover con debug-logger.ts.
+import { debugLog } from './debug-logger';
 
 /**
  * Wrapper único del cliente supabase-js (plan, sección 5 — core/supabase.service.ts).
@@ -22,7 +24,9 @@ export class SupabaseService {
   readonly clientPromise: Promise<SupabaseClient> = this.initialize();
 
   private async initialize(): Promise<SupabaseClient> {
+    debugLog.log('supabase: import(@supabase/supabase-js)…');
     const { createClient } = await import('@supabase/supabase-js');
+    debugLog.log('supabase: SDK cargado, creando cliente…', environment.supabaseUrl ? `url=${environment.supabaseUrl.slice(0, 32)}…` : 'SIN URL');
     const client = createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
       auth: {
         persistSession: true,

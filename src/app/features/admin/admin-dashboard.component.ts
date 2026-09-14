@@ -5,6 +5,8 @@ import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from '../contact/data-access/contact-messages.service';
+// DEBUG TEMPORAL (diagnóstico panel admin): remover con debug-logger.ts.
+import { debugLog } from '../../core/debug-logger';
 
 /**
  * Dashboard del panel (plan §3): métricas reales desde Supabase, con estados
@@ -85,9 +87,12 @@ export class AdminDashboardComponent implements OnInit {
     { label: 'Header / footer', page: 'global' },
   ];
 
-  async ngOnInit(): Promise<void> {
-    await this.refreshAll();
-    this.loading.set(false);
+  ngOnInit(): void {
+    debugLog.log('dashboard: ngOnInit — cargando módulos…');
+    void this.refreshAll().then(() => {
+      this.loading.set(false);
+      debugLog.log('dashboard: carga completa — failedModules =', JSON.stringify(this.failedModules()), 'cards =', this.cards().length);
+    });
   }
 
   /** Recarga todo desde Supabase y actualiza el estado de conexión. */
@@ -95,12 +100,14 @@ export class AdminDashboardComponent implements OnInit {
     this.refreshing.set(true);
     this.messagesError.set('');
 
+    const t0 = Date.now();
     const results = await Promise.allSettled([
       this.projects.load(),
       this.services.load(),
       this.blocks.load(),
       this.messages.load(),
     ]);
+    debugLog.log(`dashboard: 4 módulos cargaron en ${Date.now() - t0}ms —`, results.map((r) => (r.status === 'fulfilled' ? (r.value === false ? 'false' : 'ok') : `RECHAZO: ${String(r.reason).slice(0, 80)}`)).join(', '));
 
     /** true si la carga falló (rechazo) o reportó Supabase caído (false). */
     const failedIf = (result: PromiseSettledResult<boolean | void>): boolean =>

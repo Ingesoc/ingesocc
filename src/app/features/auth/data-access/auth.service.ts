@@ -1,5 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
+// DEBUG TEMPORAL (diagnóstico panel admin): remover con debug-logger.ts.
+import { debugLog } from '../../../core/debug-logger';
 
 type AuthRole = 'admin' | 'user';
 
@@ -46,10 +48,13 @@ export class AuthService {
    * El registro de onAuthStateChange se hace aquí, después de inicializar.
    */
   private async initialize(): Promise<void> {
+    debugLog.log('auth: initialize() — esperando clientPromise…');
     const client = await this.supabase.clientPromise;
+    debugLog.log('auth: cliente supabase listo');
 
     // Mantiene la señal al día con la sesión de Supabase (login, logout, refresh).
-    client.auth.onAuthStateChange((_event, session) => {
+    client.auth.onAuthStateChange((event, session) => {
+      debugLog.log('auth: onAuthStateChange →', event ?? '(sin evento)', session?.user ? `user=${session.user.email}` : 'sin user');
       if (session?.user) {
         void this.loadUser(session.user.id, session.user.email);
       } else {
@@ -57,10 +62,16 @@ export class AuthService {
       }
     });
 
-    const { data } = await client.auth.getSession();
+    const { data, error } = await client.auth.getSession();
+    debugLog.log(
+      'auth: getSession →',
+      data.session?.user ? `sesión de ${data.session.user.email}` : 'sin sesión',
+      error ? `error: ${error.message}` : '',
+    );
     if (data.session?.user) {
       await this.loadUser(data.session.user.id, data.session.user.email);
     }
+    debugLog.log('auth: initialize() completo — isAdmin =', this.isAdmin());
   }
 
   /** Espera a que la sesión inicial se restaure antes de decidir (guard). */
@@ -143,21 +154,26 @@ export class AuthService {
 
   /** Lee el rol desde `profiles`; si la tabla no existe o no hay fila, rol 'user'. */
   private async loadUser(id: string, email: string | undefined): Promise<void> {
+    debugLog.log('auth: loadUser →', email ?? '(sin email)', 'id=', id.slice(0, 8) + '…');
     let role: AuthRole = 'user';
 
     try {
       // loadUser solo se invoca después de clientPromise (initialize/login), pero
       // se espera explícitamente por seguridad ante un futuro call site nuevo.
       const client = await this.supabase.clientPromise;
-      const { data } = await client.from('profiles').select('role').eq('id', id).maybeSingle();
+      const { data, error } = await client.from('profiles').select('role').eq('id', id).maybeSingle();
+
+      debugLog.log('auth: profiles →', JSON.stringify(data), error ? `error: ${error.message} (code ${error.code ?? '?'})` : 'sin error');
 
       if (data?.role === 'admin' || data?.role === 'user') {
         role = data.role;
       }
-    } catch {
+    } catch (err) {
       // Sin tabla profiles aún: el usuario no tiene rol admin.
+      debugLog.warn('auth: profiles lanzó excepción (¿tabla ausente?):', err);
     }
 
+    debugLog.log('auth: rol resuelto =', role);
     this.userSignal.set({ id, email: email ?? '', role });
   }
 }
