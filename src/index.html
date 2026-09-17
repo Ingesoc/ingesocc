@@ -38,24 +38,5 @@
 </head>
 <body>
   <app-root></app-root>
-  <script>
-    /* DEBUG TEMPORAL (diagnóstico panel admin): captura errores tempranos y
-       expone __ingesoccDump(). REMOVER junto con debug-logger.ts. */
-    (function () {
-      window.__earlyDebugLines = [];
-      function rec(msg) {
-        var line = '[early] ' + new Date().toISOString() + ' ' + msg;
-        window.__earlyDebugLines.push(line);
-        try { console.info('[ingesocc-debug]', line); } catch (e) {}
-      }
-      window.__ingesoccDump = function () {
-        if (typeof window.__ingesoccDebugDump === 'function') { window.__ingesoccDebugDump(); return; }
-        (window.__earlyDebugLines || []).forEach(function (l) { console.info('[ingesocc-debug]', l); });
-      };
-      window.addEventListener('error', function (e) { rec('window.onerror: ' + e.message + ' @ ' + (e.filename || '?') + ':' + e.lineno); });
-      window.addEventListener('unhandledrejection', function (e) { rec('unhandledrejection: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason))); });
-      rec('index.html listo');
-    })();
-  </script>
 </body>
 </html>

@@ -179,7 +179,7 @@ npx vercel --prod
 
 1. **Dominio real**: reemplazar el placeholder `https://ingesocc.com` en `src/app/core/seo.service.ts` (constante `SITE_URL`), `src/index.html` (canonical, og:image, JSON-LD) y `public/sitemap.xml` / `public/robots.txt`.
 2. **Datos reales** (plan 1.7): teléfono, email, dirección y redes de la empresa; nombres/roles del equipo — hoy son placeholders editables desde `/admin/contenido` o directamente en `supabase/seed.sql` antes de aplicarlo.
-3. **Aplicar el esquema**: `supabase/schema.sql` + `supabase/seed.sql`, crear el usuario admin y asignar `role='admin'` en `profiles` (ver sección Supabase).
+3. **Aplicar el esquema**: `supabase db push` (migraciones versionadas) + `supabase/seed.sql`, crear el usuario admin y asignar `role='admin'` en `profiles` (ver sección Supabase).
 
 ## Supabase
 
@@ -187,11 +187,12 @@ El proyecto ya está conectado: `@supabase/supabase-js` con URL y clave publisha
 
 Pendiente en el panel de Supabase:
 
-1. Ejecutar `supabase/schema.sql` y luego `supabase/seed.sql` en el SQL Editor
-2. Crear el usuario admin: Authentication → Users → Add user
-3. Asignar rol: `update public.profiles set role = 'admin' where id = '<user id>';`
+1. Aplicar las migraciones versionadas: `supabase link --project-ref <ref>` y luego `supabase db push` (el historial vive en `supabase/migrations/`; para desarrollo local con Docker: `supabase db reset`, que aplica migraciones + `seed.sql` automáticamente)
+2. Cargar la semilla de datos (`supabase/seed.sql`) desde el SQL Editor si el proyecto remoto aún no la tiene
+3. Crear el usuario admin: Authentication → Users → Add user
+4. Asignar rol: `update public.profiles set role = 'admin' where id = '<user id>';`
 
-Buckets de storage creados por el esquema: `project-images`, `service-images`, `content-images` (lectura pública, escritura solo admin).
+Buckets de storage creados por el esquema: `project-images`, `service-images`, `content-images` (lectura pública, escritura solo admin; límites de tamaño y MIME por bucket en la migración `20260917000003` — 2 MB para proyectos/servicios, 5 MB para el CMS).
 
 ## Estructura
 
@@ -212,5 +213,5 @@ src/app/
     admin-layout/        # panel admin
   app.routes.ts          # rutas públicas + /admin (con authGuard)
 src/environments/        # credenciales Supabase (placeholders)
-supabase/                # schema.sql + seed.sql
+supabase/                # migrations/ (esquema versionado) + seed.sql
 ```

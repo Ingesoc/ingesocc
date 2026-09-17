@@ -53,7 +53,6 @@ export class ProjectFormComponent implements OnInit {
 
   readonly selectedCategoryIds = signal<string[]>([]);
   readonly imageSlots = signal<ImageSlot[]>([]);
-  readonly removedImages = signal<{ id: string; storagePath: string }[]>([]);
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -167,14 +166,24 @@ export class ProjectFormComponent implements OnInit {
   }
 
   removeImage(slot: ImageSlot): void {
-    if (slot.id && slot.storagePath) {
-      this.removedImages.update((list) => [...list, { id: slot.id!, storagePath: slot.storagePath! }]);
-    } else {
+    // Los slots ya persistidos se quitan solo de la UI: al guardar, el diff del
+    // RPC borra su fila y devuelve el path para limpiar el bucket. Los nuevos
+    // nunca se subieron (el upload ocurre en onSave), así que basta con
+    // revocar la URL del preview.
+    if (!slot.id) {
       URL.revokeObjectURL(slot.url);
     }
     this.imageSlots.update((slots) => slots.filter((s) => s.key !== slot.key));
   }
 
+  /**
+   * Guardado ATÓMICO (diagnóstico #9): primero sube los archivos nuevos al
+   * bucket (solo storage, sin fila), luego UNA llamada RPC `admin_save_project`
+   * crea/actualiza proyecto + sincroniza imágenes + reemplaza categorías en una
+   * única transacción Postgres. Si el RPC falla, se compensa borrando los
+   * archivos recién subidos (no quedan huérfanos). Si el RPC acierta, limpia
+   * los objetos de las imágenes eliminadas (paths que devuelve el propio RPC).
+   */
   async onSave(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -183,6 +192,13 @@ export class ProjectFormComponent implements OnInit {
 
     this.saving.set(true);
     this.error.set('');
+
+    // Para un proyecto nuevo se genera el uuid EN EL CLIENTE: permite subir los
+    // archivos a su prefijo ANTES de que exista la fila (storage no depende de
+    // la DB) y el RPC hace el INSERT con ese mismo id.
+    const finalId = this.projectId() ?? crypto.randomUUID();
+    // Declarado fuera del try: la compensación del catch necesita la lista.
+    const uploadedPaths: string[] = [];
 
     try {
       const value = this.form.value;
@@ -196,45 +212,52 @@ export class ProjectFormComponent implements OnInit {
         sortOrder: Number(value.sortOrder ?? 0),
       };
 
-      let finalId = this.projectId();
-      if (finalId) {
-        await this.projects.updateProject(finalId, input);
-      } else {
-        finalId = await this.projects.createProject(input);
-      }
-
       const slots = this.imageSlots();
 
-      // Subir imágenes nuevas
-      const uploadedIds = new Map<string, string>();
+      // 1) Subir archivos nuevos (solo storage; la fila la crea el RPC).
+      const pathByKey = new Map<string, string>();
       for (const slot of slots.filter((s) => s.file)) {
-        const id = await this.projects.addProjectImage(finalId!, slot.file!);
-        uploadedIds.set(slot.key, id);
+        const path = await this.projects.uploadProjectImageFile(finalId, slot.file!);
+        uploadedPaths.push(path);
+        pathByKey.set(slot.key, path);
       }
 
-      // Eliminar imágenes marcadas
-      for (const image of this.removedImages()) {
-        await this.projects.removeProjectImage(image.id, image.storagePath);
-      }
-
-      // Sincronizar orden y portada
-      const remaining = slots.filter((s) => s.id || uploadedIds.has(s.key));
+      // 2) Filas definitivas de imágenes: existentes (por id) + recién subidas
+      //    (por path). Lo que NO esté aquí, el RPC lo borra y devuelve su path.
+      const remaining = slots.filter((s) => s.id || pathByKey.has(s.key));
       const coverKey = remaining.find((s) => s.isCover)?.key ?? remaining[0]?.key;
-      const rows = remaining.map((slot, index) => ({
-        id: slot.id ?? uploadedIds.get(slot.key)!,
-        sortOrder: index,
+      const imageRows = remaining.map((slot, index) => ({
+        id: slot.id,
+        storagePath: slot.id ? slot.storagePath! : pathByKey.get(slot.key)!,
         isCover: slot.key === coverKey,
+        sortOrder: index,
       }));
-      if (rows.length > 0) {
-        await this.projects.syncProjectImages(finalId!, rows);
-      }
 
-      // Categorías
-      await this.projects.replaceCategories(finalId!, this.selectedCategoryIds());
+      // 3) Transacción única en Postgres.
+      const { orphanPaths } = await this.projects.saveProjectAtomic(
+        finalId,
+        input,
+        this.selectedCategoryIds(),
+        imageRows,
+      );
+
+      // 4) Limpieza best-effort de objetos huérfanos (imágenes eliminadas).
+      try {
+        await this.projects.removeStorageObjects(orphanPaths);
+      } catch (cleanupError) {
+        console.warn('[project-form] limpieza de storage incompleta:', cleanupError);
+      }
 
       await this.projects.refreshAll();
       await this.router.navigate(['/admin/proyectos']);
     } catch (err) {
+      // Compensación: el RPC es transaccional (DB quedó consistente), pero los
+      // archivos subidos en el paso 1 sí quedaron en el bucket → borrarlos.
+      try {
+        await this.projects.removeStorageObjects(uploadedPaths);
+      } catch (cleanupError) {
+        console.warn('[project-form] compensación de storage incompleta:', cleanupError);
+      }
       this.error.set(err instanceof Error ? err.message : 'Error al guardar el proyecto.');
     } finally {
       this.saving.set(false);

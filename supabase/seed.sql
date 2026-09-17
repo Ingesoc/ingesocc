@@ -1,6 +1,8 @@
 -- ============================================================================
 -- Ingesocc SAS — Datos semilla (Fases 1 y 2)
--- Aplicar después de schema.sql. Idempotente: se puede re-ejecutar sin romper.
+-- Aplicar después de las migraciones de supabase/migrations/ (supabase db push).
+-- En desarrollo local con Docker, `supabase db reset` la aplica automáticamente.
+-- Idempotente: se puede re-ejecutar sin romper.
 -- Mantiene el mismo contenido que los seeds estáticos de la app (Fase 2):
 --   features/content-blocks/data-access/content-blocks.service.ts
 --   features/projects/data-access/projects.service.ts
@@ -120,39 +122,41 @@ on conflict (page, section_key) do nothing;
 -- ----------------------------------------------------------------------------
 -- Proyectos de ejemplo (sección 1.7 del plan)
 -- OJO: son ilustrativos (referencia de estructura/formato), NO contenido a
--- publicar. El portafolio real se carga después vía el CRUD del panel admin.
+-- publicar. Por eso se insertan con status = 'draft': el sitio público NUNCA
+-- debe mostrar fixtures. El portafolio real se carga vía el CRUD del panel
+-- admin y se publica explícitamente desde ahí.
 -- ----------------------------------------------------------------------------
 insert into public.projects (title, slug, description, price_min_wages, status, featured, sort_order) values
   ('Casa Ladera', 'casa-ladera',
    'Proyecto residencial unifamiliar de dos niveles con diseño contemporáneo, grandes ventanales y acabados de alta calidad, integrado a la topografía del lote.',
-   180.00, 'published', true, 1),
+   180.00, 'draft', true, 1),
   ('Distrito 48', 'distrito-48',
    'Edificio comercial de oficinas con fachada moderna en muro cortina, espacios flexibles y áreas comunes de alto estándar.',
-   320.00, 'published', true, 2),
+   320.00, 'draft', true, 2),
   ('Taller Norte', 'taller-norte',
    'Nave industrial en estructura metálica con cubierta liviana, amplios vanos libres y piso de alto tránsito para operación logística.',
-   240.00, 'published', true, 3),
+   240.00, 'draft', true, 3),
   ('Puente Metálico Veredal "El Progreso"', 'puente-metalico-veredal-el-progreso',
    'Puente vehicular en estructura metálica que conecta dos veredas, con luces de 24 m y barandas de seguridad certificadas.',
-   350.00, 'published', false, 4),
+   350.00, 'draft', false, 4),
   ('Bodega Estructural XYZ', 'bodega-estructural-xyz',
    'Bodega industrial de 2.400 m² con pórticos metálicos, cubierta en panel y sistema contra incendios.',
-   250.00, 'published', false, 5),
+   250.00, 'draft', false, 5),
   ('Torre de Oficinas Centro', 'torre-de-oficinas-centro',
    'Edificación de 8 niveles en concreto reforzado con fachada en muro cortina y dos sótanos de parqueadero.',
-   480.00, 'published', false, 6),
+   480.00, 'draft', false, 6),
   ('Centro de Salud Municipal', 'centro-de-salud-municipal',
    'Centro de salud de baja complejidad con áreas de urgencias, hospitalización y consulta externa, construido bajo estándares hospitalarios.',
-   410.00, 'published', false, 7),
+   410.00, 'draft', false, 7),
   ('Planta de Producción Andina', 'planta-de-produccion-andina',
    'Planta de producción con estructura metálica de gran luz, mezzanines de proceso y sistemas de ventilación industrial.',
-   300.00, 'published', false, 8),
+   300.00, 'draft', false, 8),
   ('Puente Peatonal Parque Lineal', 'puente-peatonal-parque-lineal',
    'Puente peatonal curvo en acero que articula el parque lineal con la zona comercial, con iluminación integrada.',
-   90.00, 'published', false, 9),
+   90.00, 'draft', false, 9),
   ('Conjunto Residencial Altos del Café', 'conjunto-residencial-altos-del-cafe',
    'Conjunto de vivienda multifamiliar con 3 torres, zonas verdes, piscina y urbanismo interior completo.',
-   520.00, 'published', false, 10)
+   520.00, 'draft', false, 10)
 on conflict (slug) do nothing;
 
 -- Asignación de categorías (slug del proyecto -> slug de categoría)

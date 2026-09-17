@@ -447,116 +447,100 @@ export class ProjectsService {
     );
   }
 
-  /** Traduce ProjectInput (camelCase) a las columnas reales de `projects`. */
-  private toProjectRow(input: ProjectInput): {
-    title: string;
-    slug: string;
-    description: string;
-    price_min_wages: number | null;
-    status: string;
-    featured: boolean;
-    sort_order: number;
-  } {
-    return {
-      title: input.title,
-      slug: input.slug,
-      description: input.description,
-      price_min_wages: input.priceMinWages,
-      status: input.status,
-      featured: input.featured,
-      sort_order: input.sortOrder,
-    };
-  }
-
-  /** Crea un proyecto y devuelve su id. */
-  async createProject(input: ProjectInput): Promise<string> {
+  /**
+   * Guarda el proyecto de forma ATÓMICA vía el RPC `admin_save_project`
+   * (migración 20260917000004): una sola transacción Postgres hace upsert del
+   * proyecto, sincroniza imágenes (insert/update/delete según el diff) y
+   * reemplaza categorías. Si cualquier paso falla, TODO se revierte.
+   *
+   * Devuelve el id definitivo y los paths de storage que quedaron huérfanos
+   * (filas borradas en la transacción) para que el cliente elimine esos
+   * objetos del bucket DESPUÉS de que el guardado commiteó.
+   *
+   * `projectId` null = crear con id generado en el servidor.
+   */
+  async saveProjectAtomic(
+    projectId: string | null,
+    input: ProjectInput,
+    categoryIds: string[],
+    imageRows: { id?: string; storagePath: string; isCover: boolean; sortOrder: number }[],
+  ): Promise<{ projectId: string; orphanPaths: string[] }> {
     await this.supabase.clientPromise;
-    const { data, error } = await this.supabase.client
-      .from('projects')
-      .insert(this.toProjectRow(input))
-      .select('id')
-      .single();
-    if (error) throw mapProjectWriteError(error);
-    return (data as { id: string }).id;
+    const { data, error } = await this.supabase.client.rpc('admin_save_project', {
+      p_project_id: projectId,
+      p_title: input.title,
+      p_slug: input.slug,
+      p_description: input.description,
+      p_price_min_wages: input.priceMinWages,
+      p_status: input.status,
+      p_featured: input.featured,
+      p_sort_order: input.sortOrder,
+      p_category_ids: categoryIds,
+      p_image_rows: JSON.stringify(
+        imageRows.map((row) => ({
+          id: row.id ?? null,
+          storage_path: row.storagePath,
+          is_cover: row.isCover,
+          sort_order: row.sortOrder,
+        })),
+      ),
+    });
+    if (error) throw mapProjectWriteError(error as DbError);
+
+    const result = (data as { project_id: string; orphan_storage_paths: string[] }[])[0];
+    if (!result) {
+      throw new Error('El servidor no devolvió el proyecto guardado.');
+    }
+    return { projectId: result.project_id, orphanPaths: result.orphan_storage_paths ?? [] };
   }
 
-  /** Actualiza los datos básicos de un proyecto. */
-  async updateProject(id: string, input: ProjectInput): Promise<void> {
-    await this.supabase.clientPromise;
-    const { error } = await this.supabase.client
-      .from('projects')
-      .update(this.toProjectRow(input))
-      .eq('id', id);
-    if (error) throw mapProjectWriteError(error);
-  }
-
-  /** Elimina un proyecto (cascade a project_images/project_categories) + objetos de storage. */
+  /**
+   * Elimina un proyecto: PRIMERO las filas (cascade a project_images y
+   * project_categories) y DESPUÉS los objetos de storage (diagnóstico #8).
+   * Orden inverso al anterior: si el delete de DB falla, no se toca storage;
+   * si el storage falla después, el proyecto ya no existe y el objeto queda
+   * huérfano pero inaccesible (limpieza cosmética, no inconsistencia).
+   * Los paths se leen de la DB en el momento, no de la señal (estado).
+   */
   async deleteProject(id: string): Promise<void> {
     await this.supabase.clientPromise;
-    const project = this.adminProjectsSignal().find((item) => item.id === id);
-    const paths = (project?.images ?? []).map((image) => image.storagePath).filter(Boolean);
-    if (paths.length > 0) {
-      await this.supabase.client.storage.from('project-images').remove(paths);
-    }
+    const { data: images, error: fetchError } = await this.supabase.client
+      .from('project_images')
+      .select('storage_path')
+      .eq('project_id', id);
+    if (fetchError) throw new Error(fetchError.message);
+    const paths = ((images ?? []) as { storage_path: string }[])
+      .map((row) => row.storage_path)
+      .filter(Boolean);
+
     const { error } = await this.supabase.client.from('projects').delete().eq('id', id);
     if (error) throw new Error(error.message);
+
+    await this.removeStorageObjects(paths);
   }
 
-  /** Reemplaza las categorías asignadas a un proyecto (plan 1.2: una o varias). */
-  async replaceCategories(projectId: string, categoryIds: string[]): Promise<void> {
-    await this.supabase.clientPromise;
-    const client = this.supabase.client;
-    await client.from('project_categories').delete().eq('project_id', projectId);
-    if (categoryIds.length > 0) {
-      const { error } = await client.from('project_categories').insert(
-        categoryIds.map((categoryId) => ({ project_id: projectId, category_id: categoryId })),
-      );
-      if (error) throw new Error(error.message);
-    }
-  }
-
-  /** Sube una imagen al bucket project-images y registra su fila; devuelve el id de la fila. */
-  async addProjectImage(projectId: string, file: File): Promise<string> {
+  /**
+   * Sube SOLO el archivo al bucket `project-images`; la fila en `project_images`
+   * la crea el RPC `admin_save_project` dentro de la transacción. Así se cierra
+   * la ventana "archivo en storage sin fila en DB": si el RPC falla, el caller
+   * compensa borrando el archivo recién subido.
+   */
+  async uploadProjectImageFile(projectId: string, file: File): Promise<string> {
     await this.supabase.clientPromise;
     const ext = file.name.split('.').pop() ?? 'jpg';
     const path = `${projectId}/${crypto.randomUUID()}.${ext}`;
-    const { error: uploadError } = await this.supabase.client.storage
+    const { error } = await this.supabase.client.storage
       .from('project-images')
       .upload(path, file, { contentType: file.type || 'image/jpeg' });
-    if (uploadError) throw new Error(uploadError.message);
-
-    const { data, error } = await this.supabase.client
-      .from('project_images')
-      .insert({ project_id: projectId, storage_path: path, is_cover: false, sort_order: 0 })
-      .select('id')
-      .single();
     if (error) throw new Error(error.message);
-    return (data as { id: string }).id;
+    return path;
   }
 
-  /** Elimina una imagen: objeto de storage + fila de project_images. */
-  async removeProjectImage(imageId: string, storagePath: string): Promise<void> {
+  /** Elimina objetos del bucket (limpieza de huérfanos y compensación). */
+  async removeStorageObjects(paths: string[]): Promise<void> {
+    if (paths.length === 0) return;
     await this.supabase.clientPromise;
-    if (storagePath) {
-      await this.supabase.client.storage.from('project-images').remove([storagePath]);
-    }
-    const { error } = await this.supabase.client.from('project_images').delete().eq('id', imageId);
-    if (error) throw new Error(error.message);
-  }
-
-  /** Sincroniza orden y portada de las imágenes de un proyecto. */
-  async syncProjectImages(
-    projectId: string,
-    rows: { id: string; sortOrder: number; isCover: boolean }[],
-  ): Promise<void> {
-    await this.supabase.clientPromise;
-    for (const row of rows) {
-      const { error } = await this.supabase.client
-        .from('project_images')
-        .update({ sort_order: row.sortOrder, is_cover: row.isCover })
-        .eq('id', row.id);
-      if (error) throw new Error(error.message);
-    }
+    await this.supabase.client.storage.from('project-images').remove(paths);
   }
 
   /** Busca un proyecto por id entre TODOS (incluye borradores, para el panel). */

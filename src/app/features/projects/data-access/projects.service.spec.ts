@@ -39,7 +39,13 @@ function createFakeClient(results: Record<string, TableResult>, writes: WrittenR
     };
     return chain;
   };
-  return { from: (table: string) => chainFor(table) };
+  return {
+    from: (table: string) => chainFor(table),
+    rpc: (name: string, params: Record<string, unknown>) => {
+      writes.push({ table: `rpc:${name}`, payload: params });
+      return Promise.resolve(results[`__rpc:${name}`] ?? { data: [], error: null });
+    },
+  };
 }
 
 describe('ProjectsService', () => {
@@ -129,63 +135,66 @@ describe('ProjectsService', () => {
     expect(service.categories().length).toBe(2);
   });
 
-  it('createProject envía las columnas snake_case de la tabla projects', async () => {
-    results['projects'] = { data: [{ id: 'nuevo-id' }] };
+  it('saveProjectAtomic llama admin_save_project con el diff de imágenes y devuelve huérfanos', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'nuevo-id', orphan_storage_paths: ['p1/borrada.jpg'] }],
+    };
     const service = setup();
 
-    await service.createProject({
-      title: 'Casa',
-      slug: 'casa',
-      description: 'Desc',
-      priceMinWages: 180,
-      status: 'published',
-      featured: true,
-      sortOrder: 4,
-    });
+    const out = await service.saveProjectAtomic(
+      'abc',
+      {
+        title: 'Casa 2',
+        slug: 'casa-2',
+        description: 'Desc 2',
+        priceMinWages: null,
+        status: 'draft',
+        featured: false,
+        sortOrder: 1,
+      },
+      ['cat-1', 'cat-2'],
+      [
+        { id: 'img-1', storagePath: 'p1/a.jpg', isCover: true, sortOrder: 0 },
+        { storagePath: 'p1/nueva.jpg', isCover: false, sortOrder: 1 },
+      ],
+    );
 
+    expect(out).toEqual({ projectId: 'nuevo-id', orphanPaths: ['p1/borrada.jpg'] });
     expect(writes).toEqual([
       {
-        table: 'projects',
+        table: 'rpc:admin_save_project',
         payload: {
-          title: 'Casa',
-          slug: 'casa',
-          description: 'Desc',
-          price_min_wages: 180,
-          status: 'published',
-          featured: true,
-          sort_order: 4,
+          p_project_id: 'abc',
+          p_title: 'Casa 2',
+          p_slug: 'casa-2',
+          p_description: 'Desc 2',
+          p_price_min_wages: null,
+          p_status: 'draft',
+          p_featured: false,
+          p_sort_order: 1,
+          p_category_ids: ['cat-1', 'cat-2'],
+          p_image_rows: JSON.stringify([
+            { id: 'img-1', storage_path: 'p1/a.jpg', is_cover: true, sort_order: 0 },
+            { id: null, storage_path: 'p1/nueva.jpg', is_cover: false, sort_order: 1 },
+          ]),
         },
       },
     ]);
   });
 
-  it('updateProject envía las columnas snake_case de la tabla projects', async () => {
-    results['projects'] = { data: [] };
+  it('saveProjectAtomic traduce el error 23505 de slug duplicado', async () => {
+    results['__rpc:admin_save_project'] = {
+      error: { message: 'duplicate key value violates unique constraint', code: '23505' },
+    };
     const service = setup();
 
-    await service.updateProject('abc', {
-      title: 'Casa 2',
-      slug: 'casa-2',
-      description: 'Desc 2',
-      priceMinWages: null,
-      status: 'draft',
-      featured: false,
-      sortOrder: 1,
-    });
-
-    expect(writes).toEqual([
-      {
-        table: 'projects',
-        payload: {
-          title: 'Casa 2',
-          slug: 'casa-2',
-          description: 'Desc 2',
-          price_min_wages: null,
-          status: 'draft',
-          featured: false,
-          sort_order: 1,
-        },
-      },
-    ]);
+    await expectAsync(
+      service.saveProjectAtomic(
+        null,
+        { title: 'Casa', slug: 'casa', description: 'Desc', priceMinWages: null, status: 'draft', featured: false, sortOrder: 0 },
+        [],
+        [],
+      ),
+    ).toBeRejectedWithError('Ya existe un proyecto con ese slug (URL). Elígelo diferente.');
   });
 });
