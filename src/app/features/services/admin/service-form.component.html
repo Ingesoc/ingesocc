@@ -86,8 +86,8 @@
         <div class="flex flex-wrap items-start gap-6">
           @if (photo(); as photo) {
             <div class="relative shrink-0">
-              <img [src]="photo.url" alt="Foto del servicio" class="h-40 w-64 rounded-sm border border-border object-cover" />
-              <button type="button" (click)="removePhoto()" title="Quitar foto"
+              <img [src]="photo.url" alt="Foto del servicio" width="256" height="160" decoding="async" class="h-40 w-64 rounded-sm border border-border object-cover" />
+              <button type="button" (click)="removePhoto()" title="Quitar foto" [disabled]="photoBusy() || saving()"
                 class="absolute -right-2.5 -top-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-colors hover:bg-accent hover:text-primary">
                 <svg lucideTrash2 class="h-4 w-4" />
               </button>
@@ -105,8 +105,11 @@
           <div class="grid gap-5">
             <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-dashed border-border bg-background px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep">
               <svg lucideUpload class="h-4 w-4" /> {{ photo()?.file ? 'Reemplazar foto' : 'Subir foto' }}
-              <input type="file" accept="image/*" class="hidden" (change)="onPhotoSelected($event)" />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" class="hidden" [disabled]="photoBusy() || saving()" (change)="onPhotoSelected($event)" />
             </label>
+            <p class="text-xs text-muted-foreground">
+              {{ photoBusy() ? 'Subiendo foto…' : 'JPG, PNG, WebP o AVIF. Máximo 2 MB.' }}
+            </p>
             <div>
               <label for="iconName" class="field-label">Ícono de respaldo</label>
               <select id="iconName" formControlName="iconName" class="field max-w-64">
@@ -122,19 +125,11 @@
 
       <!-- Acciones -->
       <div class="flex flex-wrap items-center gap-4 pb-4">
-        <button type="submit" [disabled]="saving() || photoProcessing()" class="btn btn-solid">
-          @if (saving()) {
-            Guardando…
-          } @else if (photoProcessing()) {
-            Procesando foto…
-          } @else if (isEdit()) {
-            Guardar cambios
-          } @else {
-            Crear servicio
-          }
+        <button type="submit" [disabled]="saving() || photoBusy()" class="btn btn-solid">
+          {{ isEdit() && !photoBusy() && !saving() ? 'Guardar cambios' : submitLabel() }}
           <svg lucideCheck class="h-4 w-4" />
         </button>
-        <a routerLink="/admin/servicios" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
+        <a routerLink="/admin/servicios" [class.pointer-events-none]="saving() || photoBusy()" [attr.aria-disabled]="saving() || photoBusy()" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
       </div>
     </form>
   }

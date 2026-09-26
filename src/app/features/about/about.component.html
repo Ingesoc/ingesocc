@@ -20,7 +20,7 @@
         <div class="absolute -left-4 -top-4 h-full w-full border border-accent/40"></div>
         <div class="media-zoom relative aspect-[4/5] w-full bg-secondary">
           @if (historiaImage()) {
-          <img [src]="historiaImage()" alt="Nuestra historia" class="absolute inset-0 h-full w-full object-cover" />
+          <img [src]="historiaImage()" alt="Nuestra historia" width="1600" height="1000" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover" />
         }
         </div>
       </div>
@@ -98,7 +98,7 @@
         <article class="group">
           <div class="relative aspect-square w-full bg-secondary">
             @if (member.photo) {
-            <img [src]="member.photo" [alt]="member.name" class="absolute inset-0 h-full w-full object-cover" />
+            <img [src]="member.photo" [alt]="member.name" width="400" height="400" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover" />
           }
           </div>
           <div class="mt-5 flex items-baseline justify-between gap-4">

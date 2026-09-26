@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
+import { CloudinaryService } from '../../../core/cloudinary.service';
 import { slugify } from '../../../core/slugify';
 import type {
   AdminProject,
@@ -227,6 +228,8 @@ interface ProjectImageRow {
 @Injectable({ providedIn: 'root' })
 export class ProjectsService {
   private readonly supabase = inject(SupabaseService);
+  /** Único punto de entrada a la media del sitio (Cloudinary). */
+  private readonly media = inject(CloudinaryService);
 
   private readonly projects = signal<Project[]>(SEED_PROJECTS);
 
@@ -496,11 +499,11 @@ export class ProjectsService {
 
   /**
    * Elimina un proyecto: PRIMERO las filas (cascade a project_images y
-   * project_categories) y DESPUÉS los objetos de storage (diagnóstico #8).
-   * Orden inverso al anterior: si el delete de DB falla, no se toca storage;
-   * si el storage falla después, el proyecto ya no existe y el objeto queda
+   * project_categories) y DESPUÉS los assets (diagnóstico #8).
+   * Orden inverso al anterior: si el delete de DB falla, no se toca la media;
+   * si la limpieza falla después, el proyecto ya no existe y el asset queda
    * huérfano pero inaccesible (limpieza cosmética, no inconsistencia).
-   * Los paths se leen de la DB en el momento, no de la señal (estado).
+   * Las referencias se leen de la DB en el momento, no de la señal (estado).
    */
   async deleteProject(id: string): Promise<void> {
     await this.supabase.clientPromise;
@@ -509,38 +512,38 @@ export class ProjectsService {
       .select('storage_path')
       .eq('project_id', id);
     if (fetchError) throw new Error(fetchError.message);
-    const paths = ((images ?? []) as { storage_path: string }[])
+    const references = ((images ?? []) as { storage_path: string }[])
       .map((row) => row.storage_path)
       .filter(Boolean);
 
     const { error } = await this.supabase.client.from('projects').delete().eq('id', id);
     if (error) throw new Error(error.message);
 
-    await this.removeStorageObjects(paths);
+    await this.removeProjectImages(references);
   }
 
   /**
-   * Sube SOLO el archivo al bucket `project-images`; la fila en `project_images`
-   * la crea el RPC `admin_save_project` dentro de la transacción. Así se cierra
-   * la ventana "archivo en storage sin fila en DB": si el RPC falla, el caller
-   * compensa borrando el archivo recién subido.
+   * Sube SOLO el archivo a Cloudinary; la fila en `project_images` la crea el
+   * RPC `admin_save_project` dentro de la transacción. Así se cierra la ventana
+   * "archivo subido sin fila en DB": si el RPC falla, el caller compensa
+   * borrando el asset recién subido.
+   *
+   * Devuelve la referencia a persistir en `project_images.storage_path`: la
+   * `secure_url` de Cloudinary, o la ruta del bucket legacy si Cloudinary no
+   * está disponible (compatibilidad de lectura en ambos casos).
    */
   async uploadProjectImageFile(projectId: string, file: File): Promise<string> {
-    await this.supabase.clientPromise;
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `${projectId}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await this.supabase.client.storage
-      .from('project-images')
-      .upload(path, file, { contentType: file.type || 'image/jpeg' });
-    if (error) throw new Error(error.message);
-    return path;
+    const media = await this.media.uploadImage(file, 'projects', projectId);
+    return media.reference;
   }
 
-  /** Elimina objetos del bucket (limpieza de huérfanos y compensación). */
-  async removeStorageObjects(paths: string[]): Promise<void> {
-    if (paths.length === 0) return;
-    await this.supabase.clientPromise;
-    await this.supabase.client.storage.from('project-images').remove(paths);
+  /**
+   * Elimina assets de proyectos (limpieza de huérfanos y compensación).
+   * `CloudinaryService` decide por asset si va a `image/destroy` o al bucket
+   * legacy, y nunca propaga el fallo.
+   */
+  async removeProjectImages(references: readonly string[]): Promise<void> {
+    await this.media.deleteImages(references, 'projects');
   }
 
   /** Busca un proyecto por id entre TODOS (incluye borradores, para el panel). */

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -8,7 +8,12 @@ import { LucideChevronLeft, LucideStar, LucideTrash2, LucideUpload } from '@luci
 import { ProjectsService } from '../data-access/projects.service';
 import type { ProjectInput } from '../data-access/project.model';
 import { slugify } from '../../../core/slugify';
-import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../../core/image-utils';
+import {
+  IMAGE_VALIDATION_MESSAGES,
+  MAX_IMAGE_BYTES,
+  MAX_IMAGE_EDGE_PX,
+  validateImageFile,
+} from '../../../core/image-utils';
 
 /** Imagen del formulario: pendiente de subir o ya persistida. */
 interface ImageSlot {
@@ -32,7 +37,7 @@ function parseNumber(value: unknown): number | null {
   imports: [ReactiveFormsModule, RouterLink, LucideChevronLeft, LucideUpload, LucideTrash2, LucideStar],
   templateUrl: './project-form.component.html',
 })
-export class ProjectFormComponent implements OnInit {
+export class ProjectFormComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly projects = inject(ProjectsService);
@@ -56,7 +61,22 @@ export class ProjectFormComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly saving = signal(false);
+  /** true mientras se comprimen los archivos recién seleccionados. */
+  readonly processing = signal(false);
+  /** true mientras los archivos nuevos viajan a Cloudinary (antes del guardado). */
+  readonly uploading = signal(false);
   readonly error = signal('');
+
+  /** true mientras el formulario tiene trabajo en curso: bloquea el submit. */
+  readonly busy = computed(() => this.processing() || this.uploading() || this.saving());
+
+  /** Texto de la acción principal según la fase del guardado. */
+  readonly submitLabel = computed(() => {
+    if (this.saving()) return 'Guardando…';
+    if (this.uploading()) return 'Subiendo imágenes…';
+    if (this.processing()) return 'Procesando imágenes…';
+    return this.isEdit() ? 'Guardar cambios' : 'Crear proyecto';
+  });
 
   private slugEditedByUser = false;
 
@@ -121,43 +141,61 @@ export class ProjectFormComponent implements OnInit {
     );
   }
 
-  /** Comprime (si puede) y agrega los archivos seleccionados como slots pendientes. */
+  /**
+   * Valida, comprime y agrega los archivos seleccionados como slots pendientes.
+   * El upload real ocurre en `onSave`, junto con el resto del guardado.
+   */
   async onFilesSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files ? Array.from(input.files) : [];
     input.value = '';
+    if (files.length === 0) return;
 
-    const validFiles = files.filter((file) => {
-      const valid = isAcceptableImageFile(file);
-      if (!valid) {
-        this.error.set(
-          `Algunos archivos no se subieron: solo se aceptan imágenes (${ACCEPTED_IMAGE_TYPES_LABEL}).`,
-        );
+    let rejected = 0;
+    const validFiles: File[] = [];
+    for (const file of files) {
+      const invalid = validateImageFile(file);
+      if (invalid) {
+        rejected++;
+        this.error.set(invalid);
+        continue;
       }
-      return valid;
-    });
+      validFiles.push(file);
+    }
+    if (validFiles.length === 0) return;
 
-    for (const file of validFiles) {
-      let processed = file;
-      try {
-        processed = await imageCompression(file, {
-          maxSizeMB: 2,
-          maxWidthOrHeight: 2000,
-          useWebWorker: true,
-        });
-      } catch {
-        // Sin compresión si falla; se sube el original.
+    this.processing.set(true);
+    try {
+      for (const file of validFiles) {
+        let processed = file;
+        try {
+          processed = await imageCompression(file, {
+            maxSizeMB: MAX_IMAGE_BYTES / (1024 * 1024),
+            maxWidthOrHeight: MAX_IMAGE_EDGE_PX,
+            useWebWorker: true,
+          });
+        } catch {
+          // Sin compresión si falla; se sube el original.
+        }
+        const url = URL.createObjectURL(processed);
+        this.imageSlots.update((slots) => [
+          ...slots,
+          {
+            key: `new-${crypto.randomUUID()}`,
+            url,
+            file: processed,
+            isCover: slots.length === 0,
+          },
+        ]);
       }
-      const url = URL.createObjectURL(processed);
-      this.imageSlots.update((slots) => [
-        ...slots,
-        {
-          key: `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          url,
-          file: processed,
-          isCover: slots.length === 0,
-        },
-      ]);
+    } finally {
+      this.processing.set(false);
+    }
+
+    if (rejected > 0) {
+      this.error.set(
+        `Se omitieron ${rejected} archivo(s): ${IMAGE_VALIDATION_MESSAGES.format}`,
+      );
     }
   }
 
@@ -177,16 +215,21 @@ export class ProjectFormComponent implements OnInit {
   }
 
   /**
-   * Guardado ATÓMICO (diagnóstico #9): primero sube los archivos nuevos al
-   * bucket (solo storage, sin fila), luego UNA llamada RPC `admin_save_project`
+   * Guardado ATÓMICO (diagnóstico #9): primero sube los archivos nuevos a
+   * Cloudinary (sin fila en DB), luego UNA llamada RPC `admin_save_project`
    * crea/actualiza proyecto + sincroniza imágenes + reemplaza categorías en una
    * única transacción Postgres. Si el RPC falla, se compensa borrando los
-   * archivos recién subidos (no quedan huérfanos). Si el RPC acierta, limpia
-   * los objetos de las imágenes eliminadas (paths que devuelve el propio RPC).
+   * assets recién subidos (no quedan huérfanos). Si el RPC acierta, limpia los
+   * assets de las imágenes eliminadas (referencias que devuelve el propio RPC).
    */
   async onSave(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Corta el doble submit: mientras haya una fase en curso, el guardado actual
+    // sigue siendo el único y el nuevo se ignora.
+    if (this.busy()) {
       return;
     }
 
@@ -194,7 +237,7 @@ export class ProjectFormComponent implements OnInit {
     this.error.set('');
 
     // Para un proyecto nuevo se genera el uuid EN EL CLIENTE: permite subir los
-    // archivos a su prefijo ANTES de que exista la fila (storage no depende de
+    // archivos a su prefijo ANTES de que exista la fila (la media no depende de
     // la DB) y el RPC hace el INSERT con ese mismo id.
     const finalId = this.projectId() ?? crypto.randomUUID();
     // Declarado fuera del try: la compensación del catch necesita la lista.
@@ -214,13 +257,15 @@ export class ProjectFormComponent implements OnInit {
 
       const slots = this.imageSlots();
 
-      // 1) Subir archivos nuevos (solo storage; la fila la crea el RPC).
+      // 1) Subir archivos nuevos (solo media; la fila la crea el RPC).
+      this.uploading.set(slots.some((slot) => slot.file));
       const pathByKey = new Map<string, string>();
       for (const slot of slots.filter((s) => s.file)) {
         const path = await this.projects.uploadProjectImageFile(finalId, slot.file!);
         uploadedPaths.push(path);
         pathByKey.set(slot.key, path);
       }
+      this.uploading.set(false);
 
       // 2) Filas definitivas de imágenes: existentes (por id) + recién subidas
       //    (por path). Lo que NO esté aquí, el RPC lo borra y devuelve su path.
@@ -241,26 +286,36 @@ export class ProjectFormComponent implements OnInit {
         imageRows,
       );
 
-      // 4) Limpieza best-effort de objetos huérfanos (imágenes eliminadas).
+      // 4) Limpieza best-effort de assets huérfanos (imágenes eliminadas).
       try {
-        await this.projects.removeStorageObjects(orphanPaths);
+        await this.projects.removeProjectImages(orphanPaths);
       } catch (cleanupError) {
-        console.warn('[project-form] limpieza de storage incompleta:', cleanupError);
+        console.warn('[project-form] limpieza de media incompleta:', cleanupError);
       }
 
       await this.projects.refreshAll();
       await this.router.navigate(['/admin/proyectos']);
     } catch (err) {
       // Compensación: el RPC es transaccional (DB quedó consistente), pero los
-      // archivos subidos en el paso 1 sí quedaron en el bucket → borrarlos.
+      // archivos subidos en el paso 1 sí quedaron en Cloudinary → borrarlos.
       try {
-        await this.projects.removeStorageObjects(uploadedPaths);
+        await this.projects.removeProjectImages(uploadedPaths);
       } catch (cleanupError) {
-        console.warn('[project-form] compensación de storage incompleta:', cleanupError);
+        console.warn('[project-form] compensación de media incompleta:', cleanupError);
       }
       this.error.set(err instanceof Error ? err.message : 'Error al guardar el proyecto.');
     } finally {
+      this.uploading.set(false);
       this.saving.set(false);
+    }
+  }
+
+  /** Libera los previews locales (object URLs) al salir del formulario. */
+  ngOnDestroy(): void {
+    for (const slot of this.imageSlots()) {
+      if (!slot.id) {
+        URL.revokeObjectURL(slot.url);
+      }
     }
   }
 }

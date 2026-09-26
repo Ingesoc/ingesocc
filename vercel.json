@@ -3,7 +3,12 @@
   "outputDirectory": "dist/ingesocc-web/browser",
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/cloudinary/*.ts": {
+      "maxDuration": 10
+    }
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/((?!api/).*)", "destination": "/" }
   ]
 }

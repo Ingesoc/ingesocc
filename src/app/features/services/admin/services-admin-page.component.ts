@@ -5,6 +5,7 @@ import { LucidePencil, LucidePlus, LucideTrash2 } from '@lucide/angular';
 import { ServicesService } from '../data-access/services.service';
 import { serviceIconFor } from '../data-access/service-icons';
 import type { AdminService } from '../data-access/service.model';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 
 @Component({
   selector: 'app-services-admin-page',
@@ -32,6 +33,11 @@ export class ServicesAdminPageComponent implements OnInit {
 
   iconComponent(service: AdminService) {
     return serviceIconFor(service.iconName);
+  }
+
+  /** Miniatura 400×400 para la celda del listado admin. */
+  photoUrl(service: AdminService): string {
+    return withCloudinaryTransform(service.photoUrl, CLOUDINARY_TRANSFORMS.thumbnail);
   }
 
   async onDelete(service: AdminService): Promise<void> {

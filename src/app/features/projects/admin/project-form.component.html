@@ -124,20 +124,23 @@
 
         <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-dashed border-border bg-background px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep">
           <svg lucideUpload class="h-4 w-4" /> Subir imágenes
-          <input type="file" accept="image/*" multiple class="hidden" (change)="onFilesSelected($event)" />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple class="hidden" [disabled]="busy()" (change)="onFilesSelected($event)" />
         </label>
+        <p class="mt-3 text-xs text-muted-foreground">
+          {{ processing() ? 'Procesando imágenes…' : 'JPG, PNG, WebP o AVIF. Máximo 2 MB por imagen.' }}
+        </p>
 
         @if (imageSlots().length > 0) {
           <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             @for (slot of imageSlots(); track slot.key) {
               <div class="group relative overflow-hidden rounded-sm border border-border">
-                <img [src]="slot.url" [alt]="'Imagen del proyecto'" loading="lazy" class="aspect-video w-full object-cover" />
+                <img [src]="slot.url" [alt]="'Imagen del proyecto'" width="400" height="300" decoding="async" loading="lazy" class="aspect-video w-full object-cover" />
                 <div class="absolute inset-x-0 top-0 flex items-center justify-between p-2">
-                  <button type="button" (click)="setCover(slot)" title="Marcar como portada"
+                  <button type="button" (click)="setCover(slot)" title="Marcar como portada" [disabled]="busy()"
                     [class]="slot.isCover ? 'flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary' : 'flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary'">
                     <svg lucideStar class="h-4 w-4" />
                   </button>
-                  <button type="button" (click)="removeImage(slot)" title="Quitar"
+                  <button type="button" (click)="removeImage(slot)" title="Quitar" [disabled]="busy()"
                     class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary">
                     <svg lucideTrash2 class="h-4 w-4" />
                   </button>
@@ -153,17 +156,11 @@
 
       <!-- Acciones -->
       <div class="flex flex-wrap items-center gap-4 pb-4">
-        <button type="submit" [disabled]="saving()" class="btn btn-solid">
-          @if (saving()) {
-            Guardando…
-          } @else if (isEdit()) {
-            Guardar cambios
-          } @else {
-            Crear proyecto
-          }
+        <button type="submit" [disabled]="busy()" class="btn btn-solid">
+          {{ submitLabel() }}
           <svg lucideCheck class="h-4 w-4" />
         </button>
-        <a routerLink="/admin/proyectos" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
+        <a routerLink="/admin/proyectos" [class.pointer-events-none]="busy()" [attr.aria-disabled]="busy()" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
       </div>
     </form>
   }

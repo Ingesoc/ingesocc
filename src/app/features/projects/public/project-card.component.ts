@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight } from '@lucide/angular';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import type { Project } from '../data-access/project.model';
 import { projectCoverUrl } from '../data-access/project.model';
 
@@ -25,5 +26,8 @@ export class ProjectCardComponent {
   /** 'overlay' = imagen a sangre con texto encima (Home); 'panel' = imagen + metadata debajo (Proyectos). */
   readonly variant = input<'overlay' | 'panel'>('overlay');
 
-  readonly coverUrl = computed(() => projectCoverUrl(this.project()));
+  /** Portada ya optimizada por el CDN de Cloudinary (las legacy salen intactas). */
+  readonly coverUrl = computed(() =>
+    withCloudinaryTransform(projectCoverUrl(this.project()), CLOUDINARY_TRANSFORMS.cover),
+  );
 }

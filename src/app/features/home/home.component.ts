@@ -5,6 +5,7 @@ import { ContentBlocksService } from '../content-blocks/data-access/content-bloc
 import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
 
 /** Composición editorial del mosaico de destacados (Home).
  *
@@ -32,7 +33,12 @@ export class HomeComponent {
   readonly heroTitle = computed(() => this.blocks.text('home', 'hero.title', 'Construimos espacios que trascienden.'));
   readonly heroSubtitle = computed(() => this.blocks.text('home', 'hero.subtitle', ''));
   readonly heroCtaLabel = computed(() => this.blocks.text('home', 'hero.cta_label', 'Hablemos'));
-  readonly heroBackground = computed(() => this.blocks.image('home', 'hero.background_image', ''));
+  readonly heroBackground = computed(() =>
+    withCloudinaryTransform(
+      this.blocks.image('home', 'hero.background_image', ''),
+      CLOUDINARY_TRANSFORMS.hero,
+    ),
+  );
 
   readonly years = computed(() => this.blocks.number('home', 'stats.years_experience', 15));
   readonly projectsExecuted = computed(() => this.blocks.number('home', 'stats.projects_executed', 120));

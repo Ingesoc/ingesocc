@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
 
 /** Slots fijos del timeline (plan 1.4): el admin edita el contenido, no la estructura. */
 const TIMELINE_KEYS = ['item1', 'item2', 'item3', 'item4'] as const;
@@ -18,7 +19,12 @@ export class AboutComponent {
 
   readonly heroTitle = computed(() => this.blocks.text('about', 'hero.title', 'Quiénes Somos'));
   readonly heroSubtitle = computed(() => this.blocks.text('about', 'hero.subtitle', ''));
-  readonly historiaImage = computed(() => this.blocks.image('about', 'historia.image'));
+  readonly historiaImage = computed(() =>
+    withCloudinaryTransform(
+      this.blocks.image('about', 'historia.image'),
+      CLOUDINARY_TRANSFORMS.hero,
+    ),
+  );
   readonly historiaText = computed(() => this.blocks.text('about', 'historia.text'));
   readonly mision = computed(() => this.blocks.text('about', 'mision.text'));
   readonly vision = computed(() => this.blocks.text('about', 'vision.text'));
@@ -37,7 +43,10 @@ export class AboutComponent {
       key,
       name: this.blocks.text('about', `equipo.${key}.name`),
       role: this.blocks.text('about', `equipo.${key}.role`),
-      photo: this.blocks.image('about', `equipo.${key}.photo`),
+      photo: withCloudinaryTransform(
+        this.blocks.image('about', `equipo.${key}.photo`),
+        CLOUDINARY_TRANSFORMS.thumbnail,
+      ),
     })),
   );
 }

@@ -12,6 +12,7 @@ describe('ContentCmsPageComponent', () => {
     block: (page: string, key: string) => unknown;
     image: (page: string, key: string) => string;
     uploadContentImage: jasmine.Spy;
+    removeContentImage: jasmine.Spy;
   };
 
   const PAGE_BLOCKS = {
@@ -30,6 +31,7 @@ describe('ContentCmsPageComponent', () => {
       block: (page: string, key: string) => (PAGE_BLOCKS as Record<string, any>)[page]?.[key],
       image: () => 'https://cdn.test/nueva.jpg',
       uploadContentImage: jasmine.createSpy('uploadContentImage').and.resolveTo('content/nueva.jpg'),
+      removeContentImage: jasmine.createSpy('removeContentImage').and.resolveTo(undefined),
     };
     TestBed.configureTestingModule({
       imports: [ContentCmsPageComponent],
@@ -81,11 +83,42 @@ describe('ContentCmsPageComponent', () => {
     const tooBig = new File([new ArrayBuffer(6 * 1024 * 1024)], 'big.png', { type: 'image/png' });
 
     await component.replaceImage(view, { target: { files: [bad], value: '' } } as unknown as Event);
-    expect(view.error).toContain('debe ser una imagen');
+    expect(view.error).toContain('Formato de imagen no soportado');
     expect(blocks.uploadContentImage).not.toHaveBeenCalled();
 
     await component.replaceImage(view, { target: { files: [tooBig], value: '' } } as unknown as Event);
     expect(view.error).toContain('5 MB');
     expect(blocks.uploadContentImage).not.toHaveBeenCalled();
+  });
+
+  it('borra la imagen anterior solo después de guardar el bloque', async () => {
+    const component = fixture.componentInstance;
+    const view = component.groups()[0].blocks.find((b) => b.type === 'image')!;
+    const oldPath = view.valueImagePath;
+    const file = new File(['x'], 'hero.jpg', { type: 'image/jpeg' });
+    (blocks.uploadContentImage as jasmine.Spy).and.resolveTo('https://res.cloudinary.com/x/v1/abc.jpg');
+
+    await component.replaceImage(view, { target: { files: [file], value: '' } } as unknown as Event);
+
+    expect(blocks.updateBlock).toHaveBeenCalledWith(view.page, view.sectionKey, {
+      valueImagePath: 'https://res.cloudinary.com/x/v1/abc.jpg',
+    });
+    // La nueva queda a salvo: la anterior es la que se limpia.
+    expect(blocks.removeContentImage).toHaveBeenCalledWith(oldPath, 'https://res.cloudinary.com/x/v1/abc.jpg');
+    expect(view.error).toBe('');
+  });
+
+  it('deshace la subida en Cloudinary si el guardado del bloque falla', async () => {
+    const component = fixture.componentInstance;
+    const view = component.groups()[0].blocks.find((b) => b.type === 'image')!;
+    const file = new File(['x'], 'hero.jpg', { type: 'image/jpeg' });
+    (blocks.uploadContentImage as jasmine.Spy).and.resolveTo('https://res.cloudinary.com/x/v1/abc.jpg');
+    (blocks.updateBlock as jasmine.Spy).and.rejectWith(new Error('RLS'));
+
+    await component.replaceImage(view, { target: { files: [file], value: '' } } as unknown as Event);
+
+    // Compensación: el asset nuevo no se deja huérfano, y no se borra el viejo.
+    expect(blocks.removeContentImage).toHaveBeenCalledOnceWith('https://res.cloudinary.com/x/v1/abc.jpg');
+    expect(view.error).toBe('RLS');
   });
 });

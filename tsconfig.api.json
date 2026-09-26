@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/api",
+    "noEmit": true,
+    "lib": ["ES2023", "DOM"],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "types": ["node"]
+  },
+  "include": ["api/**/*.ts"]
+}

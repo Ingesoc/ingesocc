@@ -1,5 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
+import { CloudinaryService } from '../../../core/cloudinary.service';
+import { MAX_CMS_IMAGE_BYTES } from '../../../core/image-utils';
 import type { ContentBlock } from './content-block.model';
 
 /**
@@ -86,6 +88,8 @@ interface ContentBlockRow {
 @Injectable({ providedIn: 'root' })
 export class ContentBlocksService {
   private readonly supabase = inject(SupabaseService);
+  /** Único punto de entrada a la media del sitio (Cloudinary). */
+  private readonly media = inject(CloudinaryService);
 
   private readonly blocks = signal<ContentBlock[]>(SEED_CONTENT_BLOCKS);
 
@@ -150,16 +154,26 @@ export class ContentBlocksService {
   /** Última carga pública falló (seed visible ≠ datos reales). Panel admin. */
   readonly loadState = this.loadFailed.asReadonly();
 
-  /** Sube una imagen al bucket content-images y devuelve la ruta de storage. */
+  /**
+   * Sube una imagen del CMS a Cloudinary y devuelve la referencia a persistir
+   * en `value_image_path` (la `secure_url`; o la ruta del bucket legacy si
+   * Cloudinary no está disponible). El bloque solo conoce la carpeta `content`.
+   */
   async uploadContentImage(file: File): Promise<string> {
-    await this.supabase.clientPromise;
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `content/${crypto.randomUUID()}.${ext}`;
-    const { error } = await this.supabase.client.storage
-      .from('content-images')
-      .upload(path, file, { contentType: file.type || 'image/jpeg' });
-    if (error) throw new Error(error.message);
-    return path;
+    const media = await this.media.uploadImage(file, 'content', undefined, MAX_CMS_IMAGE_BYTES);
+    return media.reference;
+  }
+
+  /**
+   * Borra un asset del CMS (Cloudinary o bucket legacy).
+   *
+   * `exceptReference` evita borrar el asset que se acaba de guardar: se usa
+   * para limpiar la imagen anterior tras un reemplazo, y para deshacer una
+   * subida compensando cuando el guardado del bloque falló.
+   */
+  async removeContentImage(reference: string | null, exceptReference?: string | null): Promise<void> {
+    if (!reference || reference === exceptReference) return;
+    await this.media.deleteImage(reference, 'content');
   }
 
   /** Bloque por (page, sectionKey). */

@@ -7,6 +7,8 @@ import {
   blockLabel,
   sectionGroupLabel,
 } from '../data-access/content-blocks.catalog';
+import { MAX_CMS_IMAGE_BYTES, validateImageFile } from '../../../core/image-utils';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import type { ContentBlockType } from '../data-access/content-block.model';
 
 /** Fila editable del CMS (una por bloque de contenido del sitio). */
@@ -25,9 +27,6 @@ interface BlockView {
   saved: boolean;
   error: string;
 }
-
-/** Tamaño máximo de imagen aceptado en el CMS (5 MB). */
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 @Component({
   selector: 'app-content-cms-page',
@@ -51,6 +50,11 @@ export class ContentCmsPageComponent implements OnInit {
   });
 
   private readonly views = signal<BlockView[]>([]);
+
+  /** Miniatura del bloque: Cloudinary con recorte fijo; legacy se muestra tal cual. */
+  previewUrl(valueImagePath: string): string {
+    return withCloudinaryTransform(valueImagePath, CLOUDINARY_TRANSFORMS.thumbnail);
+  }
 
   /** Bloques de la página activa (para el conteo del tab). */
   readonly countFor = computed(() => {
@@ -129,38 +133,52 @@ export class ContentCmsPageComponent implements OnInit {
     }
   }
 
-  /** Reemplaza una imagen: valida, sube a Storage y persiste la ruta. */
+  /**
+   * Reemplaza la imagen de un bloque: valida, sube a Cloudinary y persiste la
+   * `secure_url` en `value_image_path`.
+   *
+   * Compensación: si el guardado del bloque falla, se borra el asset recién
+   * subido para no dejar huérfanos en la cuenta de Cloudinary.
+   */
   async replaceImage(view: BlockView, event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = ''; // permite volver a elegir el mismo archivo
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      view.error = 'El archivo debe ser una imagen (JPG, PNG o WebP).';
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      view.error = 'La imagen supera el máximo de 5 MB.';
+    const invalid = validateImageFile(file, MAX_CMS_IMAGE_BYTES);
+    if (invalid) {
+      view.error = invalid;
+      this.patchView();
       return;
     }
 
     view.saving = true;
     view.error = '';
+    this.patchView();
+
+    let uploaded: string | null = null;
     try {
-      const path = await this.blocksService.uploadContentImage(file);
+      uploaded = await this.blocksService.uploadContentImage(file);
       await this.blocksService.updateBlock(view.page, view.sectionKey, {
-        valueImagePath: path,
+        valueImagePath: uploaded,
       });
+      // La imagen anterior se limpia solo si el bloque sí guardó el cambio.
+      await this.blocksService.removeContentImage(view.valueImagePath, uploaded);
+
       view.valueImagePath = this.blocksService.image(view.page, view.sectionKey);
       view.dirty = false;
       view.saved = true;
       setTimeout(() => (view.saved = false), 2500);
     } catch (err) {
-      view.error =
-        err instanceof Error ? err.message : 'No se pudo subir la imagen.';
+      // El bloque no se actualizó: el asset nuevo no debe quedarse huérfano.
+      if (uploaded) {
+        await this.blocksService.removeContentImage(uploaded);
+      }
+      view.error = err instanceof Error ? err.message : 'No se pudo subir la imagen.';
     } finally {
       view.saving = false;
+      this.patchView();
     }
   }
 

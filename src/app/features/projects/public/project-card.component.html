@@ -5,7 +5,7 @@
     class="group relative block h-full min-w-0 overflow-hidden bg-primary text-white"
   >
     @if (coverUrl()) {
-      <img [src]="coverUrl()" [alt]="project().title" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+      <img [src]="coverUrl()" [alt]="project().title" width="960" height="720" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
     } @else {
       <div class="absolute inset-0 bg-secondary"></div>
     }
@@ -40,7 +40,7 @@
   >
     <div class="media-zoom aspect-[4/3] w-full bg-secondary">
       @if (coverUrl()) {
-        <img [src]="coverUrl()" [alt]="project().title" loading="lazy" class="h-full w-full object-cover" />
+        <img [src]="coverUrl()" [alt]="project().title" width="960" height="720" loading="lazy" decoding="async" class="h-full w-full object-cover" />
       } @else {
         <div class="flex h-full w-full items-center justify-center bg-secondary"></div>
       }

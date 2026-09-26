@@ -24,6 +24,8 @@ Abrir en Obsidian: *Open folder as vault* → `docs/obsidian/` → empezar por
 | Estilos | Tailwind CSS v4 |
 | Iconos | `@lucide/angular` |
 | Backend | Supabase (Postgres + Auth + Storage + RLS) |
+| Imágenes | Cloudinary (upload firmado vía Vercel Functions) + Supabase Storage legacy |
+| Functions | Vercel (`api/cloudinary/*`, TypeScript sin framework) |
 | Estado/datos | Signals + servicios en `data-access/` (por feature) |
 
 ## Estado por fases
@@ -75,6 +77,8 @@ pnpm start      # http://localhost:4200
 pnpm build      # build de producción en dist/ingesocc-web
 pnpm test       # tests unitarios (Karma + Chrome)
 pnpm test:ci    # tests unitarios en una sola pasada (headless)
+pnpm test:api   # tests de las funciones de Cloudinary (node:test)
+pnpm typecheck:api # typecheck de api/ sin emitir
 pnpm test:e2e   # tests E2E (Playwright, flujos públicos)
 pnpm test:perf  # auditoría Lighthouse con presupuestos (/ y /proyectos)
 pnpm test:visual # QA visual: accent-deep + contraste + overflow + screenshots
@@ -166,9 +170,98 @@ Se movió a `@layer base` y ahora las utilities ganan como corresponde.
 
 El logo oficial vive en `public/logo/logo.png` y se usa en header, footer, favicon y Open Graph. El set de favicons (`public/favicon.ico` multi-tamaño, `favicon-16/32.png`, `apple-touch-icon.png`, `icon-192/512.png`) y el `site.webmanifest` se generaron desde ese logo con los colores de la marca (`#171717` / `#f25623`). Si cambias el logo, regenera los favicons a las mismas medidas.
 
+## Imágenes (Cloudinary)
+
+Cloudinary es el **proveedor principal** de imágenes. Supabase Storage queda
+como *legacy*: las imágenes ya guardadas se siguen leyendo desde
+`project-images`, `service-images` y `content-images`, y no se borran.
+
+### Cómo funciona
+
+El navegador **nunca** ve `CLOUDINARY_API_SECRET`. El upload es firmado por
+funciones serverless que validan la sesión y el rol del admin:
+
+```
+Angular → POST /api/cloudinary/signature     (Bearer = JWT de Supabase)
+        → valida sesión, rol admin y carpeta contra lista blanca
+        → { timestamp, signature, cloudName, apiKey, folder, publicId }
+
+Angular → POST api.cloudinary.com/v1_1/<cloud>/image/upload
+        (multipart con api_key, timestamp, signature, folder, public_id)
+        → secure_url
+
+Angular → guarda la secure_url en Supabase
+          (project_images.storage_path / services.photo_path /
+           content_blocks.value_image_path)
+```
+
+No se crea la columna `provider` ni se toca el schema: las columnas de texto
+aceptan la ruta legacy o la URL de Cloudinary indistintamente.
+
+### Endpoints
+
+| Endpoint | Método | Qué hace |
+|---|---|---|
+| `/api/cloudinary/signature` | POST | Firma de upload. Body: `{ folder, entityId? }`. `folder` ∈ `projects`, `services`, `content`, `team`, `general`. |
+| `/api/cloudinary/destroy` | POST | Borra un asset. Body: `{ publicId }`. Solo borra bajo `ingesocc/`. |
+
+La autenticación usa `GET {SUPABASE_URL}/auth/v1/user` con el JWT del
+llamante y lee el rol de `profiles` con ese mismo JWT (RLS). No usa
+`service_role`: un JWT inválido o un rol distinto de `admin` se rechaza antes
+de firmar nada.
+
+### Variables de entorno
+
+Ver `.env.example`. En Vercel hay que definir las cinco:
+
+| Variable | Dónde se usa | Secreto |
+|---|---|---|
+| `SUPABASE_URL` | solo functions | no |
+| `SUPABASE_ANON_KEY` | solo functions | no (publishable, con RLS) |
+| `CLOUDINARY_CLOUD_NAME` | solo functions | no |
+| `CLOUDINARY_API_KEY` | solo functions | no |
+| `CLOUDINARY_API_SECRET` | solo functions | **sí** |
+
+El frontend **no lee variables de entorno**: sus credenciales de Supabase
+están en `src/environments/environment.ts` y `environment.prod.ts`. Las dos
+variables `SUPABASE_*` de arriba son para las funciones, que validan el JWT
+contra el Auth server; deben apuntar al mismo proyecto que
+`src/environments/`.
+
+### Desarrollo local
+
+Las funciones necesitan `vercel dev` (no `ng serve` a secas): el proxy de
+Angular reenvía `/api` a `http://localhost:3000` (`proxy.conf.json`).
+
+```bash
+vercel dev        # terminal 1 (puerto 3000)
+pnpm start        # terminal 2 (puerto 4200)
+```
+
+Si `vercel dev` no está corriendo, `CloudinaryService` degrada a Supabase
+Storage (ver abajo) y el panel sigue funcionando.
+
+### Entrega optimizada
+
+Las URLs de Cloudinary se sirven por su CDN con transformaciones por
+contexto (`src/app/core/cloudinary-urls.ts`): `cover` 960×720, `gallery`
+1200×900, `hero` 1600×1000, `service` 800×600, `thumbnail` 400×400, todas con
+`q_auto,f_auto`. Las imágenes legacy o de CDN externo se devuelven **intactas**
+en el mismo `<img>`, que es lo que permite servir ambos proveedores a la vez.
+
+### Degradación documentada a Supabase Storage
+
+Si la API propia responde "no disponible" (404/405/5xx o no hay red), la
+subida cae al bucket legacy y se avisa por consola, para que el admin no
+pierda el trabajo. Un 401/403 **no** degrada: son errores reales de sesión o
+de configuración y llegan al admin. `resetAvailability()` fuerza un reintento.
+
+La **migración física** de assets ya guardados (Supabase → Cloudinary) es una
+fase aparte y no forma parte de este despliegue.
+
 ## Despliegue (Vercel)
 
-El repo incluye `vercel.json` (SPA: `outputDirectory` = `dist/ingesocc-web/browser`, URLs limpias y rewrites a `index.html` para las rutas profundas de `/proyectos/:slug`).
+El repo incluye `vercel.json` (SPA: `outputDirectory` = `dist/ingesocc-web/browser`, URLs limpias y rewrites a `index.html` para las rutas profundas de `/proyectos/:slug`, con `/api/*` excluido del rewrite para que lo sirvan las funciones).
 
 ```bash
 pnpm build
@@ -180,6 +273,7 @@ npx vercel --prod
 1. **Dominio real**: reemplazar el placeholder `https://ingesocc.com` en `src/app/core/seo.service.ts` (constante `SITE_URL`), `src/index.html` (canonical, og:image, JSON-LD) y `public/sitemap.xml` / `public/robots.txt`.
 2. **Datos reales** (plan 1.7): teléfono, email, dirección y redes de la empresa; nombres/roles del equipo — hoy son placeholders editables desde `/admin/contenido` o directamente en `supabase/seed.sql` antes de aplicarlo.
 3. **Aplicar el esquema**: `supabase db push` (migraciones versionadas) + `supabase/seed.sql`, crear el usuario admin y asignar `role='admin'` en `profiles` (ver sección Supabase).
+4. **Variables de Cloudinary** en el proyecto de Vercel (ver sección Imágenes). Sin ellas el sitio sigue publicando, pero las subidas nuevas caen a Supabase Storage.
 
 ## Supabase
 
@@ -192,13 +286,25 @@ Pendiente en el panel de Supabase:
 3. Crear el usuario admin: Authentication → Users → Add user
 4. Asignar rol: `update public.profiles set role = 'admin' where id = '<user id>';`
 
-Buckets de storage creados por el esquema: `project-images`, `service-images`, `content-images` (lectura pública, escritura solo admin; límites de tamaño y MIME por bucket en la migración `20260917000003` — 2 MB para proyectos/servicios, 5 MB para el CMS).
+Buckets de storage creados por el esquema: `project-images`, `service-images`, `content-images` (lectura pública, escritura solo admin; límites de tamaño y MIME por bucket en la migración `20260917000003` — 2 MB para proyectos/servicios, 5 MB para el CMS). Con Cloudinary estos buckets quedan en modo *legacy*: solo se leen y solo se escriben si Cloudinary no está disponible.
 
 ## Estructura
 
 ```
+api/                      # Vercel Functions (upload firmado de Cloudinary)
+  cloudinary/
+    signature.ts          # POST /api/cloudinary/signature
+    destroy.ts            # POST /api/cloudinary/destroy
+  _lib/
+    auth.ts               # JWT de Supabase + rol admin (sin service_role)
+    cloudinary.ts         # lista blanca de carpetas, firma SHA-1, config
+    http.ts               # helpers de request/response y errores
 src/app/
   core/                  # supabase.service.ts (wrapper único; SDK con import() diferido)
+    cloudinary.service.ts   # ÚNICO punto de entrada a media (upload/delete/optimizar)
+    cloudinary-urls.ts      # helpers puros: transforms, public_id, detección de URL
+    cloudinary.model.ts     # MediaFolder, MediaUploadResult, MediaApiError
+    supabase-storage.service.ts  # proveedor legacy (buckets, rutas, resolvePublicUrl)
   layouts/
     public-layout/       # header (nav + CTA global) + footer (redes desde content_blocks)
   features/

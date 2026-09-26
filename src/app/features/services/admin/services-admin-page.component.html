@@ -46,7 +46,7 @@
           <div class="flex items-center gap-4 md:col-span-6">
             <div class="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-secondary text-accent">
               @if (service.photoUrl) {
-                <img [src]="service.photoUrl" [alt]="service.name" loading="lazy" class="h-full w-full object-cover" />
+                <img [src]="photoUrl(service)" [alt]="service.name" width="400" height="400" loading="lazy" decoding="async" class="h-full w-full object-cover" />
               } @else if (iconComponent(service)) {
                 <ng-container [ngComponentOutlet]="iconComponent(service)" [ngComponentOutletInputs]="{ size: 26 }" />
               }

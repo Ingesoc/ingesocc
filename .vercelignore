@@ -2,6 +2,11 @@
 node_modules
 .angular
 dist
+out-tsc
+
+# Secretos: en Vercel se configuran como Project/Environment Variables
+.env*
+!.env.example
 
 # Artefactos de tests/auditoría
 coverage

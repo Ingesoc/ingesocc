@@ -48,7 +48,7 @@
           <div class="flex items-center gap-4 md:col-span-5">
             <div class="h-14 w-20 shrink-0 overflow-hidden rounded-sm bg-secondary">
               @if (coverUrl(project)) {
-                <img [src]="coverUrl(project)" [alt]="project.title" loading="lazy" class="h-full w-full object-cover" />
+                <img [src]="coverUrl(project)" [alt]="project.title" width="400" height="400" loading="lazy" decoding="async" class="h-full w-full object-cover" />
               }
             </div>
             <div class="min-w-0">

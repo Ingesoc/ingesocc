@@ -2,7 +2,7 @@
   <!-- ── HERO: portada a sangre ─────────────────────────── -->
   <section class="relative flex min-h-[560px] items-end overflow-hidden bg-primary px-0 text-white md:min-h-[72vh]">
     @if (coverUrl()) {
-      <img [src]="coverUrl()" [alt]="project.title" fetchpriority="high" class="absolute inset-0 h-full w-full object-cover" />
+      <img [src]="coverUrl()" [alt]="project.title" width="1600" height="1000" fetchpriority="high" decoding="async" class="absolute inset-0 h-full w-full object-cover" />
     }
     <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-primary/40"></div>
 
@@ -68,7 +68,7 @@
               [class]="gallerySpan(i)"
               [attr.aria-label]="'Ampliar imagen de ' + project.title"
             >
-              <img [src]="image.url" [alt]="project.title" loading="lazy" class="h-full w-full object-cover" />
+              <img [src]="galleryUrl(image)" [alt]="project.title" width="1200" height="900" loading="lazy" decoding="async" class="h-full w-full object-cover" />
               <span class="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-primary/50 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 <svg lucideArrowUpRight class="h-5 w-5 text-white" />
               </span>
@@ -123,7 +123,7 @@
         (click)="$event.stopPropagation()"
         (keydown)="$event.stopPropagation()"
       >
-        <img [src]="lightboxImageUrl()" [alt]="project.title" class="max-h-[78vh] w-auto object-contain" />
+        <img [src]="lightboxImageUrl()" [alt]="project.title" width="1200" height="900" decoding="async" class="max-h-[78vh] w-auto object-contain" />
         <figcaption class="mt-4 flex items-center justify-between gap-4">
           <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/60">{{ project.title }}</span>
           <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/40">{{ lightboxPosition() }}</span>

@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LucidePencil, LucidePlus, LucideStar, LucideTrash2 } from '@lucide/angular';
 import { ProjectsService } from '../data-access/projects.service';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import type { AdminProject } from '../data-access/project.model';
 
 @Component({
@@ -41,8 +42,10 @@ export class ProjectsAdminPageComponent implements OnInit {
     return project.categoryIds.map((id) => this.categoriesById().get(id) ?? id).join(', ');
   }
 
+  /** Miniatura del listado: 400×400 alcanza para la celda del panel. */
   coverUrl(project: AdminProject): string {
-    return project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? '';
+    const url = project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? '';
+    return withCloudinaryTransform(url, CLOUDINARY_TRANSFORMS.thumbnail);
   }
 
   async onDelete(project: AdminProject): Promise<void> {

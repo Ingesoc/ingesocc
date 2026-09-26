@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
+import { CloudinaryService } from '../../../core/cloudinary.service';
 import type { AdminService, Service, ServiceInput } from './service.model';
 
 /**
@@ -102,6 +103,8 @@ function mapServiceWriteError(error: { message: string; code?: string }): Error 
 @Injectable({ providedIn: 'root' })
 export class ServicesService {
   private readonly supabase = inject(SupabaseService);
+  /** Único punto de entrada a la media del sitio (Cloudinary). */
+  private readonly media = inject(CloudinaryService);
 
   private readonly services = signal<Service[]>(SEED_SERVICES);
 
@@ -243,48 +246,60 @@ export class ServicesService {
     if (error) throw mapServiceWriteError(error);
   }
 
-  /** Elimina un servicio y su foto de storage (si existe). */
+  /**
+   * Elimina un servicio y su foto (Cloudinary o bucket legacy).
+   * Las filas van primero: si la foto no se puede borrar, el servicio ya no
+   * existe y el asset queda huérfano pero inaccesible (limpieza cosmética).
+   */
   async deleteService(id: string): Promise<void> {
     await this.supabase.clientPromise;
     const service = this.adminServicesSignal().find((item) => item.id === id);
-    if (service?.photoPath) {
-      await this.supabase.client.storage.from('service-images').remove([service.photoPath]);
-    }
     const { error } = await this.supabase.client.from('services').delete().eq('id', id);
     if (error) throw new Error(error.message);
+    await this.media.deleteImage(service?.photoPath, 'services');
   }
 
-  /** Sube (o reemplaza) la foto de un servicio al bucket service-images. */
+  /**
+   * Sube (o reemplaza) la foto de un servicio a Cloudinary.
+   *
+   * `services.photo_path` conserva su nombre histórico pero ahora guarda la
+   * `secure_url` de Cloudinary: no hace falta migrar el esquema porque la
+   * columna ya es `text` y `resolvePublicUrl` devuelve las URLs absolutas tal
+   * cual. Así conviven fotos viejas (bucket) y nuevas (CDN) sin cambios.
+   *
+   * Compensaciones: si el UPDATE de `photo_path` falla, se borra el asset recién
+   * subido (no queda huérfano). Si el borrado de la foto anterior falla, no se
+   * rompe la operación: se registra y sigue.
+   */
   async uploadServicePhoto(serviceId: string, file: File): Promise<void> {
-    await this.supabase.clientPromise;
     const current = this.adminServicesSignal().find((item) => item.id === serviceId);
-    const ext = file.name.split('.').pop() ?? 'jpg';
-    const path = `services/${serviceId}/${crypto.randomUUID()}.${ext}`;
-
-    const { error: uploadError } = await this.supabase.client.storage
-      .from('service-images')
-      .upload(path, file, { contentType: file.type || 'image/jpeg' });
-    if (uploadError) throw new Error(uploadError.message);
+    const uploaded = await this.media.uploadImage(file, 'services', serviceId);
 
     const { error } = await this.supabase.client
       .from('services')
-      .update({ photo_path: path })
+      .update({ photo_path: uploaded.reference })
       .eq('id', serviceId);
-    if (error) throw new Error(error.message);
 
-    // Limpia la foto anterior si existía.
-    if (current?.photoPath) {
-      await this.supabase.client.storage.from('service-images').remove([current.photoPath]);
+    if (error) {
+      // La DB no apunta al asset nuevo: se deshace la subida.
+      await this.media.deleteImage(uploaded.reference, 'services');
+      throw new Error(error.message);
     }
+
+    // Limpia la foto anterior (best-effort: la nueva ya está guardada).
+    await this.media.deleteImage(current?.photoPath, 'services');
   }
 
-  /** Elimina la foto del servicio (storage + columna photo_path). */
+  /** Elimina la foto del servicio (asset + columna photo_path). */
   async removeServicePhoto(serviceId: string): Promise<void> {
-    await this.supabase.clientPromise;
     const service = this.adminServicesSignal().find((item) => item.id === serviceId);
     if (!service?.photoPath) return;
-    await this.supabase.client.storage.from('service-images').remove([service.photoPath]);
-    const { error } = await this.supabase.client.from('services').update({ photo_path: null }).eq('id', serviceId);
+    await this.media.deleteImage(service.photoPath, 'services');
+
+    const { error } = await this.supabase.client
+      .from('services')
+      .update({ photo_path: null })
+      .eq('id', serviceId);
     if (error) throw new Error(error.message);
   }
 

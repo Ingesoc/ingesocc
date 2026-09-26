@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideX } from '@lucide/angular';
 import { SeoService } from '../../../core/seo.service';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import { ProjectsService } from '../data-access/projects.service';
 import { projectCoverUrl, type ProjectImage } from '../data-access/project.model';
 
@@ -36,7 +37,13 @@ export class ProjectDetailComponent {
 
   readonly project = computed(() => this.projects.bySlug(this.slug() ?? ''));
 
-  readonly coverUrl = computed(() => (this.project() ? projectCoverUrl(this.project()!) : ''));
+  /** Hero a sangre: ancho de viewport, no el de las cards. */
+  readonly coverUrl = computed(() =>
+    withCloudinaryTransform(
+      this.project() ? projectCoverUrl(this.project()!) : '',
+      CLOUDINARY_TRANSFORMS.hero,
+    ),
+  );
 
   /** Galería: omite la portada (ya está en el hero) salvo que sea la única imagen. */
   readonly galleryImages = computed<ProjectImage[]>(() => {
@@ -45,6 +52,11 @@ export class ProjectDetailComponent {
     const withoutCover = project.images.filter((image) => !image.isCover);
     return withoutCover.length > 0 ? withoutCover : project.images;
   });
+
+  /** URL de galería optimizada para el tamaño de celda. */
+  galleryUrl(image: ProjectImage): string {
+    return withCloudinaryTransform(image.url, CLOUDINARY_TRANSFORMS.gallery);
+  }
 
   /** Índice de la imagen abierta en el lightbox (null = cerrado). */
   readonly lightboxIndex = signal<number | null>(null);
@@ -65,7 +77,7 @@ export class ProjectDetailComponent {
   lightboxImageUrl(): string {
     const index = this.lightboxIndex();
     const images = this.galleryImages();
-    return index !== null && images[index] ? images[index].url : '';
+    return index !== null && images[index] ? this.galleryUrl(images[index]) : '';
   }
 
   /** Posición "2 / 5" para el pie del lightbox. */

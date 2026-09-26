@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -11,7 +11,7 @@ import { ServicesService } from '../data-access/services.service';
 import { SERVICE_ICON_NAMES, serviceIconFor } from '../data-access/service-icons';
 import type { ServiceInput } from '../data-access/service.model';
 import { slugify } from '../../../core/slugify';
-import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../../core/image-utils';
+import { MAX_IMAGE_BYTES, validateImageFile } from '../../../core/image-utils';
 
 @Component({
   selector: 'app-service-form',
@@ -19,7 +19,7 @@ import { ACCEPTED_IMAGE_TYPES_LABEL, isAcceptableImageFile } from '../../../core
   imports: [ReactiveFormsModule, RouterLink, NgComponentOutlet, LucideChevronLeft, LucideUpload, LucideTrash2],
   templateUrl: './service-form.component.html',
 })
-export class ServiceFormComponent implements OnInit {
+export class ServiceFormComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly services = inject(ServicesService);
@@ -39,10 +39,14 @@ export class ServiceFormComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly saving = signal(false);
+  /** true mientras la foto comprime y/or sube a Cloudinary (evita guardar a medias). */
+  readonly photoBusy = signal(false);
   readonly error = signal('');
   readonly photo = signal<{ url: string; file?: File; existingPath?: string } | null>(null);
-  /** true mientras se comprime una foto recién seleccionada (evita guardar sin ella). */
-  readonly photoProcessing = signal(false);
+  /** Etiqueta de la acción principal según la fase en curso. */
+  readonly submitLabel = computed(() =>
+    this.photoBusy() ? 'Subiendo foto…' : this.saving() ? 'Guardando…' : 'Guardar servicio',
+  );
 
   private slugEditedByUser = false;
 
@@ -97,48 +101,63 @@ export class ServiceFormComponent implements OnInit {
     return serviceIconFor(this.form.value.iconName ?? null);
   }
 
-  /** Comprime (si puede) y prepara la nueva foto; se sube al guardar. */
+  /** Valida, comprime y prepara la nueva foto; se sube al guardar. */
   async onPhotoSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    input.value = '';
+    input.value = ''; // permite volver a elegir el mismo archivo
     if (!file) return;
 
-    if (!isAcceptableImageFile(file)) {
-      this.error.set(`Solo se aceptan imágenes (${ACCEPTED_IMAGE_TYPES_LABEL}).`);
+    const invalid = validateImageFile(file);
+    if (invalid) {
+      this.error.set(invalid);
       return;
     }
 
-    this.photoProcessing.set(true);
+    this.photoBusy.set(true);
     try {
       let processed = file;
       try {
         processed = await imageCompression(file, {
-          maxSizeMB: 2,
+          maxSizeMB: MAX_IMAGE_BYTES / (1024 * 1024),
           maxWidthOrHeight: 1600,
           useWebWorker: true,
         });
       } catch {
         // Sin compresión si falla; se sube el original.
       }
+      this.releasePreview();
       this.photo.set({ url: URL.createObjectURL(processed), file: processed });
     } finally {
-      this.photoProcessing.set(false);
+      this.photoBusy.set(false);
     }
   }
 
-  /** Quita la foto actual (la existente se borra del storage al guardar). */
+  /** Quita la foto actual (la existente se borra del almacenamiento al guardar). */
   removePhoto(): void {
+    this.releasePreview();
+    this.photo.set(null);
+  }
+
+  /** Libera el object URL del preview local, si lo hay. */
+  private releasePreview(): void {
     const current = this.photo();
     if (current && !current.file) {
       URL.revokeObjectURL(current.url);
     }
-    this.photo.set(null);
+  }
+
+  ngOnDestroy(): void {
+    this.releasePreview();
   }
 
   async onSave(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    // Corta el doble submit mientras haya una operación en curso.
+    if (this.saving() || this.photoBusy()) {
       return;
     }
 
@@ -165,7 +184,12 @@ export class ServiceFormComponent implements OnInit {
 
       const photo = this.photo();
       if (photo?.file) {
-        await this.services.uploadServicePhoto(finalId!, photo.file);
+        this.photoBusy.set(true);
+        try {
+          await this.services.uploadServicePhoto(finalId!, photo.file);
+        } finally {
+          this.photoBusy.set(false);
+        }
       } else if (!photo && finalId) {
         // Sin foto: asegura que no quede foto vieja (p. ej. si se quitó).
         await this.services.removeServicePhoto(finalId);

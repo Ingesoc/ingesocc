@@ -13,7 +13,7 @@
   <div class="md:col-span-6 lg:col-span-5">
     @if (service().photoUrl) {
       <div class="media-zoom aspect-[16/10] w-full bg-secondary">
-        <img [src]="service().photoUrl" [alt]="service().name" loading="lazy" class="h-full w-full object-cover" />
+          <img [src]="photoUrl()" [alt]="service().name" width="800" height="600" loading="lazy" decoding="async" class="h-full w-full object-cover" />
       </div>
     } @else if (iconComponent()) {
       <div class="flex aspect-[16/10] w-full items-center justify-center border border-border bg-surface text-accent transition-colors duration-300 group-hover:border-accent/60">
