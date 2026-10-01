@@ -7,7 +7,7 @@ Migrado desde el sitio Next.js original (diseño actual preservado como lenguaje
 ## Documentación (vault Obsidian)
 
 La documentación técnica del proyecto vive también como un **vault de Obsidian** en
-`docs/obsidian/` — 25 notas interconectadas (wikilinks, frontmatter, mapas de
+`docs/obsidian/` — 26 notas interconectadas (wikilinks, frontmatter, mapas de
 contenido) que cubren arquitectura, Supabase/RLS/storage, los CRUD, auth,
 content blocks, SEO, performance, testing, los pendientes operativos y los
 manuales de uso ([[Guías de Uso]] y [[Casos de Uso]]).
@@ -281,10 +281,13 @@ El proyecto ya está conectado: `@supabase/supabase-js` con URL y clave publisha
 
 Pendiente en el panel de Supabase:
 
-1. Aplicar las migraciones versionadas: `supabase link --project-ref <ref>` y luego `supabase db push` (el historial vive en `supabase/migrations/`; para desarrollo local con Docker: `supabase db reset`, que aplica migraciones + `seed.sql` automáticamente)
+1. Aplicar las migraciones versionadas: `supabase link --project-ref <ref>` y luego `supabase db push` (el historial vive en `supabase/migrations/`; para desarrollo local con Docker: `supabase db reset`, que aplica migraciones + `seed.sql` automáticamente). `supabase/schema.sql` es un stub: aplicarlo **no** crea nada.
 2. Cargar la semilla de datos (`supabase/seed.sql`) desde el SQL Editor si el proyecto remoto aún no la tiene
 3. Crear el usuario admin: Authentication → Users → Add user
 4. Asignar rol: `update public.profiles set role = 'admin' where id = '<user id>';`
+5. Verificar el guardado de proyectos con `supabase/verify-admin-save-project.sql` en el SQL Editor (proyecto de pruebas): comprueba que `public.admin_save_project` existe con la firma exacta que llama el panel, sus permisos (`authenticated` sí, `anon` no) y que crear/actualizar imágenes, categorías, portada y huérfanos funcionan. Si tras aplicar el DDL la llamada sigue dando `PGRST202`: `notify pgrst, 'reload schema';`
+
+El guardado de proyectos es una única llamada RPC (`rpc('admin_save_project')` en `projects.service.ts`): una transacción de Postgres que hace upsert del proyecto, sincroniza `project_images` (insert/update/delete según el diff, con `orphan_storage_paths` para limpiar los assets después del commit) y reemplaza `project_categories`. Es `SECURITY INVOKER` con `EXECUTE` solo para `authenticated` y un check explícito de `public.is_admin()`: las políticas RLS siguen mandando y un usuario sin rol admin recibe `42501`.
 
 Buckets de storage creados por el esquema: `project-images`, `service-images`, `content-images` (lectura pública, escritura solo admin; límites de tamaño y MIME por bucket en la migración `20260917000003` — 2 MB para proyectos/servicios, 5 MB para el CMS). Con Cloudinary estos buckets quedan en modo *legacy*: solo se leen y solo se escriben si Cloudinary no está disponible.
 
@@ -319,5 +322,5 @@ src/app/
     admin-layout/        # panel admin
   app.routes.ts          # rutas públicas + /admin (con authGuard)
 src/environments/        # credenciales Supabase (placeholders)
-supabase/                # migrations/ (esquema versionado) + seed.sql
+supabase/                # migrations/ (esquema versionado) + seed.sql + verificaciones
 ```

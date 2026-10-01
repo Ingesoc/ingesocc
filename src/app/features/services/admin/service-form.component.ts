@@ -142,7 +142,7 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
   /** Libera el object URL del preview local, si lo hay. */
   private releasePreview(): void {
     const current = this.photo();
-    if (current && !current.file) {
+    if (current?.file) {
       URL.revokeObjectURL(current.url);
     }
   }

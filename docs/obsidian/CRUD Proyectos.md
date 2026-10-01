@@ -36,9 +36,11 @@ UI (form) → validación → data-access (ProjectsService) → PostgREST → Po
 
 ## Imágenes
 
-- Upload con compresión (`browser-image-compression` ≤2 MB / 2000 px) + validación MIME/extensión (`image-utils.ts`, nº 7).
-- Cover por `is_cover`; galería con `sort_order`; reemplazo y borrado con `storage.remove()` (ver [[Storage]]).
-- El detalle usa la portada como `og:image` y con `fetchpriority="high"` (ver [[SEO]] y [[Performance y Lighthouse]]).
+- Upload con compresión (`browser-image-compression` ≤2 MB / 2000 px) + validación MIME/extensión/tamaño (`image-utils.ts`, nº 7).
+- El guardado es **atómico**: el form sube los archivos nuevos a Cloudinary (sin fila en DB) y luego una sola RPC `admin_save_project` crea/actualiza proyecto + imágenes + categorías en una transacción. Para proyectos nuevos el uuid se genera en el cliente, lo que permite subir al prefijo antes de que exista la fila.
+- Compensación: si la RPC falla, se borran los assets recién subidos; si acierta, se limpian las imágenes eliminadas que la RPC devuelve en `orphan_storage_paths` (Storage no es transaccional).
+- Cover por `is_cover`; galería con `sort_order`; el borrado pasa por `CloudinaryService` (Cloudinary o bucket legacy según la referencia, ver [[Cloudinary y Media]]).
+- El detalle usa la portada como `og:image`, con `fetchpriority="high"` y transform `hero` (ver [[SEO]] y [[Performance y Lighthouse]]).
 
 ## Estados de UI
 
@@ -46,4 +48,4 @@ Loading · empty ("No hay proyectos…" / "No hay proyectos publicados en esta c
 
 ## Ver también
 
-- [[Esquema de Base de Datos]] · [[Row Level Security]] · [[Storage]] · [[CRUD Servicios]] · [[Testing]]
+- [[Esquema de Base de Datos]] · [[Row Level Security]] · [[Cloudinary y Media]] · [[CRUD Servicios]] · [[Testing]]

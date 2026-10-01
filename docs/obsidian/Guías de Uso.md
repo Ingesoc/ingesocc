@@ -96,14 +96,14 @@ Muestra tarjetas con los contadores: proyectos publicados (y cuántos están des
 7. **Orden** (`sort_order`): controla la posición en el listado público.
 8. **Categorías**: selecciona una o varias de las disponibles.
 9. **Imágenes**: sube una o más; la primera subida se marca como portada automáticamente. Puedes cambiar la portada con la estrella, reordenar y quitar imágenes. Las imágenes se comprimen en el cliente (máximo 2 MB / 2000 px).
-10. **Guardar**: crea el proyecto, sube las imágenes al bucket `project-images`, sincroniza orden/portada, asigna categorías y vuelve al listado.
+10. **Guardar**: crea el proyecto, sube las imágenes a **Cloudinary**, sincroniza orden/portada, asigna categorías y vuelve al listado. Si Cloudinary no está disponible, las imágenes se guardan en el bucket legacy `project-images`.
 
 #### Editar (`/admin/proyectos/:id`)
-- Misma pantalla precargada. Puedes cambiar cualquier campo, subir nuevas imágenes, quitar existentes (borra objeto de storage y fila), cambiar portada y estado.
+- Misma pantalla precargada. Puedes cambiar cualquier campo, subir nuevas imágenes, quitar existentes (borra el asset y su fila), cambiar portada y estado.
 
 #### Eliminar
 - Confirmación "¿Eliminar...? Esta acción no se puede deshacer."
-- Borra las imágenes del bucket `project-images` y la fila (las relaciones `project_images` y `project_categories` se eliminan en cascada).
+- Borra las imágenes (de Cloudinary o del bucket legacy `project-images`) y la fila (las relaciones `project_images` y `project_categories` se eliminan en cascada).
 
 ### 2.5 CRUD de servicios
 
@@ -115,12 +115,12 @@ Muestra tarjetas con los contadores: proyectos publicados (y cuántos están des
 2. **Slug** (obligatorio, único).
 3. **Descripción** (obligatoria, mínimo 10 caracteres).
 4. **Ícono de respaldo** (`icon_name`): se muestra si el servicio no tiene foto.
-5. **Foto** (opcional): se valida tipo (MIME y extensión), se comprime (máximo 2 MB / 1600 px) y se sube al bucket `service-images`. Mientras la foto se procesa, el botón de guardar queda deshabilitado ("Procesando foto…") para no guardar sin ella.
+5. **Foto** (opcional): se valida tipo (MIME y extensión) y se comprime en el cliente (máximo 2 MB / 1600 px) para mostrar el preview. La subida real a **Cloudinary** ocurre al pulsar **Guardar**. Mientras la foto se comprime o se sube, el botón queda deshabilitado ("Subiendo foto…") para no guardar sin ella.
 6. **Estado** (`draft`/`published`) y **orden**.
 7. **Guardar**: crea el servicio y, si hay foto, la sube y actualiza `photo_path`.
 
 #### Editar (`/admin/servicios/:id`)
-- Puedes reemplazar la foto (la anterior se borra del storage) o quitarla para volver al ícono de respaldo.
+- Puedes reemplazar la foto (la anterior se borra de Cloudinary o del almacenamiento legacy) o quitarla para volver al ícono de respaldo.
 
 ### 2.6 Edición de contenido in-place (`content_blocks`)
 
@@ -203,7 +203,7 @@ union all select 'project_images', count(*) from public.project_images;
 
 ### 4.3 Buckets de storage
 
-Creados por el esquema: `project-images`, `service-images`, `content-images`. Lectura pública, escritura solo admin (ver [[Storage]]).
+Creados por el esquema: `project-images`, `service-images`, `content-images`. Lectura pública, escritura solo admin. Desde la integración con Cloudinary quedan en modo **legacy**: solo se leen y solo se escriben si Cloudinary no está disponible (ver [[Storage]] y [[Cloudinary y Media]]).
 
 ### 4.4 Regresión RLS
 
@@ -232,6 +232,7 @@ Ver [[Despliegue Vercel]] y [[Pendientes Manuales]].
 ## Ver también
 
 - [[Casos de Uso]] — la versión formal de cada flujo con actores y postcondiciones
+- [[Cloudinary y Media]] — cómo se suben y borran las imágenes, y qué pasa si Cloudinary no está disponible
 - [[Inicio]] — mapa del vault · [[Estructura del Código]] · [[Rutas y Navegación]]
 - [[CRUD Proyectos]] · [[CRUD Servicios]] · [[Content Blocks]] · [[Contacto y Mensajes]]
 - [[Testing]] · [[Despliegue Vercel]] · [[Pendientes Manuales]]

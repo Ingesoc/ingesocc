@@ -10,7 +10,7 @@ estado: activo
 
 # Arquitectura
 
-Aplicación **Angular 19** con componentes standalone, CSR (client-side rendering) servida como SPA por Vercel, con **Supabase** como backend (Postgres + Auth + Storage + RLS).
+Aplicación **Angular 19** con componentes standalone, CSR (client-side rendering) servida como SPA por Vercel, con **Supabase** como backend (Postgres + Auth + RLS) y **Cloudinary** como proveedor de imágenes mediante Vercel Functions.
 
 ## Capas
 
@@ -25,7 +25,12 @@ Data Access (servicios en `data-access/` por feature)
   ↓
 Supabase (@supabase/supabase-js, wrapper único en core)
   ↓
-PostgreSQL / Auth / Storage (RLS como fuente de verdad de permisos)
+PostgreSQL / Auth (RLS como fuente de verdad de permisos)
+
+Media (excepción controlada, no pasa por data-access):
+  core/cloudinary.service.ts
+    ├─ → Vercel Functions (api/cloudinary/*) → Cloudinary
+    └─ → Supabase Storage (legacy / fallback)
 ```
 
 ## Principios
@@ -33,8 +38,10 @@ PostgreSQL / Auth / Storage (RLS como fuente de verdad de permisos)
 1. **Separación estricta** — los componentes no ejecutan queries de Supabase: todo pasa por el servicio `data-access/` de su feature. Ver [[CRUD Proyectos]] y [[CRUD Servicios]].
 2. **Dos capas de contenido** — CRUD total para `projects`/`services`; edición in-place de `content_blocks`. Ver [[Content Blocks]].
 3. **Never trust the client** — los guards protegen la navegación, pero **RLS protege los datos** y las **storage policies** protegen los archivos. Ver [[Row Level Security]] y [[Storage]].
-4. **Seeds como fallback, no como máscara** — el fallback estático solo cubre "tabla inexistente"; una tabla **existente y vacía** muestra el estado vacío real (bug corregido, ver [[Auditoría y Correcciones]] nº 8).
-5. **Carga diferida del SDK** — supabase-js se importa con `import()` para no bloquear el primer pintado (ver [[Performance y Lighthouse]]).
+4. **Un solo punto de entrada a media** — ninguna feature habla con Cloudinary ni con Storage: todas pasan por `core/cloudinary.service.ts`, que decide proveedor, valida el archivo y compensa huérfanos. Ver [[Cloudinary y Media]].
+5. **El secret no vive en el cliente** — el upload se firma en el servidor (`CLOUDINARY_API_SECRET` solo existe en el runtime de las funciones) y la carpeta la valida una lista blanca, no el navegador.
+6. **Seeds como fallback, no como máscara** — el fallback estático solo cubre "tabla inexistente"; una tabla **existente y vacía** muestra el estado vacío real (bug corregido, ver [[Auditoría y Correcciones]] nº 8).
+7. **Carga diferida del SDK** — supabase-js se importa con `import()` para no bloquear el primer pintado (ver [[Performance y Lighthouse]]).
 
 ## Datos
 
@@ -44,5 +51,5 @@ PostgreSQL / Auth / Storage (RLS como fuente de verdad de permisos)
 ## Ver también
 
 - [[Stack Tecnológico]] · [[Estructura del Código]] · [[Rutas y Navegación]]
-- [[Supabase]] · [[Autenticación y Autorización]]
+- [[Supabase]] · [[Autenticación y Autorización]] · [[Cloudinary y Media]]
 - [[Performance y Lighthouse]] · [[Despliegue Vercel]]

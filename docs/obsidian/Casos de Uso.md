@@ -126,7 +126,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
   1. El admin entra a `/admin/proyectos` y pulsa "Nuevo proyecto".
   2. Completa título (min. 3), slug (autogenerado desde el título, editable), descripción (min. 10), valor en salarios mínimos (opcional), estado, destacado, orden y categorías.
   3. Sube imágenes: se validan (MIME/extensión), se comprimen (≤2 MB / 2000 px) y se marcan portada/orden.
-  4. Guarda: el sistema inserta la fila en `projects`, sube las imágenes a `project-images`, registra `project_images`, sincroniza portada/orden, reemplaza `project_categories` y refresca señales.
+  4. Guarda: el sistema inserta la fila en `projects`, sube las imágenes a Cloudinary, registra `project_images`, sincroniza portada/orden, reemplaza `project_categories` y refresca señales. Si la fila falla, se compensan borrando los assets recién subidos.
   5. El sistema navega al listado admin.
 - **Flujos alternos**:
   - Slug duplicado (23505): mensaje "Ya existe un proyecto con ese slug (URL)…".
@@ -143,7 +143,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
   1. El admin entra a `/admin/proyectos/:id` (o pulsa editar en el listado).
   2. El sistema precarga todos los campos, categorías e imágenes.
   3. El admin modifica datos, sube/elimina/reordena imágenes y cambia portada, categorías o estado.
-  4. Guarda: el sistema actualiza la fila, aplica altas/bajas de imágenes (storage + filas), sincroniza portada/orden y categorías, y refresca.
+  4. Guarda: el sistema actualiza la fila, aplica altas/bajas de imágenes (Cloudinary + filas), sincroniza portada/orden y categorías, y refresca.
 - **Flujos alternos**: mismo manejo de errores que CU-08 (slug duplicado, validación, red).
 - **Postcondiciones**: los cambios son visibles en el panel y, si está publicado, en el sitio público.
 
@@ -154,10 +154,10 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Flujo principal**:
   1. El admin pulsa la papelera en el listado.
   2. El sistema pide confirmación ("¿Eliminar…? Esta acción no se puede deshacer.").
-  3. Al confirmar, borra las imágenes del bucket `project-images` y la fila (cascade a imágenes y categorías).
+  3. Al confirmar, borra las imágenes (de Cloudinary o del bucket legacy `project-images`) y la fila (cascade a imágenes y categorías).
   4. El sistema refresca el listado.
 - **Flujos alternos**: cancelar la confirmación no borra nada; error de borrado muestra mensaje.
-- **Postcondiciones**: el proyecto desaparece del panel y del sitio público; los objetos de storage se intentan eliminar (resultado ignorado si falla, riesgo menor de objetos huérfanos, ver [[Storage]]).
+- **Postcondiciones**: el proyecto desaparece del panel y del sitio público; los assets se intentan eliminar (resultado ignorado si falla, riesgo menor de objetos huérfanos, ver [[Storage]] y [[Cloudinary y Media]]).
 
 ## CU-11 Crear un servicio
 
@@ -167,9 +167,9 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
   1. El admin entra a `/admin/servicios` y pulsa "Nuevo servicio".
   2. Completa nombre (min. 3), slug (autogenerado, editable), descripción (min. 10), ícono de respaldo, estado y orden.
   3. Opcionalmente selecciona una foto: se valida, se comprime (≤2 MB / 1600 px) y se muestra preview.
-  4. Guarda: inserta el servicio; si hay foto, la sube a `service-images` y actualiza `photo_path`.
+  4. Guarda: inserta el servicio; si hay foto, la sube a Cloudinary y actualiza `photo_path`. Si la fila ya está guardada y la subida falla, el asset nuevo se elimina para no dejar huérfanos.
 - **Flujos alternos**:
-  - Carrera foto/guardar: el botón queda deshabilitado ("Procesando foto…") mientras la foto se comprime, para no guardar sin ella (nº 20 de [[Auditoría y Correcciones]]).
+  - Carrera foto/guardar: el botón queda deshabilitado ("Subiendo foto…") mientras la foto se comprime o se sube, para no guardar sin ella (nº 20 de [[Auditoría y Correcciones]]).
   - Slug duplicado (23505): mensaje "Ya existe un servicio con ese slug…".
   - Foto no válida: mensaje con los formatos aceptados.
 - **Postcondiciones**: el servicio existe (publicado o borrador) y aparece en el listado admin; si está publicado, en `/servicios` con foto o ícono.
@@ -181,7 +181,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Flujo principal**:
   1. El admin entra a `/admin/servicios/:id`.
   2. El sistema precarga los campos y la foto actual (si existe).
-  3. El admin modifica datos, reemplaza la foto (la anterior se borra del storage), o la quita para volver al ícono de respaldo.
+  3. El admin modifica datos, reemplaza la foto (la anterior se borra de Cloudinary o del almacenamiento legacy), o la quita para volver al ícono de respaldo.
   4. Guarda: actualiza la fila y aplica los cambios de foto.
 - **Flujos alternos**: mismo manejo de errores que CU-11.
 - **Postcondiciones**: los cambios se reflejan en el panel y en `/servicios`.
@@ -193,7 +193,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Flujo principal**:
   1. El admin pulsa la papelera en el listado de servicios.
   2. El sistema pide confirmación.
-  3. Al confirmar, borra la foto del bucket `service-images` (si existe) y la fila.
+  3. Al confirmar, borra la foto (Cloudinary o bucket legacy `service-images`, si existe) y la fila.
 - **Postcondiciones**: el servicio desaparece del panel y de `/servicios`.
 
 ## CU-14 Editar contenido in-place (content blocks)
@@ -203,7 +203,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Flujo principal**:
   1. El admin activa el botón flotante "Modo edición".
   2. Los bloques editables muestran controles (lápiz para texto, reemplazo para imagen).
-  3. El admin edita el texto (con validación: número, texto vacío) o reemplaza la imagen (upload a `content-images`).
+  3. El admin edita el texto (con validación: número, texto vacío) o reemplaza la imagen (upload firmado a Cloudinary).
   4. Guarda: el sistema persiste en `content_blocks` (clave única `page + section_key`) y actualiza la señal local.
   5. El público ve el cambio de inmediato.
 - **Flujos alternos**:
@@ -299,5 +299,6 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 ## Ver también
 
 - [[Guías de Uso]] — el manual paso a paso de cada uno de estos flujos
+- [[Cloudinary y Media]] — el proveedor de imágenes y su degradación a Storage
 - [[Testing]] — cómo estos casos de uso están cubiertos por unit, E2E y QA visual
 - [[Inicio]] · [[Auditoría y Correcciones]] · [[Pendientes Manuales]]

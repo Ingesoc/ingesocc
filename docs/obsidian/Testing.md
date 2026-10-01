@@ -5,13 +5,14 @@ tags:
   - testing
   - e2e
   - unit
+  - api
 fecha: 2026-09-03
 estado: activo
 ---
 
 # Testing
 
-Tres suites + una herramienta de QA visual. Estado actual: **unit 55/55 · E2E 13/13 · QA visual 28/28 screenshots · Lighthouse A11y 95** (post-rediseño; ver [[Performance y Lighthouse]]).
+Cuatro suites + una herramienta de QA visual. Estado actual: **unit 105/105 · API 33/33 · E2E 13/13 · QA visual 28/28 screenshots · Lighthouse A11y 95** (post-rediseño; ver [[Performance y Lighthouse]]).
 
 ## Lint (ESLint)
 
@@ -22,11 +23,28 @@ Tres suites + una herramienta de QA visual. Estado actual: **unit 55/55 · E2E 1
 
 ## Unit (Jasmine + Karma, sin red)
 
-`pnpm test:ci` → **40/40 SUCCESS** (ChromeHeadlessNoSandbox). No requieren credenciales ni DB: los servicios de datos se prueban con un cliente Supabase simulado.
+`pnpm test:ci` → **105/105 SUCCESS** (ChromeHeadlessNoSandbox). No requieren credenciales ni DB: los servicios de datos se prueban con un cliente Supabase simulado y `fetch` con spies.
 
 Specs en `src/app/**/*.spec.ts`: `slugify`, `project.model`, `service-icons`, `image-utils`, `supabase.service`, `auth.guard`, `projects.service` (incluye los tests del **payload exacto** de insert/update — regresión de la capa snake_case, nº 17 de [[Auditoría y Correcciones]]), `content-blocks.service` (éxito / error RLS → rechazo sin cambio local / 42P01 → aplica en memoria), `auth.service` (restauración de sesión, **expiración de sesión** → limpia usuario, desactiva el modo edición y permite re-login — CU-19 de [[Casos de Uso]] —, y **recuperación de contraseña** CU-18: envío del correo, propagación de errores y `updatePassword` con/sin sesión de recuperación), y otros.
 
-Añadidos recientes: `projects-page` (**filtro de categorías sincronizado con `?categoria=`**: deep-link, slug con acentos, reset de paginación, `categoria: null` al volver a "Todos"), `login.component` (credenciales inválidas / **cuenta sin rol admin → mensaje claro + logout + focus** / admin OK), `contact-messages.service` (`load()` **lanza** el error en vez de tragárselo) y `admin-dashboard.component` (contadores + **estado de error explícito** al fallar la carga de mensajes — nº 13 del plan maestro).
+Añadidos recientes: `projects-page` (**filtro de categorías sincronizado con `?categoria=`**: deep-link, slug con acentos, reset de paginación, `categoria: null` al volver a "Todos"), `login.component` (credenciales inválidas / **cuenta sin rol admin → mensaje claro + logout + focus** / admin OK), `contact-messages.service` (`load()` **lanza** el error en vez de tragárselo), `admin-dashboard.component` (contadores + **estado de error explícito** al fallar la carga de mensajes — nº 13 del plan maestro), `cloudinary-urls` (detección de URL, extracción de `public_id`, transform idempotente), `cloudinary.service` (firma + multipart + JWT, degradación a Storage, 401/403 sin degradar, delete idempotente, entrega) y `service-form.component` (**revocación del object URL local al reemplazar/quitar la foto y al destruir el formulario; nunca se revocan URLs remotas ya guardadas**) — ver [[Cloudinary y Media]].
+
+## API (node:test, sin red)
+
+`pnpm test:api` → **33/33**. Cubre `api/cloudinary/signature.ts` y `api/cloudinary/destroy.ts` más los helpers de `api/_lib/`:
+
+- método no permitido, sin `Authorization`, JWT inválido, rol que no es admin, perfil inexistente;
+- carpeta fuera de la lista blanca y `entityId` con formato inválido;
+- **la firma se valida contra el hash de ejemplo de la documentación oficial** de Cloudinary (si el algoritmo cambia, el test falla);
+- `public_id` fuera del árbol permitido al destruir (no se puede borrar un asset ajeno con una firma válida);
+- entorno sin `CLOUDINARY_*` o sin `SUPABASE_*` → 503 con mensaje claro;
+- error de Cloudinary → 502 sin filtrar detalle interno; la respuesta nunca es cacheable.
+
+> [!note] Cómo corren
+> `tsconfig.api-test.json` compila `api/` a CommonJS en `out-tsc/api-test/` y `node --test` los ejecuta. `pnpm typecheck:api` hace el typecheck sin emitir. Los helpers viven en `api/_lib/test-support.ts` (request/response falsos).
+
+> [!warning] Los E2E de escritura no cubren Cloudinary
+> Los flujos admin de `e2e/` ejercitan el flujo de subida, pero sin `vercel dev` la Function no existe y el upload cae al bucket legacy (ver [[Cloudinary y Media]]). Para probar el camino real hay que levantar `vercel dev` con las variables definidas.
 
 ## E2E (Playwright, `e2e/`)
 
@@ -65,4 +83,4 @@ Destapó el **bug de CSS sin capa** (`a { color: inherit }` anulaba las utilitie
 
 ## Ver también
 
-- [[Performance y Lighthouse]] · [[Auditoría y Correcciones]] · [[Pendientes Manuales]]
+- [[Cloudinary y Media]] · [[Performance y Lighthouse]] · [[Auditoría y Correcciones]] · [[Pendientes Manuales]]

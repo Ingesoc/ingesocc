@@ -251,6 +251,22 @@ describe('CloudinaryService', () => {
         /supera el tamaño permitido/i,
       );
     });
+
+    it('propaga un 401/403 de Cloudinary sin degradar a Storage', async () => {
+      // Es un error de configuración (api_key/secret), no una caída: si cayera a
+      // Storage el admin seguiría subiendo al bucket equivocado sin saberlo.
+      mockFetch((url) =>
+        url.includes('/api/')
+          ? jsonResponse(signatureBody)
+          : jsonResponse({ error: { message: 'Invalid API key' } }, 401),
+      );
+
+      await expectAsync(service.uploadImage(makeFile(), 'projects', 'abc')).toBeRejectedWithError(
+        /revisa la configuración del servidor/i,
+      );
+      expect(legacy.upload).not.toHaveBeenCalled();
+      expect(service.available).toBe(true);
+    });
   });
 
   describe('deleteImage', () => {

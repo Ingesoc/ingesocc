@@ -30,7 +30,8 @@ Público ve el cambio guardado
 - **`EditModeService`** — estado global del modo edición; activable solo con `isAdmin()`, se desactiva al hacer logout.
 - **`EditModeToggle`** — botón flotante renderizado solo cuando `canEdit()`.
 - **`EditableText`** — edición inline con guardar/cancelar y validación (número, texto vacío).
-- **`EditableImage`** — reemplazo de imagen (upload a `content-images`), emite `fetchpriority`/`lazy` según contexto (hero del Home: `high`).
+- **`EditableImage`** — reemplazo de imagen (upload por [[Cloudinary y Media]]), emite `fetchpriority`/`lazy` según contexto (hero del Home: `high`).
+- El CMS (`/admin/contenido`) sube por el mismo servicio con el límite de **5 MB**; al reemplazar, la imagen anterior se borra solo después de que el bloque se guardó, y la nueva se borra si el guardado falla (compensación).
 
 ## Reglas de persistencia (importante)
 
@@ -44,4 +45,4 @@ Público ve el cambio guardado
 
 ## Ver también
 
-- [[Seeds]] · [[Esquema de Base de Datos]] · [[Row Level Security]] · [[Storage]] · [[Rutas y Navegación]]
+- [[Seeds]] · [[Esquema de Base de Datos]] · [[Row Level Security]] · [[Cloudinary y Media]] · [[Rutas y Navegación]]

@@ -13,11 +13,24 @@ estado: activo
 ## Árbol de `src/app/`
 
 ```text
+api/                         # Vercel Functions (upload firmado de Cloudinary)
+  cloudinary/
+    signature.ts             # POST /api/cloudinary/signature
+    destroy.ts               # POST /api/cloudinary/destroy
+  _lib/
+    auth.ts                  # JWT de Supabase + rol admin (sin service_role)
+    cloudinary.ts            # lista blanca de carpetas, firma SHA-1, config
+    http.ts                  # helpers request/response + errores
+    test-support.ts          # dobles de req/res para node:test
 src/app/
   core/
     supabase.service.ts        # wrapper único del cliente (SDK con import() diferido)
     seo.service.ts             # title/description/OG/canonical por ruta
-    image-utils.ts             # isAcceptableImageFile (MIME + extensión)
+    cloudinary.service.ts      # ÚNICO punto de entrada a media (upload/delete/optimizar)
+    cloudinary-urls.ts         # helpers puros: transforms, public_id, detección de URL
+    cloudinary.model.ts        # MediaFolder, MediaUploadResult, MediaApiError
+    supabase-storage.service.ts # proveedor legacy (buckets, rutas, resolvePublicUrl)
+    image-utils.ts             # validateImageFile (MIME + extensión + tamaño)
     slugify.ts                 # slug desde título (acentos NFD, etc.)
     morph-icon.component.ts    # app-morph-icon: morph de iconos con estado (morphicons/dom, reducedMotion=user)
   layouts/
@@ -56,6 +69,10 @@ e2e/                 # specs Playwright (public-flows, admin-projects, admin-ser
 tools/               # lighthouse-ci.mjs · visual-qa.mjs · serve-dist.mjs
 supabase/            # schema.sql · seed.sql · rls-checks.sql
 public/              # logo/, favicons, site.webmanifest, sitemap.xml, robots.txt, fonts/ (Archivo variable latin + latin-ext)
+.env.example         # plantilla de las 5 variables de servidor (el frontend no lee env)
+proxy.conf.json      # /api → localhost:3000 para que ng serve hable con vercel dev
+tsconfig.api.json    # typecheck de api/ sin emitir
+tsconfig.api-test.json # compila api/ a CommonJS para node:test
 ```
 
 ## Convenciones
@@ -64,7 +81,8 @@ public/              # logo/, favicons, site.webmanifest, sitemap.xml, robots.tx
 - **Signals** para todo el estado (listados, loading, errores, filtros); sin NgRx ni librerías de estado.
 - **Rutas standalone** en `app.routes.ts`; el admin completo cuelga de un solo guard (ver [[Rutas y Navegación]]).
 - **Sin `innerHTML`/`bypassSecurityTrust*`** en todo `src/app` — el render es interpolación escapada por Angular (postura anti-XSS, ver [[Row Level Security]]).
+- **Media solo por `core/cloudinary.service.ts`**: los helpers de URL (`cloudinary-urls.ts`) son puros y sin DI, para que los componentes optimicen la URL sin inyectar nada (ver [[Cloudinary y Media]]).
 
 ## Ver también
 
-- [[Arquitectura]] · [[Rutas y Navegación]] · [[CRUD Proyectos]] · [[CRUD Servicios]]
+- [[Arquitectura]] · [[Rutas y Navegación]] · [[CRUD Proyectos]] · [[CRUD Servicios]] · [[Cloudinary y Media]]

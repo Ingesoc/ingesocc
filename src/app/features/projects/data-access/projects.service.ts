@@ -189,6 +189,13 @@ function mapProjectWriteError(error: DbError): Error {
   if (error.code === '23505') {
     return new Error('Ya existe un proyecto con ese slug (URL). Elígelo diferente.');
   }
+  // PGRST202: la RPC no existe en el proyecto conectado (migración no aplicada).
+  // Se mantiene el fallo —no se degrada a inserts sueltos— pero se dice la causa.
+  if (error.code === 'PGRST202') {
+    return new Error(
+      'El servidor no tiene la función admin_save_project. Aplica la migración 20260917000005_admin_save_project_rpc_fix.sql (supabase db push).',
+    );
+  }
   return new Error(error.message);
 }
 
@@ -469,6 +476,11 @@ export class ProjectsService {
     imageRows: { id?: string; storagePath: string; isCover: boolean; sortOrder: number }[],
   ): Promise<{ projectId: string; orphanPaths: string[] }> {
     await this.supabase.clientPromise;
+    // `p_image_rows` es un parámetro `jsonb`: se manda el ARRAY, no su texto.
+    // Con `JSON.stringify` PostgREST recibiría un escalar JSON de tipo string y
+    // la RPC no podría recorrerlo (`jsonb_array_elements` sobre un escalar
+    // aborta con "cannot extract elements from a scalar"). La RPC además tolera
+    // el string por compatibilidad con sesiones que aún tengan el bundle viejo.
     const { data, error } = await this.supabase.client.rpc('admin_save_project', {
       p_project_id: projectId,
       p_title: input.title,
@@ -479,14 +491,12 @@ export class ProjectsService {
       p_featured: input.featured,
       p_sort_order: input.sortOrder,
       p_category_ids: categoryIds,
-      p_image_rows: JSON.stringify(
-        imageRows.map((row) => ({
-          id: row.id ?? null,
-          storage_path: row.storagePath,
-          is_cover: row.isCover,
-          sort_order: row.sortOrder,
-        })),
-      ),
+      p_image_rows: imageRows.map((row) => ({
+        id: row.id ?? null,
+        storage_path: row.storagePath,
+        is_cover: row.isCover,
+        sort_order: row.sortOrder,
+      })),
     });
     if (error) throw mapProjectWriteError(error as DbError);
 

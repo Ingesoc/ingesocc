@@ -14,7 +14,7 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 
 > [!info] Ficha rápida
 > - **Producto**: sitio corporativo + panel admin (Angular 19 SPA, CSR)
-> - **Backend**: Supabase (Postgres + Auth + Storage + RLS)
+> - **Backend**: Supabase (Postgres + Auth + RLS) + **Cloudinary** para imágenes vía Vercel Functions
 > - **UI**: rediseño integral UI/UX completado (2026-09-04) — ver [[Guía de Estilo Visual]] y [[Auditoría y Correcciones]] nº 21
 > - **Estado**: production-ready en desarrollo — ver [[Pendientes Manuales]]
 > - **Docs fuente (repo)**: [[Auditoría y Correcciones]] · [[Testing]]
@@ -36,8 +36,11 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 - [[Supabase]] — hub de la capa de datos
 - [[Esquema de Base de Datos]] — las 8 tablas, funciones y triggers
 - [[Row Level Security]] — matriz de políticas por rol (anon / user / admin)
-- [[Storage]] — buckets, políticas y flujo de upload
+- [[Storage]] — buckets legacy y por qué siguen existiendo
 - [[Seeds]] — `schema.sql` + `seed.sql` y su paridad con los seeds estáticos
+
+### Media
+- [[Cloudinary y Media]] — proveedor principal de imágenes: upload firmado, autorización, transforms, degradación a Storage y compensación de huérfanos
 
 ### Funcionalidades
 - [[Autenticación y Autorización]] — login, sesión, guard y roles
@@ -49,8 +52,8 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 ### Calidad y operación
 - [[SEO]] — meta por ruta, OG, canonical, sitemap
 - [[Performance y Lighthouse]] — presupuestos y hallazgos
-- [[Testing]] — unit (40/40), E2E (12/12) y QA visual
-- [[Despliegue Vercel]] — config SPA y checklist pre-producción
+- [[Testing]] — unit (105/105), API (33/33), E2E (13/13) y QA visual
+- [[Despliegue Vercel]] — config SPA + functions, variables de entorno y checklist pre-producción
 - [[Auditoría y Correcciones]] — registro de bugs encontrados y corregidos
 - [[Pendientes Manuales]] — lo que requiere intervención humana
 

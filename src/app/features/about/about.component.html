@@ -85,11 +85,46 @@
   </div>
 </section>
 
+<!-- ── OPERACIONES EN EJECUCIÓN ────────────────────────── -->
+<section class="border-t border-border bg-surface py-24 md:py-32">
+  <div class="wrap">
+    <div class="mb-16 grid gap-6 md:grid-cols-12">
+      <p class="kicker text-accent-deep md:col-span-2">04 / En obra</p>
+      <h2 class="text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Operaciones reales, en ejecución.</h2>
+    </div>
+
+    @for (grupo of operacionesGrupos(); track grupo.key) {
+      <div class="mb-14 last:mb-0">
+        <p class="text-[11px] font-bold uppercase tracking-[0.3em] text-accent-deep">{{ grupo.letter }} · {{ grupo.label }}</p>
+        <div class="mt-6 grid auto-rows-[180px] grid-cols-1 gap-3 sm:auto-rows-[220px] sm:grid-cols-2 md:grid-cols-3">
+          @for (media of grupo.media; track media.src) {
+            @if (media.type === 'image') {
+              <button
+                type="button"
+                (click)="openLightbox(media.index)"
+                class="media-zoom group relative block h-full w-full overflow-hidden bg-secondary text-left"
+                [attr.aria-label]="'Ampliar imagen: ' + media.alt"
+              >
+                <img [src]="media.src" [alt]="media.alt" width="800" height="600" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+                <span class="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-primary/50 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <svg lucideArrowUpRight class="h-5 w-5 text-white" />
+                </span>
+              </button>
+            } @else {
+              <video [src]="media.src" controls preload="metadata" class="h-full w-full bg-primary/90 object-cover" [attr.aria-label]="media.alt"></video>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
 <!-- ── EQUIPO ───────────────────────────────────────────── -->
 <section class="border-t border-border bg-background pb-24 pt-24 md:pb-36 md:pt-36">
   <div class="wrap">
     <div class="mb-16 grid gap-6 md:grid-cols-12">
-      <p class="kicker text-accent-deep md:col-span-2">04 / Equipo</p>
+      <p class="kicker text-accent-deep md:col-span-2">05 / Equipo</p>
       <h2 class="text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Las personas detrás de cada obra.</h2>
     </div>
 
@@ -111,3 +146,45 @@
     </div>
   </div>
 </section>
+
+<!-- ── LIGHTBOX (operaciones) ──────────────────────────── -->
+@if (lightboxIndex() !== null && lightboxImageUrl()) {
+  <div
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-primary/95 p-4 backdrop-blur-sm md:p-10"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Galería de operaciones ampliada"
+    tabindex="-1"
+    (click)="closeLightbox()"
+    (keydown.escape)="closeLightbox()"
+  >
+    <button type="button" (click)="closeLightbox()" aria-label="Cerrar galería"
+      class="absolute right-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8 md:top-8">
+      <svg lucideX class="h-5 w-5" />
+    </button>
+
+    @if (operacionesImages().length > 1) {
+      <button type="button" (click)="stepLightbox(-1); $event.stopPropagation()" aria-label="Imagen anterior"
+        class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:left-8">
+        <svg lucideChevronLeft class="h-5 w-5" />
+      </button>
+      <button type="button" (click)="stepLightbox(1); $event.stopPropagation()" aria-label="Imagen siguiente"
+        class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8">
+        <svg lucideChevronRight class="h-5 w-5" />
+      </button>
+    }
+
+    <figure
+      class="max-h-full max-w-6xl"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+    >
+      <img [src]="lightboxImageUrl()" [alt]="lightboxImageAlt()" width="1200" height="900" decoding="async" class="max-h-[78vh] w-auto object-contain" />
+      <figcaption class="mt-4 flex items-center justify-between gap-4">
+        <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/60">{{ lightboxImageAlt() }}</span>
+        <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/40">{{ lightboxPosition() }}</span>
+      </figcaption>
+    </figure>
+  </div>
+}

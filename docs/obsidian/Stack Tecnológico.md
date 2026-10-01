@@ -19,17 +19,20 @@ estado: activo
 | Frontend | Angular 19 (standalone) + TypeScript ~5.7, CSR |
 | Estilos | Tailwind CSS v4 (vía `@tailwindcss/postcss`) |
 | Iconos | `@lucide/angular` (estáticos/decorativos) + `morphicons` (morph de iconos con estado: hamburguesa a cerrar, editar a cerrar — sin binding Angular, vía `morphicons/dom` en `app-morph-icon`) |
-| Backend | Supabase (Postgres + Auth + Storage + RLS) |
+| Backend | Supabase (Postgres + Auth + RLS) |
+| Imágenes | Cloudinary (upload firmado) + Supabase Storage legacy |
+| Functions | Vercel Functions, TypeScript sin framework (`api/`) |
 | Estado/datos | Angular Signals + servicios en `data-access/` por feature |
 | Compresión de imágenes | `browser-image-compression` (cliente, ≤2 MB / 2000 px) |
 | Cliente Supabase | `@supabase/supabase-js` ^2.114 (SDK diferido, ver [[Performance y Lighthouse]]) |
 | Tests unitarios | Jasmine + Karma (headless) |
+| Tests de functions | `node:test` (33 specs en `api/`) |
 | Lint | ESLint 9 + angular-eslint 19 + typescript-eslint 8 (flat config) |
 | Dead code | knip (config en `knip.json` con 2 falsos positivos documentados) |
 | Tests E2E | Playwright |
 | Perf/A11y | Lighthouse programático (`tools/lighthouse-ci.mjs`) |
 | QA visual | Playwright (`tools/visual-qa.mjs`) |
-| Despliegue | Vercel (SPA, `vercel.json`) |
+| Despliegue | Vercel (SPA + functions, `vercel.json`) |
 | Paquete | pnpm |
 
 ## Scripts de `package.json`
@@ -41,6 +44,8 @@ estado: activo
 | `test` | `ng test` | unit tests (watch) |
 | `lint` | `node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js .` | ESLint (flat config, heap ampliado para Windows/OneDrive) |
 | `test:ci` | `ng test --watch=false --browsers=ChromeHeadlessNoSandbox` | unit tests en una pasada |
+| `test:api` | `tsc -p tsconfig.api-test.json && node --test out-tsc/api-test` | tests de las functions |
+| `typecheck:api` | `tsc -p tsconfig.api.json` | typecheck de `api/` sin emitir |
 | `test:e2e` | `playwright test` | E2E (flujos públicos; + admin con credenciales) |
 | `test:perf` | `pnpm build && node tools/lighthouse-ci.mjs` | Lighthouse con presupuestos |
 | `test:visual` | `pnpm build && node tools/visual-qa.mjs` | QA visual de paleta/contraste |

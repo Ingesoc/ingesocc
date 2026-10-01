@@ -21,16 +21,17 @@ Ciclo de vida completo de la entidad `services` contra Supabase (via `ServicesSe
 
 - Si hay foto → se muestra la foto (URL resuelta desde `photo_path`).
 - Si no → **ícono de respaldo** desde `icon_name` mapeado a componente lucide por `service-icons.ts` (`SERVICE_ICON_NAMES`); clave desconocida → sin ícono.
+- `photo_path` guarda indistintamente la ruta del bucket legacy o la `secure_url` de Cloudinary: la foto nueva se sube por [[Cloudinary y Media]] y la vieja se sigue leyendo igual.
 - Regla visual de paridad: los 2 servicios del seed con foto (Infraestructura, Hospitalarios) tienen `photo_path`; los otros 4 usan `icon_name` — igual que el fallback estático (nº 16 de [[Auditoría y Correcciones]]).
 
 ## Errores reales corregidos
 
 1. **Insert/update camelCase** (`iconName` → `icon_name`, `sortOrder` → `sort_order`): mismo bug latente que en proyectos, corregido con `toServiceRow()` en la capa data-access (nº 17).
-2. **Carrera foto/guardar** (nº 20): `onPhotoSelected` comprime la imagen de forma async (web worker); si el admin hacía clic en "Crear servicio" antes de terminar, el servicio se guardaba **sin foto y sin error**. La señal `photoProcessing` deshabilita el botón ("Procesando foto…") hasta que la compresión termina.
+2. **Carrera foto/guardar** (nº 20): `onPhotoSelected` comprime la imagen de forma async (web worker); si el admin hacía clic en "Crear servicio" antes de terminar, el servicio se guardaba **sin foto y sin error**. La señal `photoBusy` deshabilita el botón ("Subiendo foto…") hasta que la compresión **y** la subida terminan.
 
 ## Flujo del form (admin)
 
-Validación de tipo de archivo (`image-utils.ts`, nº 7) → compresión → upload a `service-images` → preview → guardar con botón deshabilitado mientras procesa. Eliminación con confirm + `storage.remove()` (resultado ignorado, ver [[Storage]]).
+Validación de tipo y tamaño (`image-utils.ts`, nº 7) → compresión → preview local → **subida al guardar** (Cloudinary, con fallback a `service-images`) → `update` de `photo_path`. Botón deshabilitado mientras comprime o sube, y el `URL.createObjectURL` se revoca al salir del form. Al reemplazar: si el update de DB falla se borra la foto nueva; la anterior se borra best-effort tras guardar. Eliminación del servicio con confirm (ver [[Cloudinary y Media]]).
 
 ## Estados de UI
 
@@ -38,4 +39,4 @@ Loading · empty ("Todavía no hay servicios") · error · éxito con navegació
 
 ## Ver también
 
-- [[CRUD Proyectos]] · [[Esquema de Base de Datos]] · [[Storage]] · [[Testing]]
+- [[CRUD Proyectos]] · [[Esquema de Base de Datos]] · [[Cloudinary y Media]] · [[Testing]]

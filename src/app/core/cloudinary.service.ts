@@ -252,7 +252,13 @@ export class CloudinaryService {
       return new MediaApiError('La imagen supera el tamaño permitido.', false);
     }
     if (status === 401 || status === 403) {
-      return new MediaApiError('Cloudinary rechazó la petición. Revisa la configuración del servidor.', true);
+      // Configuración del servidor (api_key/secret/cloud_name), no una caída del
+      // servicio: degradar a Storage lo escondería y el admin seguiría subiendo
+      // imágenes al bucket equivocado sin enterarse. Se propaga como error real.
+      return new MediaApiError(
+        'Cloudinary rechazó la petición. Revisa la configuración del servidor.',
+        false,
+      );
     }
     return new MediaApiError('No se pudo subir la imagen. Intenta de nuevo.', false);
   }

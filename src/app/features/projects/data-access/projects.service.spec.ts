@@ -173,10 +173,13 @@ describe('ProjectsService', () => {
           p_featured: false,
           p_sort_order: 1,
           p_category_ids: ['cat-1', 'cat-2'],
-          p_image_rows: JSON.stringify([
+          // `p_image_rows` es `jsonb`: debe viajar como ARRAY. Un
+          // `JSON.stringify` aquí llegaría a la RPC como escalar y el guardado
+          // fallaría al recorrer las imágenes.
+          p_image_rows: [
             { id: 'img-1', storage_path: 'p1/a.jpg', is_cover: true, sort_order: 0 },
             { id: null, storage_path: 'p1/nueva.jpg', is_cover: false, sort_order: 1 },
-          ]),
+          ],
         },
       },
     ]);
@@ -196,5 +199,49 @@ describe('ProjectsService', () => {
         [],
       ),
     ).toBeRejectedWithError('Ya existe un proyecto con ese slug (URL). Elígelo diferente.');
+  });
+
+  it('saveProjectAtomic traduce el PGRST202 (migración no aplicada)', async () => {
+    results['__rpc:admin_save_project'] = {
+      error: {
+        message: 'Could not find the function public.admin_save_project(...) in the schema cache',
+        code: 'PGRST202',
+      },
+    };
+    const service = setup();
+
+    await expectAsync(
+      service.saveProjectAtomic(
+        'abc',
+        { title: 'Casa', slug: 'casa', description: 'Desc', priceMinWages: null, status: 'draft', featured: false, sortOrder: 0 },
+        [],
+        [],
+      ),
+    ).toBeRejectedWithError(/migración 20260917000005/);
+  });
+
+  it('saveProjectAtomic envía sin transformar secure_url de Cloudinary ni rutas legacy', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'nuevo-id', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      { title: 'Puente', slug: 'puente', description: 'Desc', priceMinWages: 350, status: 'published', featured: false, sortOrder: 4 },
+      ['cat-1'],
+      [
+        { id: 'img-1', storagePath: 'https://images.unsplash.com/photo-1?w=1600', isCover: true, sortOrder: 0 },
+        { id: 'img-2', storagePath: 'https://res.cloudinary.com/demo/image/upload/ingesocc/projects/abc/x.jpg', isCover: false, sortOrder: 1 },
+        { storagePath: 'abc/b98272ab-0a0c-42f8-92a7-f4ea4345baad.jpg', isCover: false, sortOrder: 2 },
+      ],
+    );
+
+    const payload = writes[0].payload as { p_image_rows: { storage_path: string }[] };
+    expect(payload.p_image_rows.map((row) => row.storage_path)).toEqual([
+      'https://images.unsplash.com/photo-1?w=1600',
+      'https://res.cloudinary.com/demo/image/upload/ingesocc/projects/abc/x.jpg',
+      'abc/b98272ab-0a0c-42f8-92a7-f4ea4345baad.jpg',
+    ]);
   });
 });
