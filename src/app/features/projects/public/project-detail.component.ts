@@ -2,7 +2,7 @@ import { Component, computed, effect, HostListener, inject, signal } from '@angu
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideX } from '@lucide/angular';
+import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideX } from '@lucide/angular';
 import { SeoService } from '../../../core/seo.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import { ProjectsService } from '../data-access/projects.service';
@@ -25,7 +25,7 @@ const GALLERY_SPANS = [
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideX],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideX],
   templateUrl: './project-detail.component.html',
 })
 export class ProjectDetailComponent {
