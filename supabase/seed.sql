@@ -102,10 +102,17 @@ insert into public.content_blocks (page, section_key, type, value_text, value_nu
   -- Contacto (datos de ejemplo del diseño actual — reemplazar por los reales, plan 1.6/1.7)
   ('contact','title',                 'text', 'Contacto', null),
   ('contact','subtitle',              'text', 'Cuéntenos sobre su proyecto y le responderemos a la brevedad.', null),
-  ('contact','phone',                 'text', '+57 (604) 444 44 44', null),
-  ('contact','email',                 'text', 'info@ingesocc.com', null),
-  ('contact','address',               'text', 'Medellín, Colombia', null),
+  -- Datos reales de la empresa (fuente: src/constants/project.ts de VentaDeLotes)
+  ('contact','phone',                 'text', '+57 312 737 0811', null),
+  ('contact','email',                 'text', 'gerencia.ingesocc@gmail.com', null),
+  ('contact','address',               'text', 'Armenia – km 6 vía La Tebaida, Bodega 2', null),
   ('contact','privacy_note',          'text', 'Tus datos serán tratados con confidencialidad.', null)
+on conflict (page, section_key) do nothing;
+
+-- WhatsApp corporativo: CTA funcional de la página /contacto (wa.me, formato
+-- internacional sin símbolos). La página lo muestra como "Escríbenos por WhatsApp".
+insert into public.content_blocks (page, section_key, type, value_text) values
+  ('contact','whatsapp', 'text', 'https://wa.me/573127370811')
 on conflict (page, section_key) do nothing;
 
 -- Bloques de imagen: mismas URLs de Unsplash que los seeds estáticos. La app
@@ -177,6 +184,34 @@ from (values
 join public.projects p on p.slug = mapping.project_slug
 join public.categories c on c.slug = mapping.category_slug
 on conflict do nothing;
+
+-- ----------------------------------------------------------------------------
+-- Proyecto La Holanda (único proyecto real del portafolio; el resto son
+-- fixtures ilustrativos en draft). Publicada y destacada por decisión del
+-- negocio: es el caso de éxito con micrositio oficial
+-- (https://laholanda.ingesocc.com/), enlazado vía projects.external_url.
+-- Fuente de datos: micrositio oficial y src/constants/project.ts de VentaDeLotes.
+-- ----------------------------------------------------------------------------
+insert into public.projects (title, slug, description, status, featured, sort_order, external_url) values
+  ('La Holanda', 'la-holanda',
+   'Parcelación campestre desarrollada por Ingesocc S.A.S. en Quimbaya, Quindío: un proyecto de inversión, valorización y calidad de vida en la vía Quimbaya - Alcalá, vereda Jazmín. Conoce el micrositio oficial con toda la información de lotes y disponibilidad.',
+   'published', true, 0, 'https://laholanda.ingesocc.com/')
+on conflict (slug) do nothing;
+
+insert into public.project_categories (project_id, category_id)
+select p.id, c.id
+from (values ('la-holanda', 'proyectos-especiales')) as mapping(project_slug, category_slug)
+join public.projects p on p.slug = mapping.project_slug
+join public.categories c on c.slug = mapping.category_slug
+on conflict do nothing;
+
+-- Portada oficial: og:image del micrositio (Cloudinary de la empresa).
+-- resolvePublicUrl devuelve las URL completas tal cual (supabase.service).
+insert into public.project_images (project_id, storage_path, is_cover, sort_order)
+select p.id, 'https://res.cloudinary.com/j5a9xyaq/image/upload/v1784303937/laholanda/landscapes/DJI_0131.webp', true, 0
+from public.projects p
+where p.slug = 'la-holanda'
+  and not exists (select 1 from public.project_images pi where pi.project_id = p.id);
 
 -- Imágenes de portada/galería: mismas URLs de Unsplash que los seeds estáticos
 -- (projects.service.ts) para que el sitio se vea igual con la DB aplicada que
