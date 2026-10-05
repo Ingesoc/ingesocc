@@ -1,14 +1,23 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LucideMail, LucideMapPin, LucidePhone } from '@lucide/angular';
+import { LucideExternalLink, LucideMail, LucideMapPin, LucideMessageCircle, LucidePhone } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from './data-access/contact-messages.service';
+
+/**
+ * Normaliza un teléfono a enlace tel: (deja dígitos y "+" inicial; espacios y
+ * signos de puntuación fuera). Sin valor devuelve null para ocultar el enlace.
+ */
+function telLink(phone: string): string | null {
+  const digits = phone.replace(/[^+\d]/g, '');
+  return digits ? `tel:${digits}` : null;
+}
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LucideMail, LucidePhone, LucideMapPin],
+  imports: [ReactiveFormsModule, RouterLink, LucideMail, LucidePhone, LucideMapPin, LucideMessageCircle, LucideExternalLink],
   templateUrl: './contact.component.html',
 })
 export class ContactComponent {
@@ -18,8 +27,11 @@ export class ContactComponent {
   readonly title = computed(() => this.blocks.text('contact', 'title', 'Contacto'));
   readonly subtitle = computed(() => this.blocks.text('contact', 'subtitle', ''));
   readonly phone = computed(() => this.blocks.text('contact', 'phone'));
+  readonly phoneHref = computed(() => telLink(this.phone()));
   readonly email = computed(() => this.blocks.text('contact', 'email'));
   readonly address = computed(() => this.blocks.text('contact', 'address'));
+  /** URL wa.me del CMS (p. ej. https://wa.me/573127370811); '' = sin CTA. */
+  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp'));
   readonly privacyNote = computed(() => this.blocks.text('contact', 'privacy_note'));
 
   /** Obligatorios: Nombre, Email, Mensaje. Teléfono y Asunto opcionales. */

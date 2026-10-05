@@ -12,6 +12,14 @@ import type {
 } from './project.model';
 
 /**
+ * Proyecto real del portafolio con micrositio propio (única excepción al seed
+ * ilustrativo): La Holanda se publica como caso de éxito de Ingesocc y enlaza
+ * a su sitio oficial vía `externalUrl`. El resto del seed sigue siendo
+ * ilustrativo (plan 1.7).
+ */
+const LA_HOLANDA_SITE = 'https://laholanda.ingesocc.com/';
+
+/**
  * Catálogo de proyectos (tabla `projects` del plan, sección 3.2).
  *
  * Al iniciar intenta cargar desde Supabase (RLS ya filtra `status =
@@ -20,6 +28,23 @@ import type {
  * real se carga vía el CRUD del admin en Fase 4).
  */
 const SEED_PROJECTS: Project[] = [
+  {
+    id: 'la-holanda',
+    title: 'La Holanda',
+    slug: 'la-holanda',
+    description:
+      'Parcelación campestre desarrollada por Ingesocc S.A.S. en Quimbaya, Quindío: un proyecto de inversión, valorización y calidad de vida en la vía Quimbaya - Alcalá, vereda Jazmín. Conoce el micrositio oficial con toda la información de lotes y disponibilidad.',
+    priceMinWages: null,
+    status: 'published',
+    featured: true,
+    sortOrder: 0,
+    categories: ['Proyectos Especiales'],
+    images: [
+      // og:image oficial del micrositio (Cloudinary de la empresa).
+      { url: 'https://res.cloudinary.com/j5a9xyaq/image/upload/v1784303937/laholanda/landscapes/DJI_0131.webp', isCover: true },
+    ],
+    externalUrl: LA_HOLANDA_SITE,
+  },
   {
     id: 'p01',
     title: 'Casa Ladera',
@@ -216,6 +241,7 @@ interface ProjectRow {
   status: Project['status'];
   featured: boolean;
   sort_order: number;
+  external_url: string | null;
 }
 
 interface CategoryLinkRow {
@@ -289,7 +315,7 @@ export class ProjectsService {
 
     const { data: projects, error } = await client
       .from('projects')
-      .select('id, title, slug, description, price_min_wages, status, featured, sort_order');
+      .select('id, title, slug, description, price_min_wages, status, featured, sort_order, external_url');
 
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
@@ -346,6 +372,7 @@ export class ProjectsService {
         sortOrder: row.sort_order,
         categories: categoriesByProject.get(row.id) ?? [],
         images: imagesByProject.get(row.id) ?? [],
+        externalUrl: row.external_url ?? null,
       })),
     );
     return true;
@@ -361,7 +388,7 @@ export class ProjectsService {
 
     const { data: rows, error } = await client
       .from('projects')
-      .select('id, title, slug, description, price_min_wages, status, featured, sort_order')
+      .select('id, title, slug, description, price_min_wages, status, featured, sort_order, external_url')
       .order('sort_order');
 
     if (error) {
@@ -417,6 +444,7 @@ export class ProjectsService {
         sortOrder: row.sort_order,
         categoryIds: categoryIdsByProject.get(row.id) ?? [],
         images: imagesByProject.get(row.id) ?? [],
+        externalUrl: row.external_url ?? null,
       })),
     );
   }
@@ -474,6 +502,7 @@ export class ProjectsService {
     input: ProjectInput,
     categoryIds: string[],
     imageRows: { id?: string; storagePath: string; isCover: boolean; sortOrder: number }[],
+    externalUrl: string | null = null,
   ): Promise<{ projectId: string; orphanPaths: string[] }> {
     await this.supabase.clientPromise;
     // `p_image_rows` es un parámetro `jsonb`: se manda el ARRAY, no su texto.
@@ -497,6 +526,7 @@ export class ProjectsService {
         is_cover: row.isCover,
         sort_order: row.sortOrder,
       })),
+      p_external_url: externalUrl,
     });
     if (error) throw mapProjectWriteError(error as DbError);
 

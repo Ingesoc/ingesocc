@@ -57,7 +57,8 @@ select 'M2',
           and bool_and(pg_get_function_identity_arguments(p.oid) =
             'p_project_id uuid, p_title text, p_slug text, p_description text, '
             || 'p_price_min_wages numeric, p_status text, p_featured boolean, '
-            || 'p_sort_order integer, p_category_ids uuid[], p_image_rows jsonb')
+            || 'p_sort_order integer, p_category_ids uuid[], p_image_rows jsonb, '
+            || 'p_external_url text')
          then 'PASS' else 'FAIL'
        end,
        'firma observada: ' || coalesce(string_agg(
@@ -200,7 +201,8 @@ begin;
         jsonb_build_object('id', null, 'storage_path', 'https://res.cloudinary.com/demo/image/upload/ingesocc/projects/rpc-verify/cloudinary.jpg', 'is_cover', true,  'sort_order', 0),
         jsonb_build_object('id', null, 'storage_path', 'rpc-verify/legacy.jpg',                                                                 'is_cover', false, 'sort_order', 1),
         jsonb_build_object('id', null, 'storage_path', 'https://images.unsplash.com/photo-1?w=1600',                                             'is_cover', false, 'sort_order', 2)
-      )
+      ),
+      'https://ejemplo.test/rpc-verify'
     ) s;
 
     select count(*),
@@ -226,6 +228,10 @@ begin;
              'rpc-verify/legacy.jpg',
              'https://images.unsplash.com/photo-1?w=1600'] then 'PASS' else 'FAIL' end,
        'create: storage_path guardados = ' || v_paths::text),
+      ('F6b', case when (select external_url from public.projects where id = v_project)
+                     = 'https://ejemplo.test/rpc-verify' then 'PASS' else 'FAIL' end,
+       'create: external_url persistido = ' ||
+         coalesce((select external_url from public.projects where id = v_project), '(null)')),
       ('F7', case when (select count(*) from public.project_categories pc
                         where pc.project_id = v_project) = 1 then 'PASS' else 'FAIL' end,
        'create: categorías vinculadas = ' ||
@@ -282,6 +288,65 @@ begin;
                            and storage_path = 'rpc-verify/legacy.jpg') = 5
             then 'PASS' else 'FAIL' end,
        'update: sort_order aplicado a la imagen existente');
+
+    -- F11b: contrato de p_external_url en UPDATE. Llamada SIN el parámetro
+    --     (compatibilidad con el bundle de 10 parámetros): el enlace NO cambia.
+    --     (El F8 anterior pasó 'https://ejemplo.test/rpc-verify'; aún está.)
+    select s.project_id into v_project
+    from public.admin_save_project(
+      v_project, 'RPC Verify editado', 'rpc-verify-proyecto',
+      'Proyecto temporal para verificar admin_save_project (editado).',
+      999.99, 'published', true, 3, array[v_cat],
+      jsonb_build_array(
+        jsonb_build_object('id', v_ids[2], 'storage_path', 'rpc-verify/legacy.jpg', 'is_cover', false, 'sort_order', 5),
+        jsonb_build_object('id', v_ids[3], 'storage_path', 'https://images.unsplash.com/photo-1?w=1600', 'is_cover', true, 'sort_order', 0)
+      )
+    ) s;
+
+    insert into public._rpc_test_results values
+      ('F11b', case when (select external_url from public.projects where id = v_project)
+                     = 'https://ejemplo.test/rpc-verify' then 'PASS' else 'FAIL' end,
+       'update sin p_external_url: el enlace vigente NO cambia = ' ||
+         coalesce((select external_url from public.projects where id = v_project), '(null)'));
+
+    -- F11c: p_external_url = '' quita el enlace (NULL).
+    select s.project_id into v_project
+    from public.admin_save_project(
+      v_project, 'RPC Verify sin enlace', 'rpc-verify-proyecto',
+      'Proyecto temporal para verificar admin_save_project (sin enlace).',
+      999.99, 'published', true, 3, array[v_cat],
+      jsonb_build_array(
+        jsonb_build_object('id', v_ids[2], 'storage_path', 'rpc-verify/legacy.jpg', 'is_cover', false, 'sort_order', 5),
+        jsonb_build_object('id', v_ids[3], 'storage_path', 'https://images.unsplash.com/photo-1?w=1600', 'is_cover', true, 'sort_order', 0)
+      ),
+      ''
+    ) s;
+
+    insert into public._rpc_test_results values
+      ('F11c', case when (select external_url from public.projects where id = v_project) is null
+                 and (select count(*) from public.project_images where project_id = v_project) = 2
+            then 'PASS' else 'FAIL' end,
+       'update con p_external_url vacío: enlace quitado = ' ||
+         coalesce((select external_url from public.projects where id = v_project), '(null)'));
+
+    -- F11d: p_external_url con espacios → se normaliza; otra URL la reemplaza.
+    select s.project_id into v_project
+    from public.admin_save_project(
+      v_project, 'RPC Verify enlace nuevo', 'rpc-verify-proyecto',
+      'Proyecto temporal para verificar admin_save_project (enlace nuevo).',
+      999.99, 'published', true, 3, array[v_cat],
+      jsonb_build_array(
+        jsonb_build_object('id', v_ids[2], 'storage_path', 'rpc-verify/legacy.jpg', 'is_cover', false, 'sort_order', 5),
+        jsonb_build_object('id', v_ids[3], 'storage_path', 'https://images.unsplash.com/photo-1?w=1600', 'is_cover', true, 'sort_order', 0)
+      ),
+      '  https://nuevo.test/rpc-verify  '
+    ) s;
+
+    insert into public._rpc_test_results values
+      ('F11d', case when (select external_url from public.projects where id = v_project)
+                     = 'https://nuevo.test/rpc-verify' then 'PASS' else 'FAIL' end,
+       'update con URL nueva (con espacios): normalizada = ' ||
+         coalesce((select external_url from public.projects where id = v_project), '(null)'));
 
     -- F12/F13: p_image_rows como STRING JSON (compatibilidad con el bundle
     --     anterior, que hacía JSON.stringify). PostgREST lo entrega como un

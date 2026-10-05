@@ -85,9 +85,46 @@ describe('ProjectsService', () => {
     await service.loadCategories();
 
     const published = service.published();
-    expect(published.length).toBe(10); // seed de 10 proyectos publicados
-    expect(published.map((p) => p.sortOrder)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(published.length).toBe(11); // seed: La Holanda (real) + 10 ilustrativos
+    expect(published.map((p) => p.sortOrder)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(service.bySlug('casa-ladera')).toBeDefined();
+  });
+
+  it('expone La Holanda como proyecto real del portafolio (seed, publicada y destacada)', async () => {
+    results['projects'] = { error: { message: 'relation "public.projects" does not exist', code: '42P01' } };
+    results['categories'] = { error: { message: 'relation "public.categories" does not exist', code: '42P01' } };
+
+    const service = setup();
+    await service.load();
+    await service.loadCategories();
+
+    const laHolanda = service.bySlug('la-holanda');
+    expect(laHolanda).toBeDefined();
+    expect(laHolanda!.title).toBe('La Holanda');
+    expect(laHolanda!.status).toBe('published');
+    expect(laHolanda!.featured).toBe(true);
+    expect(laHolanda!.categories).toContain('Proyectos Especiales');
+    expect(laHolanda!.externalUrl).toBe('https://laholanda.ingesocc.com/');
+    expect(laHolanda!.images.length).toBeGreaterThan(0);
+    // Es la primera del portafolio (sort_order 0) y participa del Home.
+    expect(service.published()[0].slug).toBe('la-holanda');
+    expect(service.featured().map((p) => p.slug)).toContain('la-holanda');
+  });
+
+  it('mapea external_url desde la base de datos (null cuando no viene)', async () => {
+    results['projects'] = {
+      data: [
+        { id: 'p1', title: 'Con enlace', slug: 'con-enlace', description: 'x', price_min_wages: null, status: 'published', featured: false, sort_order: 1, external_url: 'https://micrositio.test' },
+        { id: 'p2', title: 'Sin enlace', slug: 'sin-enlace', description: 'x', price_min_wages: null, status: 'published', featured: false, sort_order: 2 },
+      ],
+    };
+    results['categories'] = { data: [] };
+
+    const service = setup();
+    await service.load();
+
+    expect(service.bySlug('con-enlace')!.externalUrl).toBe('https://micrositio.test');
+    expect(service.bySlug('sin-enlace')!.externalUrl).toBeNull();
   });
 
   it('solo expone status=published y ordena por sortOrder', async () => {
@@ -180,9 +217,37 @@ describe('ProjectsService', () => {
             { id: 'img-1', storage_path: 'p1/a.jpg', is_cover: true, sort_order: 0 },
             { id: null, storage_path: 'p1/nueva.jpg', is_cover: false, sort_order: 1 },
           ],
+          p_external_url: null,
         },
       },
     ]);
+  });
+
+  it('saveProjectAtomic envía p_external_url cuando el proyecto tiene sitio oficial', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'nuevo-id', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      {
+        title: 'La Holanda',
+        slug: 'la-holanda',
+        description: 'Parcelación campestre de Ingesocc S.A.S.',
+        priceMinWages: null,
+        status: 'published',
+        featured: true,
+        sortOrder: 0,
+        externalUrl: 'https://laholanda.ingesocc.com/',
+      },
+      [],
+      [],
+      'https://laholanda.ingesocc.com/',
+    );
+
+    const payload = writes[0].payload as { p_external_url: string | null };
+    expect(payload.p_external_url).toBe('https://laholanda.ingesocc.com/');
   });
 
   it('saveProjectAtomic traduce el error 23505 de slug duplicado', async () => {

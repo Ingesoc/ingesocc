@@ -74,6 +74,31 @@ test.describe('Sitio público', () => {
     await expect(page.getByRole('heading', { name: 'Proyecto no encontrado' })).toBeVisible();
   });
 
+  // La Holanda en el portafolio corporativo. Es condicional: el entorno E2E
+  // puede apuntar a una base con o sin el proyecto sembrado, y en modo sin DB
+  // el seed estático siempre lo trae — así el test solo corre si es visible.
+  test('La Holanda: listado → detalle → CTA al sitio oficial', async ({ page }) => {
+    await page.goto('/proyectos');
+    const card = page.locator('a', { has: page.locator('h2', { hasText: 'La Holanda' }) });
+    if ((await card.count()) === 0) {
+      test.skip(true, 'La Holanda no está publicada en este entorno (seed/DB sin el proyecto).');
+    }
+
+    // El listado enlaza al DETALLE corporativo (no directo al micrositio).
+    await expect(card.first()).toHaveAttribute('href', /\/proyectos\/la-holanda$/);
+    await card.first().click();
+
+    await expect(page).toHaveURL(/\/proyectos\/la-holanda$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'La Holanda' })).toBeVisible();
+
+    // CTA al micrositio oficial, nueva pestaña y sin exponer el opener.
+    const cta = page.getByRole('link', { name: /Conocer La Holanda/i });
+    await expect(cta.first()).toBeVisible();
+    await expect(cta.first()).toHaveAttribute('href', 'https://laholanda.ingesocc.com/');
+    await expect(cta.first()).toHaveAttribute('target', '_blank');
+    await expect(cta.first()).toHaveAttribute('rel', /noopener/);
+  });
+
   test('sin overflow horizontal en viewport móvil (Home y Proyectos)', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
