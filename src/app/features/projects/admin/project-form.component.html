@@ -77,6 +77,17 @@
             </div>
           </div>
 
+          <div>
+            <label for="externalUrl" class="field-label">Sitio oficial (opcional)</label>
+            <input id="externalUrl" type="url" formControlName="externalUrl" placeholder="https://" class="field" />
+            <p class="mt-1.5 text-xs text-muted-foreground">
+              Micrositio público del proyecto (p. ej. La Holanda). Si se llena, el detalle muestra "Conocer + nombre del proyecto" hacia ese enlace en vez del botón de cotización. Debe iniciar con https://.
+            </p>
+            @if (form.controls.externalUrl.touched && form.controls.externalUrl.invalid) {
+              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese una URL válida que inicie con https://.</p>
+            }
+          </div>
+
           <label class="flex cursor-pointer items-start gap-3 rounded-sm border border-border bg-background px-4 py-3.5 transition-colors hover:border-accent/60">
             <input type="checkbox" formControlName="featured" class="mt-0.5 h-4 w-4 accent-accent" />
             <span class="text-sm leading-6">

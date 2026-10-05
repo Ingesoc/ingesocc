@@ -16,6 +16,12 @@ export interface Project {
   sortOrder: number;
   categories: string[];
   images: ProjectImage[];
+  /**
+   * Enlace público opcional al micrositio oficial del proyecto
+   * (p. ej. https://laholanda.ingesocc.com/). Null/undefined = el detalle
+   * termina con el CTA de contacto habitual, sin enlace externo.
+   */
+  externalUrl?: string | null;
 }
 
 /** URL de la portada (la que se ve en las cards). */
@@ -56,6 +62,8 @@ export interface AdminProject {
   sortOrder: number;
   categoryIds: string[];
   images: AdminProjectImage[];
+  /** Igual que `Project.externalUrl`: opcional y genérico. */
+  externalUrl: string | null;
 }
 
 /** Campos que el admin diligencia al crear/editar (plan 1.2). */
@@ -67,4 +75,6 @@ export interface ProjectInput {
   status: ProjectStatus;
   featured: boolean;
   sortOrder: number;
+  /** Enlace externo opcional (vacío/null = sin micrositio). */
+  externalUrl?: string | null;
 }

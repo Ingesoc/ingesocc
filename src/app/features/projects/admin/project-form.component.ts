@@ -54,6 +54,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     status: new FormControl<'draft' | 'published'>('draft'),
     featured: new FormControl(false),
     sortOrder: new FormControl(0),
+    externalUrl: new FormControl('', [Validators.pattern(/^https:\/\/\S+$/)]),
   });
 
   readonly selectedCategoryIds = signal<string[]>([]);
@@ -113,6 +114,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         status: project.status,
         featured: project.featured,
         sortOrder: project.sortOrder,
+        externalUrl: project.externalUrl ?? '',
       });
       this.selectedCategoryIds.set(project.categoryIds);
       this.imageSlots.set(
@@ -253,6 +255,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         status: value.status!,
         featured: Boolean(value.featured),
         sortOrder: Number(value.sortOrder ?? 0),
+        externalUrl: value.externalUrl?.trim() || null,
       };
 
       const slots = this.imageSlots();
@@ -284,6 +287,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         input,
         this.selectedCategoryIds(),
         imageRows,
+        input.externalUrl,
       );
 
       // 4) Limpieza best-effort de assets huérfanos (imágenes eliminadas).
