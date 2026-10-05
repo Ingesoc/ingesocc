@@ -1,0 +1,77 @@
+# =============================================================================
+# Keep-alive del proyecto Supabase (plan Free)
+#
+# Supabase pausa los proyectos del plan Free que quedan ~7 días con baja
+# actividad de base de datos. El sitio corporativo genera consultas desde los
+# navegadores de los visitantes, pero con poco tráfico puede no alcanzar el
+# umbral. Este workflow pega una consulta REST con la clave publishable cada
+# día a las 13:00 UTC (8 a. m. Colombia): "unas pocas requests al día son
+# suficientes para evitar la pausa" (docs de Supabase).
+#
+# La clave publishable (sb_publishable_...) está diseñada para exponerse en
+# cliente — ya viaja en el bundle público del sitio — por lo que no guarda
+# ningún secreto adicional: la lee de src/environments/environment.prod.ts.
+# RLS sigue mandando: solo lee tablas accesibles para anon.
+#
+# Desactivarlo: borrar este archivo (o deshabilitarlo desde la pestaña
+# Actions del repo).
+# =============================================================================
+name: Supabase keep-alive
+
+on:
+  schedule:
+    # Diario 13:00 UTC = 8:00 a. m. Colombia (UTC-5, sin horario de verano).
+    - cron: '0 13 * * *'
+  workflow_dispatch: {} # ejecución manual desde la pestaña Actions
+
+# Evita pings amontonados si un run anterior se demoró.
+concurrency:
+  group: supabase-keep-alive
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Leer credenciales publishable del environment
+        id: creds
+        shell: bash
+        run: |
+          # Valores por defecto pensados para el repo: si alguien mueve las
+          # variables, el workflow avisa con un fallo claro en vez de pegarle
+          # a una URL vacía.
+          url=$(grep -oP "(?<=supabaseUrl: ')https://[^']+" src/environments/environment.prod.ts || true)
+          key=$(grep -oP "(?<=supabaseAnonKey: ')[^']+" src/environments/environment.prod.ts || true)
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "::error::No se pudieron extraer supabaseUrl/supabaseAnonKey de src/environments/environment.prod.ts"
+            exit 1
+          fi
+          {
+            echo "url=$url"
+            echo "key=$key"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Ping a la API REST (SELECT en projects)
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ steps.creds.outputs.url }}
+          SUPABASE_KEY: ${{ steps.creds.outputs.key }}
+        run: |
+          http_code=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/projects?select=id")
+          echo "HTTP $http_code contra $SUPABASE_URL"
+          # 200 = actividad registrada. 401/403 = clave inválida (fallo real).
+          # 404 = tabla projects no existe (migraciones sin aplicar): la request
+          # igual cuenta como actividad, pero se advierte para no pasarla por alto.
+          if [ "$http_code" = "200" ] || [ "$http_code" = "404" ]; then
+            exit 0
+          fi
+          echo "::error::Respuesta inesperada de Supabase (HTTP $http_code). Revisa la clave/URL."
+          exit 1
