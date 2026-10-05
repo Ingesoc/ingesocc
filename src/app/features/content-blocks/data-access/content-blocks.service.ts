@@ -67,12 +67,13 @@ const SEED_CONTENT_BLOCKS: ContentBlock[] = [
   { page: 'about', sectionKey: 'equipo.member4.photo', type: 'image', valueText: null, valueNumber: null, valueImagePath: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80' },
 
   // ---- contact ----
-  // Datos de ejemplo del diseño actual — reemplazar por los reales vía content_blocks (plan 1.6/1.7)
+  // Datos reales de la empresa (fuente: src/constants/project.ts de VentaDeLotes).
   { page: 'contact', sectionKey: 'title', type: 'text', valueText: 'Contacto', valueNumber: null, valueImagePath: null },
   { page: 'contact', sectionKey: 'subtitle', type: 'text', valueText: 'Cuéntenos sobre su proyecto y le responderemos a la brevedad.', valueNumber: null, valueImagePath: null },
-  { page: 'contact', sectionKey: 'phone', type: 'text', valueText: '+57 (604) 444 44 44', valueNumber: null, valueImagePath: null },
-  { page: 'contact', sectionKey: 'email', type: 'text', valueText: 'info@ingesocc.com', valueNumber: null, valueImagePath: null },
-  { page: 'contact', sectionKey: 'address', type: 'text', valueText: 'Medellín, Colombia', valueNumber: null, valueImagePath: null },
+  { page: 'contact', sectionKey: 'phone', type: 'text', valueText: '+57 312 737 0811', valueNumber: null, valueImagePath: null },
+  { page: 'contact', sectionKey: 'whatsapp', type: 'text', valueText: 'https://wa.me/573127370811', valueNumber: null, valueImagePath: null },
+  { page: 'contact', sectionKey: 'email', type: 'text', valueText: 'gerencia.ingesocc@gmail.com', valueNumber: null, valueImagePath: null },
+  { page: 'contact', sectionKey: 'address', type: 'text', valueText: 'Armenia – km 6 vía La Tebaida, Bodega 2', valueNumber: null, valueImagePath: null },
   { page: 'contact', sectionKey: 'privacy_note', type: 'text', valueText: 'Tus datos serán tratados con confidencialidad.', valueNumber: null, valueImagePath: null },
 ];
 

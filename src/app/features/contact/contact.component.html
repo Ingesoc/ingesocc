@@ -39,9 +39,32 @@
           </span>
           <div>
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Llámenos</p>
-            <a [href]="'tel:' + phone()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep">{{ phone() }}</a>
+            @if (phoneHref(); as href) {
+              <a [href]="href" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep">{{ phone() }}</a>
+            } @else {
+              <p class="mt-1.5 text-base font-medium">{{ phone() }}</p>
+            }
           </div>
         </div>
+        @if (whatsappUrl()) {
+          <div class="flex items-start gap-5 border-t border-border py-7">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
+              <svg lucideMessageCircle class="h-4 w-4" />
+            </span>
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">WhatsApp</p>
+              <a
+                [href]="whatsappUrl()"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-1.5 inline-flex items-center gap-1.5 text-base font-medium transition-colors hover:text-accent-deep"
+              >
+                Escríbanos por WhatsApp
+                <svg lucideExternalLink class="h-3.5 w-3.5 opacity-60" />
+              </a>
+            </div>
+          </div>
+        }
         <div class="flex items-start gap-5 border-t border-b border-border py-7">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
             <svg lucideMapPin class="h-4 w-4" />
