@@ -16,6 +16,22 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   };
 }
 
+describe('Project.externalUrl (opcional y genérico)', () => {
+  it('acepta proyectos sin enlace externo (campo ausente)', () => {
+    const project = makeProject();
+    expect(project.externalUrl ?? null).toBeNull();
+  });
+
+  it('acepta el enlace del micrositio oficial cuando el proyecto lo tiene', () => {
+    const project = makeProject({
+      title: 'La Holanda',
+      slug: 'la-holanda',
+      externalUrl: 'https://laholanda.ingesocc.com/',
+    });
+    expect(project.externalUrl).toBe('https://laholanda.ingesocc.com/');
+  });
+});
+
 describe('projectCoverUrl', () => {
   it('usa la imagen marcada como portada', () => {
     const project = makeProject({
