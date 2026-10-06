@@ -97,6 +97,37 @@ test.describe('Sitio público', () => {
     await expect(cta.first()).toHaveAttribute('href', 'https://laholanda.ingesocc.com/');
     await expect(cta.first()).toHaveAttribute('target', '_blank');
     await expect(cta.first()).toHaveAttribute('rel', /noopener/);
+
+    // La ubicación de la OBRA se muestra como dato del proyecto y nunca se
+    // confunde con la dirección corporativa (Armenia / vía La Tebaida).
+    const ficha = page.locator('dt', { hasText: 'Ubicación' });
+    if (await ficha.count()) {
+      await expect(page.locator('dd').filter({ hasText: 'Quimbaya' }).first()).toBeVisible();
+      await expect(ficha.locator('xpath=following-sibling::dd[1]')).not.toContainText('Tebaida');
+    }
+  });
+
+  test('galería: cada imagen tiene su propio texto alternativo', async ({ page }) => {
+    await page.goto('/proyectos/la-holanda');
+    const h1 = page.getByRole('heading', { level: 1, name: 'La Holanda' });
+    if (!(await h1.isVisible().catch(() => false))) {
+      test.skip(true, 'La Holanda no está publicada en este entorno.');
+    }
+
+    const galleryImages = page.locator('section img[loading="lazy"]');
+    const count = await galleryImages.count();
+    if (count === 0) {
+      test.skip(true, 'El proyecto no tiene imágenes de galería en este entorno.');
+    }
+
+    // Ninguna imagen puede tener alt vacío: un alt vacío no lo anuncia el
+    // lector de pantalla y deja la imagen sin descripción.
+    const alts = await galleryImages.evaluateAll((nodes) =>
+      nodes.map((node) => (node as HTMLImageElement).getAttribute('alt') ?? ''),
+    );
+    for (const alt of alts) {
+      expect(alt.trim().length).toBeGreaterThan(0);
+    }
   });
 
   test('sin overflow horizontal en viewport móvil (Home y Proyectos)', async ({ page }) => {

@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import imageCompression from 'browser-image-compression';
-import { LucideChevronLeft, LucideStar, LucideTrash2, LucideUpload } from '@lucide/angular';
+import { LucideCheck, LucideChevronLeft, LucideStar, LucideTrash2, LucideUpload } from '@lucide/angular';
 import { ProjectsService } from '../data-access/projects.service';
 import type { ProjectInput } from '../data-access/project.model';
 import { slugify } from '../../../core/slugify';
@@ -15,7 +15,11 @@ import {
   validateImageFile,
 } from '../../../core/image-utils';
 
-/** Imagen del formulario: pendiente de subir o ya persistida. */
+/**
+ * Imagen del formulario: pendiente de subir o ya persistida. Los campos de
+ * texto son opcionales y los diligencia el admin; si se dejan vacíos, la vista
+ * pública cae a un texto neutro en lugar de mostrar contenido inventado.
+ */
 interface ImageSlot {
   key: string;
   id?: string;
@@ -23,6 +27,15 @@ interface ImageSlot {
   storagePath?: string;
   file?: File;
   isCover: boolean;
+  alt: string;
+  title: string;
+  description: string;
+  category: string;
+}
+
+/** Metadatos vacíos de una imagen nueva (se editan en el formulario). */
+function emptyImageMetadata(): Pick<ImageSlot, 'alt' | 'title' | 'description' | 'category'> {
+  return { alt: '', title: '', description: '', category: '' };
 }
 
 function parseNumber(value: unknown): number | null {
@@ -34,7 +47,7 @@ function parseNumber(value: unknown): number | null {
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LucideChevronLeft, LucideUpload, LucideTrash2, LucideStar],
+  imports: [ReactiveFormsModule, RouterLink, LucideCheck, LucideChevronLeft, LucideUpload, LucideTrash2, LucideStar],
   templateUrl: './project-form.component.html',
 })
 export class ProjectFormComponent implements OnInit, OnDestroy {
@@ -50,6 +63,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     title: new FormControl('', [Validators.required, Validators.minLength(3)]),
     slug: new FormControl('', [Validators.required]),
     description: new FormControl('', [Validators.required, Validators.minLength(10)]),
+    location: new FormControl(''),
     priceMinWages: new FormControl<number | null>(null),
     status: new FormControl<'draft' | 'published'>('draft'),
     featured: new FormControl(false),
@@ -110,6 +124,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         title: project.title,
         slug: project.slug,
         description: project.description,
+        location: project.location ?? '',
         priceMinWages: project.priceMinWages,
         status: project.status,
         featured: project.featured,
@@ -124,6 +139,10 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
           url: image.url,
           storagePath: image.storagePath,
           isCover: image.isCover,
+          alt: image.alt ?? '',
+          title: image.title ?? '',
+          description: image.description ?? '',
+          category: image.category ?? '',
         })),
       );
     } catch {
@@ -187,6 +206,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
             url,
             file: processed,
             isCover: slots.length === 0,
+            ...emptyImageMetadata(),
           },
         ]);
       }
@@ -203,6 +223,15 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
 
   setCover(slot: ImageSlot): void {
     this.imageSlots.update((slots) => slots.map((s) => ({ ...s, isCover: s.key === slot.key })));
+  }
+
+  /**
+   * Actualiza un metadato de imagen. Se reconstruye el array completo (y no se
+   * muta el objeto) porque `imageSlots` es una señal: mutar en silencio dejaría
+   * la vista y el guardado usando datos rancios.
+   */
+  setImageMeta(key: string, field: 'alt' | 'title' | 'description' | 'category', value: string): void {
+    this.imageSlots.update((slots) => slots.map((s) => (s.key === key ? { ...s, [field]: value } : s)));
   }
 
   removeImage(slot: ImageSlot): void {
@@ -251,6 +280,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         title: value.title!.trim(),
         slug: value.slug!.trim(),
         description: value.description!.trim(),
+        location: value.location?.trim() || '',
         priceMinWages: parseNumber(value.priceMinWages),
         status: value.status!,
         featured: Boolean(value.featured),
@@ -279,6 +309,10 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         storagePath: slot.id ? slot.storagePath! : pathByKey.get(slot.key)!,
         isCover: slot.key === coverKey,
         sortOrder: index,
+        alt: slot.alt,
+        title: slot.title,
+        description: slot.description,
+        category: slot.category,
       }));
 
       // 3) Transacción única en Postgres.

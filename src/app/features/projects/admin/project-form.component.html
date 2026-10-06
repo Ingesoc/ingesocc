@@ -65,6 +65,14 @@
             }
           </div>
 
+          <div>
+            <label for="location" class="field-label">Ubicación de la obra (opcional)</label>
+            <input id="location" type="text" formControlName="location" class="field" placeholder="Vía Quimbaya - Alcalá, Vereda Jazmín, Quimbaya, Quindío" />
+            <p class="mt-1.5 text-xs text-muted-foreground">
+              Dónde queda el proyecto. No es la dirección de la empresa: esa está en el bloque "Contacto" del CMS.
+            </p>
+          </div>
+
           <div class="grid gap-6 md:grid-cols-2">
             <div>
               <label for="price" class="field-label">Valor (salarios mínimos)</label>
@@ -142,23 +150,54 @@
         </p>
 
         @if (imageSlots().length > 0) {
-          <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            @for (slot of imageSlots(); track slot.key) {
-              <div class="group relative overflow-hidden rounded-sm border border-border">
-                <img [src]="slot.url" [alt]="'Imagen del proyecto'" width="400" height="300" decoding="async" loading="lazy" class="aspect-video w-full object-cover" />
-                <div class="absolute inset-x-0 top-0 flex items-center justify-between p-2">
-                  <button type="button" (click)="setCover(slot)" title="Marcar como portada" [disabled]="busy()"
-                    [class]="slot.isCover ? 'flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary' : 'flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary'">
-                    <svg lucideStar class="h-4 w-4" />
-                  </button>
-                  <button type="button" (click)="removeImage(slot)" title="Quitar" [disabled]="busy()"
-                    class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary">
-                    <svg lucideTrash2 class="h-4 w-4" />
-                  </button>
+          <div class="mt-6 space-y-4">
+            @for (slot of imageSlots(); track slot.key; let i = $index) {
+              <div class="overflow-hidden rounded-sm border border-border">
+                <div class="relative">
+                  <img [src]="slot.url" [alt]="slot.alt || 'Vista previa de la imagen ' + (i + 1)" width="400" height="300" decoding="async" loading="lazy" class="aspect-video w-full object-cover" />
+                  <div class="absolute inset-x-0 top-0 flex items-center justify-between p-2">
+                    <button type="button" (click)="setCover(slot)" title="Marcar como portada" [disabled]="busy()"
+                      [class]="slot.isCover ? 'flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary' : 'flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary'">
+                      <svg lucideStar class="h-4 w-4" />
+                    </button>
+                    <button type="button" (click)="removeImage(slot)" title="Quitar" [disabled]="busy()"
+                      class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary">
+                      <svg lucideTrash2 class="h-4 w-4" />
+                    </button>
+                  </div>
+                  @if (slot.isCover) {
+                    <span class="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-primary-foreground">Portada</span>
+                  }
                 </div>
-                @if (slot.isCover) {
-                  <span class="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-primary-foreground">Portada</span>
-                }
+
+                <div class="space-y-3 border-t border-border bg-background p-4">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Información de la imagen {{ i + 1 }}</p>
+                  <div>
+                    <label [for]="'img-alt-' + slot.key" class="field-label">Texto alternativo</label>
+                    <input [id]="'img-alt-' + slot.key" type="text" class="field" [value]="slot.alt" [disabled]="busy()"
+                      (input)="setImageMeta(slot.key, 'alt', $any($event.target).value)"
+                      placeholder="Describe lo que se ve en la foto" />
+                    <p class="mt-1.5 text-xs text-muted-foreground">Lo lee el lector de pantalla. Si queda vacío se usa un texto neutro.</p>
+                  </div>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label [for]="'img-title-' + slot.key" class="field-label">Título</label>
+                      <input [id]="'img-title-' + slot.key" type="text" class="field" [value]="slot.title" [disabled]="busy()"
+                        (input)="setImageMeta(slot.key, 'title', $any($event.target).value)" placeholder="Ej. CYP, cubierta" />
+                    </div>
+                    <div>
+                      <label [for]="'img-category-' + slot.key" class="field-label">Categoría</label>
+                      <input [id]="'img-category-' + slot.key" type="text" class="field" [value]="slot.category" [disabled]="busy()"
+                        (input)="setImageMeta(slot.key, 'category', $any($event.target).value)" placeholder="Ej. Estructura" />
+                    </div>
+                  </div>
+                  <div>
+                    <label [for]="'img-description-' + slot.key" class="field-label">Descripción</label>
+                    <textarea [id]="'img-description-' + slot.key" rows="2" class="field" [value]="slot.description" [disabled]="busy()"
+                      (input)="setImageMeta(slot.key, 'description', $any($event.target).value)"
+                      placeholder="Qué muestra esta foto"></textarea>
+                  </div>
+                </div>
               </div>
             }
           </div>

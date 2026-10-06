@@ -192,9 +192,12 @@ on conflict do nothing;
 -- (https://laholanda.ingesocc.com/), enlazado vía projects.external_url.
 -- Fuente de datos: micrositio oficial y src/constants/project.ts de VentaDeLotes.
 -- ----------------------------------------------------------------------------
-insert into public.projects (title, slug, description, status, featured, sort_order, external_url) values
+-- `location` es la ubicación DE LA OBRA. La dirección corporativa (Armenia,
+-- km 6 vía La Tebaida) está en content_blocks y no se mezcla aquí.
+insert into public.projects (title, slug, description, location, status, featured, sort_order, external_url) values
   ('La Holanda', 'la-holanda',
    'Parcelación campestre desarrollada por Ingesocc S.A.S. en Quimbaya, Quindío: un proyecto de inversión, valorización y calidad de vida en la vía Quimbaya - Alcalá, vereda Jazmín. Conoce el micrositio oficial con toda la información de lotes y disponibilidad.',
+   'Vía Quimbaya - Alcalá, Vereda Jazmín, Quimbaya, Quindío',
    'published', true, 0, 'https://laholanda.ingesocc.com/')
 on conflict (slug) do nothing;
 
@@ -207,8 +210,14 @@ on conflict do nothing;
 
 -- Portada oficial: og:image del micrositio (Cloudinary de la empresa).
 -- resolvePublicUrl devuelve las URL completas tal cual (supabase.service).
-insert into public.project_images (project_id, storage_path, is_cover, sort_order)
-select p.id, 'https://res.cloudinary.com/j5a9xyaq/image/upload/v1784303937/laholanda/landscapes/DJI_0131.webp', true, 0
+-- El `alt` describe lo que se ve en la foto (regla: no se inventa contenido
+-- técnico). Las columnas title/description/category se dejan en NULL: las
+-- diligencia el admin cuando exista información verificada de cada imagen.
+insert into public.project_images (project_id, storage_path, is_cover, sort_order, alt)
+select p.id,
+       'https://res.cloudinary.com/j5a9xyaq/image/upload/v1784303937/laholanda/landscapes/DJI_0131.webp',
+       true, 0,
+       'Vista aérea del entorno de La Holanda, en la vía Quimbaya - Alcalá, Quimbaya'
 from public.projects p
 where p.slug = 'la-holanda'
   and not exists (select 1 from public.project_images pi where pi.project_id = p.id);

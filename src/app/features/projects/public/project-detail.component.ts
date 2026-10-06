@@ -2,11 +2,16 @@ import { Component, computed, effect, HostListener, inject, signal } from '@angu
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideX } from '@lucide/angular';
+import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin, LucideX } from '@lucide/angular';
 import { SeoService } from '../../../core/seo.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import { ProjectsService } from '../data-access/projects.service';
-import { projectCoverUrl, type ProjectImage } from '../data-access/project.model';
+import {
+  projectCoverUrl,
+  projectImageAlt,
+  projectLocation,
+  type ProjectImage,
+} from '../data-access/project.model';
 
 /** Patrón de la galería editorial: primera imagen grande, resto en celdas. */
 const GALLERY_SPANS = [
@@ -25,7 +30,7 @@ const GALLERY_SPANS = [
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideX],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin, LucideX],
   templateUrl: './project-detail.component.html',
 })
 export class ProjectDetailComponent {
@@ -53,10 +58,46 @@ export class ProjectDetailComponent {
     return withoutCover.length > 0 ? withoutCover : project.images;
   });
 
+  /** Imagen de portada del hero, con sus metadatos (null si el proyecto no tiene). */
+  readonly coverImage = computed<ProjectImage | null>(() => {
+    const project = this.project();
+    if (!project) return null;
+    return project.images.find((image) => image.isCover) ?? project.images[0] ?? null;
+  });
+
   /** URL de galería optimizada para el tamaño de celda. */
   galleryUrl(image: ProjectImage): string {
     return withCloudinaryTransform(image.url, CLOUDINARY_TRANSFORMS.gallery);
   }
+
+  /**
+   * Texto alternativo de una imagen: el que escribió el admin, con respaldo
+   * neutro. Evita que todas las imágenes de la galería anuncien el mismo texto.
+   */
+  imageAlt(image: ProjectImage): string {
+    return projectImageAlt(image, this.project()?.title ?? '');
+  }
+
+  /** Ubicación de la obra ('' si el proyecto no la tiene registrada). */
+  readonly location = computed(() => {
+    const project = this.project();
+    return project ? projectLocation(project) : '';
+  });
+
+  /** Descripción corta: incluye la ubicación para que el dato sea rastreable. */
+  readonly seoDescription = computed(() => {
+    const project = this.project();
+    if (!project) return '';
+    const where = this.location();
+    return where ? `${project.description} Ubicación: ${where}.` : project.description;
+  });
+
+  /** Imagen abierta en el lightbox (null = cerrado). */
+  readonly lightboxImage = computed<ProjectImage | null>(() => {
+    const index = this.lightboxIndex();
+    const images = this.galleryImages();
+    return index !== null ? (images[index] ?? null) : null;
+  });
 
   /** Índice de la imagen abierta en el lightbox (null = cerrado). */
   readonly lightboxIndex = signal<number | null>(null);
@@ -75,9 +116,8 @@ export class ProjectDetailComponent {
 
   /** URL de la imagen actualmente abierta en el lightbox ('' si cerrado). */
   lightboxImageUrl(): string {
-    const index = this.lightboxIndex();
-    const images = this.galleryImages();
-    return index !== null && images[index] ? this.galleryUrl(images[index]) : '';
+    const image = this.lightboxImage();
+    return image ? this.galleryUrl(image) : '';
   }
 
   /** Posición "2 / 5" para el pie del lightbox. */
@@ -112,7 +152,7 @@ export class ProjectDetailComponent {
     effect(() => {
       const project = this.project();
       if (project) {
-        this.seo.set(project.title, project.description.slice(0, 160), undefined, this.coverUrl());
+        this.seo.set(project.title, this.seoDescription().slice(0, 160), undefined, this.coverUrl());
       }
     });
   }

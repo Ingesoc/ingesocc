@@ -8,6 +8,7 @@ import type {
   CategoryOption,
   Project,
   ProjectImage,
+  ProjectImageInput,
   ProjectInput,
 } from './project.model';
 
@@ -18,6 +19,9 @@ import type {
  * ilustrativo (plan 1.7).
  */
 const LA_HOLANDA_SITE = 'https://laholanda.ingesocc.com/';
+
+/** Ubicación de la obra La Holanda (dato verificado). NO es la sede de Ingesocc. */
+const LA_HOLANDA_LOCATION = 'Vía Quimbaya - Alcalá, Vereda Jazmín, Quimbaya, Quindío';
 
 /**
  * Catálogo de proyectos (tabla `projects` del plan, sección 3.2).
@@ -39,9 +43,14 @@ const SEED_PROJECTS: Project[] = [
     featured: true,
     sortOrder: 0,
     categories: ['Proyectos Especiales'],
+    location: LA_HOLANDA_LOCATION,
     images: [
       // og:image oficial del micrositio (Cloudinary de la empresa).
-      { url: 'https://res.cloudinary.com/j5a9xyaq/image/upload/v1784303937/laholanda/landscapes/DJI_0131.webp', isCover: true },
+      {
+        url: 'https://res.cloudinary.com/j5a9xyaq/image/upload/v1784303937/laholanda/landscapes/DJI_0131.webp',
+        isCover: true,
+        alt: 'Vista aérea del entorno de La Holanda, en la vía Quimbaya - Alcalá, Quimbaya',
+      },
     ],
     externalUrl: LA_HOLANDA_SITE,
   },
@@ -237,6 +246,7 @@ interface ProjectRow {
   title: string;
   slug: string;
   description: string;
+  location: string | null;
   price_min_wages: number | null;
   status: Project['status'];
   featured: boolean;
@@ -256,6 +266,10 @@ interface ProjectImageRow {
   storage_path: string;
   is_cover: boolean;
   sort_order: number;
+  alt: string | null;
+  title: string | null;
+  description: string | null;
+  category: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -315,7 +329,7 @@ export class ProjectsService {
 
     const { data: projects, error } = await client
       .from('projects')
-      .select('id, title, slug, description, price_min_wages, status, featured, sort_order, external_url');
+      .select('id, title, slug, description, location, price_min_wages, status, featured, sort_order, external_url');
 
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
@@ -337,7 +351,7 @@ export class ProjectsService {
 
     const { data: images } = await client
       .from('project_images')
-      .select('project_id, storage_path, is_cover, sort_order')
+      .select('project_id, storage_path, is_cover, sort_order, alt, title, description, category')
       .order('sort_order');
 
     const categoriesByProject = new Map<string, string[]>();
@@ -356,6 +370,10 @@ export class ProjectsService {
       list.push({
         url: this.supabase.resolvePublicUrl('project-images', image.storage_path),
         isCover: image.is_cover,
+        alt: image.alt,
+        title: image.title,
+        description: image.description,
+        category: image.category,
       });
       imagesByProject.set(image.project_id, list);
     }
@@ -366,6 +384,7 @@ export class ProjectsService {
         title: row.title,
         slug: row.slug,
         description: row.description,
+        location: row.location ?? null,
         priceMinWages: row.price_min_wages != null ? Number(row.price_min_wages) : null,
         status: row.status,
         featured: row.featured,
@@ -388,7 +407,7 @@ export class ProjectsService {
 
     const { data: rows, error } = await client
       .from('projects')
-      .select('id, title, slug, description, price_min_wages, status, featured, sort_order, external_url')
+      .select('id, title, slug, description, location, price_min_wages, status, featured, sort_order, external_url')
       .order('sort_order');
 
     if (error) {
@@ -403,7 +422,7 @@ export class ProjectsService {
     const { data: links } = await client.from('project_categories').select('project_id, category_id');
     const { data: images } = await client
       .from('project_images')
-      .select('id, project_id, storage_path, is_cover, sort_order')
+      .select('id, project_id, storage_path, is_cover, sort_order, alt, title, description, category')
       .order('sort_order');
 
     const categoryIdsByProject = new Map<string, string[]>();
@@ -414,13 +433,7 @@ export class ProjectsService {
     }
 
     const imagesByProject = new Map<string, AdminProjectImage[]>();
-    for (const image of (images ?? []) as {
-      id: string;
-      project_id: string;
-      storage_path: string;
-      is_cover: boolean;
-      sort_order: number;
-    }[]) {
+    for (const image of (images ?? []) as (ProjectImageRow & { id: string })[]) {
       const list = imagesByProject.get(image.project_id) ?? [];
       list.push({
         id: image.id,
@@ -428,6 +441,10 @@ export class ProjectsService {
         url: this.supabase.resolvePublicUrl('project-images', image.storage_path),
         isCover: image.is_cover,
         sortOrder: image.sort_order,
+        alt: image.alt,
+        title: image.title,
+        description: image.description,
+        category: image.category,
       });
       imagesByProject.set(image.project_id, list);
     }
@@ -438,6 +455,7 @@ export class ProjectsService {
         title: row.title,
         slug: row.slug,
         description: row.description,
+        location: row.location ?? null,
         priceMinWages: row.price_min_wages != null ? Number(row.price_min_wages) : null,
         status: row.status,
         featured: row.featured,
@@ -501,7 +519,7 @@ export class ProjectsService {
     projectId: string | null,
     input: ProjectInput,
     categoryIds: string[],
-    imageRows: { id?: string; storagePath: string; isCover: boolean; sortOrder: number }[],
+    imageRows: ProjectImageInput[],
     externalUrl: string | null = null,
   ): Promise<{ projectId: string; orphanPaths: string[] }> {
     await this.supabase.clientPromise;
@@ -510,11 +528,17 @@ export class ProjectsService {
     // la RPC no podría recorrerlo (`jsonb_array_elements` sobre un escalar
     // aborta con "cannot extract elements from a scalar"). La RPC además tolera
     // el string por compatibilidad con sesiones que aún tengan el bundle viejo.
+    //
+    // Los metadatos de imagen (alt/title/description/category) viajan dentro de
+    // este mismo jsonb, así que añadirlos no cambia la firma de la RPC. Los
+    // vacíos se mandan como null y la RPC los trata como "sin valor".
     const { data, error } = await this.supabase.client.rpc('admin_save_project', {
       p_project_id: projectId,
       p_title: input.title,
       p_slug: input.slug,
       p_description: input.description,
+      // '' = vaciar el campo a propósito; null = no enviar.
+      p_location: input.location?.trim() ?? '',
       p_price_min_wages: input.priceMinWages,
       p_status: input.status,
       p_featured: input.featured,
@@ -525,6 +549,10 @@ export class ProjectsService {
         storage_path: row.storagePath,
         is_cover: row.isCover,
         sort_order: row.sortOrder,
+        alt: row.alt?.trim() || null,
+        title: row.title?.trim() || null,
+        description: row.description?.trim() || null,
+        category: row.category?.trim() || null,
       })),
       p_external_url: externalUrl,
     });

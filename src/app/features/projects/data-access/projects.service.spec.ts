@@ -106,6 +106,9 @@ describe('ProjectsService', () => {
     expect(laHolanda!.categories).toContain('Proyectos Especiales');
     expect(laHolanda!.externalUrl).toBe('https://laholanda.ingesocc.com/');
     expect(laHolanda!.images.length).toBeGreaterThan(0);
+    // Ubicación de la OBRA (Quimbaya), no la sede de la empresa (Armenia).
+    expect(laHolanda!.location).toContain('Quimbaya');
+    expect(laHolanda!.location).not.toContain('Tebaida');
     // Es la primera del portafolio (sort_order 0) y participa del Home.
     expect(service.published()[0].slug).toBe('la-holanda');
     expect(service.featured().map((p) => p.slug)).toContain('la-holanda');
@@ -125,6 +128,54 @@ describe('ProjectsService', () => {
 
     expect(service.bySlug('con-enlace')!.externalUrl).toBe('https://micrositio.test');
     expect(service.bySlug('sin-enlace')!.externalUrl).toBeNull();
+  });
+
+  it('mapea location desde la base de datos (null cuando no viene)', async () => {
+    results['projects'] = {
+      data: [
+        { id: 'p1', title: 'Con ubicación', slug: 'con-ubicacion', description: 'x', location: 'Quimbaya, Quindío', price_min_wages: null, status: 'published', featured: false, sort_order: 1 },
+        { id: 'p2', title: 'Sin ubicación', slug: 'sin-ubicacion', description: 'x', price_min_wages: null, status: 'published', featured: false, sort_order: 2 },
+      ],
+    };
+    results['categories'] = { data: [] };
+
+    const service = setup();
+    await service.load();
+
+    expect(service.bySlug('con-ubicacion')!.location).toBe('Quimbaya, Quindío');
+    expect(service.bySlug('sin-ubicacion')!.location).toBeNull();
+  });
+
+  it('mapea los metadatos de imagen (alt, title, description, category)', async () => {
+    results['projects'] = {
+      data: [
+        { id: 'p1', title: 'Con fotos', slug: 'con-fotos', description: 'x', price_min_wages: null, status: 'published', featured: false, sort_order: 1 },
+      ],
+    };
+    results['categories'] = { data: [] };
+    results['project_images'] = {
+      data: [
+        { project_id: 'p1', storage_path: 'p1/portada.jpg', is_cover: true, sort_order: 0, alt: 'Portada de la obra', title: null, description: null, category: null },
+        { project_id: 'p1', storage_path: 'p1/estructura.jpg', is_cover: false, sort_order: 1, alt: 'Muro de contención', title: 'Muros', description: 'Muros de contención terminados', category: 'Estructura' },
+      ],
+    };
+
+    const service = setup();
+    await service.load();
+
+    const images = service.bySlug('con-fotos')!.images;
+    expect(images[0].alt).toBe('Portada de la obra');
+    // Las columnas ausentes llegan como null, no como undefined ni texto vacío.
+    expect(images[0].title).toBeNull();
+    expect(images[1]).toEqual(
+      jasmine.objectContaining({
+        alt: 'Muro de contención',
+        title: 'Muros',
+        description: 'Muros de contención terminados',
+        category: 'Estructura',
+        isCover: false,
+      }),
+    );
   });
 
   it('solo expone status=published y ordena por sortOrder', async () => {
@@ -205,6 +256,8 @@ describe('ProjectsService', () => {
           p_title: 'Casa 2',
           p_slug: 'casa-2',
           p_description: 'Desc 2',
+          // Sin ubicación: viaja como '' (vaciar) y no como null (no enviar).
+          p_location: '',
           p_price_min_wages: null,
           p_status: 'draft',
           p_featured: false,
@@ -214,13 +267,94 @@ describe('ProjectsService', () => {
           // `JSON.stringify` aquí llegaría a la RPC como escalar y el guardado
           // fallaría al recorrer las imágenes.
           p_image_rows: [
-            { id: 'img-1', storage_path: 'p1/a.jpg', is_cover: true, sort_order: 0 },
-            { id: null, storage_path: 'p1/nueva.jpg', is_cover: false, sort_order: 1 },
+            { id: 'img-1', storage_path: 'p1/a.jpg', is_cover: true, sort_order: 0, alt: null, title: null, description: null, category: null },
+            { id: null, storage_path: 'p1/nueva.jpg', is_cover: false, sort_order: 1, alt: null, title: null, description: null, category: null },
           ],
           p_external_url: null,
         },
       },
     ]);
+  });
+
+  it('saveProjectAtomic envía la ubicación de la obra', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'abc', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      {
+        title: 'La Holanda',
+        slug: 'la-holanda',
+        description: 'Parcelación campestre.',
+        location: '  Vía Quimbaya - Alcalá, Vereda Jazmín, Quimbaya, Quindío  ',
+        priceMinWages: null,
+        status: 'published',
+        featured: true,
+        sortOrder: 0,
+      },
+      [],
+      [],
+    );
+
+    const payload = writes[0].payload as { p_location: string };
+    expect(payload.p_location).toBe('Vía Quimbaya - Alcalá, Vereda Jazmín, Quimbaya, Quindío');
+  });
+
+  it('saveProjectAtomic envía los metadatos de imagen dentro de p_image_rows', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'abc', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      { title: 'Casa', slug: 'casa', description: 'Desc', priceMinWages: null, status: 'draft', featured: false, sortOrder: 0 },
+      [],
+      [
+        {
+          id: 'img-1',
+          storagePath: 'p1/a.jpg',
+          isCover: true,
+          sortOrder: 0,
+          alt: 'Losa de fundación',
+          title: 'Cimentación',
+          description: 'Losa de fundación terminada',
+          category: 'Estructura',
+        },
+      ],
+    );
+
+    const payload = writes[0].payload as { p_image_rows: Record<string, unknown>[] };
+    // Los metadatos viajan en el jsonb: por eso no cambian la firma de la RPC.
+    expect(payload.p_image_rows[0]).toEqual(
+      jasmine.objectContaining({
+        alt: 'Losa de fundación',
+        title: 'Cimentación',
+        description: 'Losa de fundación terminada',
+        category: 'Estructura',
+      }),
+    );
+  });
+
+  it('saveProjectAtomic normaliza metadatos vacíos a null (no texto en blanco)', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'abc', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      { title: 'Casa', slug: 'casa', description: 'Desc', priceMinWages: null, status: 'draft', featured: false, sortOrder: 0 },
+      [],
+      [{ storagePath: 'p1/a.jpg', isCover: true, sortOrder: 0, alt: '   ', title: '', description: ' ', category: '' }],
+    );
+
+    const payload = writes[0].payload as { p_image_rows: Record<string, unknown>[] };
+    expect(payload.p_image_rows[0]).toEqual(
+      jasmine.objectContaining({ alt: null, title: null, description: null, category: null }),
+    );
   });
 
   it('saveProjectAtomic envía p_external_url cuando el proyecto tiene sitio oficial', async () => {
