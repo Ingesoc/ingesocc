@@ -34,6 +34,12 @@ export class ContactComponent {
   readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp'));
   readonly privacyNote = computed(() => this.blocks.text('contact', 'privacy_note'));
 
+  /** Mapa embebido (sin API key) a partir de la dirección real; '' = oculto. */
+  readonly mapEmbedUrl = computed(() => {
+    const where = this.address();
+    return where ? `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=15&output=embed` : '';
+  });
+
   /** Obligatorios: Nombre, Email, Mensaje. Teléfono y Asunto opcionales. */
   readonly form = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]),

@@ -73,6 +73,32 @@
     </div>
   </section>
 
+  <!-- ── UBICACIÓN ──────────────────────────────────────── -->
+  @if (mapEmbedUrl()) {
+    <section class="border-t border-border bg-background py-20 md:py-28">
+      <div class="wrap grid gap-10 md:grid-cols-12 md:items-center">
+        <div class="md:col-span-4">
+          <p class="kicker text-accent-deep mb-5">Ubicación de la obra</p>
+          <h2 class="text-3xl font-bold tracking-[-0.02em] md:text-4xl">{{ location() }}</h2>
+          <p class="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+            <svg lucideMapPin class="h-4 w-4 text-accent-deep" aria-hidden="true" /> Localización aproximada
+          </p>
+        </div>
+        <div class="md:col-span-8">
+          <div class="aspect-[16/10] w-full overflow-hidden border border-border bg-secondary">
+            <iframe
+              [src]="mapEmbedUrl()"
+              title="Mapa de la ubicación de {{ project.title }}"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              class="h-full w-full border-0"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
   <!-- ── GALERÍA ────────────────────────────────────────── -->
   @if (galleryImages().length > 0) {
     <section class="border-t border-border bg-surface py-20 md:py-28">

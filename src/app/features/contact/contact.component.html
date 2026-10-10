@@ -23,6 +23,25 @@
         Un ingeniero revisará su solicitud y le responderá a la brevedad con una propuesta clara y sin compromiso.
       </p>
 
+      <!-- Acciones directas (WhatsApp / llamada) -->
+      <div class="mt-8 grid gap-3 sm:grid-cols-2">
+        @if (whatsappUrl()) {
+          <a
+            [href]="whatsappUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-accent w-full"
+          >
+            <svg lucideMessageCircle class="h-4 w-4" /> WhatsApp
+          </a>
+        }
+        @if (phoneHref(); as href) {
+          <a [href]="href" class="btn btn-solid w-full">
+            <svg lucidePhone class="h-4 w-4" /> Llamar
+          </a>
+        }
+      </div>
+
       <div class="mt-12 grid gap-0">
         <div class="flex items-start gap-5 border-t border-border py-7">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
@@ -75,6 +94,18 @@
           </div>
         </div>
       </div>
+
+      @if (mapEmbedUrl()) {
+        <div class="mt-8 aspect-[16/10] w-full overflow-hidden border border-border bg-secondary">
+          <iframe
+            [src]="mapEmbedUrl()"
+            title="Mapa de la ubicación de Ingesocc"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            class="h-full w-full border-0"
+          ></iframe>
+        </div>
+      }
     </div>
 
     <!-- Formulario -->

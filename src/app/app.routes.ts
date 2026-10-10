@@ -3,9 +3,11 @@ import { PublicLayoutComponent } from './layouts/public-layout/public-layout.com
 import { HomeComponent } from './features/home/home.component';
 import { AboutComponent } from './features/about/about.component';
 import { ServicesPageComponent } from './features/services/public/services-page.component';
+import { ServiceDetailComponent } from './features/services/public/service-detail.component';
 import { ProjectsPageComponent } from './features/projects/public/projects-page.component';
 import { ProjectDetailComponent } from './features/projects/public/project-detail.component';
 import { ContactComponent } from './features/contact/contact.component';
+import { NotFoundComponent } from './features/not-found/not-found.component';
 import { authGuard } from './features/auth/auth.guard';
 
 /** Rutas públicas (plan, sección 6). */
@@ -42,6 +44,15 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'servicios/:slug',
+        component: ServiceDetailComponent,
+        data: {
+          title: 'Servicios',
+          description:
+            'Detalle de una línea de servicio de Ingesocc S.A.S.: alcance, entregables típicos y proyectos relacionados.',
+        },
+      },
+      {
         path: 'proyectos',
         component: ProjectsPageComponent,
         data: {
@@ -66,6 +77,14 @@ export const routes: Routes = [
           title: 'Contacto',
           description:
             'Solicite una cotización o escríbanos: cuéntenos sobre su proyecto y le responderemos a la brevedad.',
+        },
+      },
+      {
+        path: 'no-encontrada',
+        component: NotFoundComponent,
+        data: {
+          title: 'Página no encontrada',
+          description: 'La página que busca no existe o fue movida. Vuelva al inicio o explore el portafolio.',
         },
       },
     ],
@@ -140,5 +159,6 @@ export const routes: Routes = [
     ],
   },
 
-  { path: '**', redirectTo: '' },
+  // Cualquier otra URL → 404 dentro del layout público (mantiene nav/CTA/footer).
+  { path: '**', redirectTo: 'no-encontrada' },
 ];

@@ -123,6 +123,11 @@ export class ServicesService {
       .sort((a, b) => a.sortOrder - b.sortOrder),
   );
 
+  /** Servicio publicado por slug para la vista de detalle (ruta /servicios/:slug). */
+  bySlug(slug: string): Service | undefined {
+    return this.published().find((service) => service.slug === slug);
+  }
+
   constructor() {
     void this.load();
   }

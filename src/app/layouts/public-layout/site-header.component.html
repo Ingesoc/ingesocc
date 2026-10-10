@@ -1,4 +1,9 @@
-<header class="absolute inset-x-0 top-0 z-40 text-white">
+<header
+  class="fixed inset-x-0 top-0 z-40 text-white transition-[background-color,border-color,box-shadow] duration-300"
+  [ngClass]="{
+    'border-b border-white/10 bg-primary/90 shadow-lg backdrop-blur-sm': isScrolled()
+  }"
+>
   <div class="wrap relative z-10 flex items-center justify-between py-5 md:py-6">
     <!-- Marca -->
     <a routerLink="/" class="group flex items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">

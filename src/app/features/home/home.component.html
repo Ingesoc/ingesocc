@@ -19,39 +19,51 @@
             {{ heroSubtitle() }}
           </p>
         </div>
-        <div class="flex items-center justify-between gap-6 md:col-span-5 md:justify-end">
+        <div class="flex flex-wrap items-center justify-between gap-6 md:col-span-5 md:justify-end">
           <a href="#stats" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-white/50 transition-colors hover:text-white">
             Descubrir <svg lucideChevronDown class="h-4 w-4" />
           </a>
-          <a routerLink="/contacto" class="btn btn-accent">
-            {{ heroCtaLabel() }}
-            <svg lucideArrowUpRight class="h-4 w-4" />
-          </a>
+          <div class="flex flex-wrap items-center gap-3">
+            <a routerLink="/proyectos" class="btn btn-outline border-white/40 text-white">
+              Ver obras
+              <svg lucideArrowUpRight class="h-4 w-4" />
+            </a>
+            <a routerLink="/contacto" class="btn btn-accent">
+              {{ heroCtaLabel() }}
+              <svg lucideArrowUpRight class="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── STATS ────────────────────────────────────────────── -->
-  <section class="border-b border-border bg-background">
-    <div class="wrap grid grid-cols-1 divide-y divide-border py-14 sm:grid-cols-3 sm:divide-x sm:divide-y-0 md:py-16">
-      <div class="py-6 sm:px-10 sm:py-0 sm:first:pl-0 sm:last:pr-0">
-        <p class="text-6xl font-bold tracking-tight md:text-7xl">
-          {{ years() }}<span class="text-accent">+</span>
-        </p>
-        <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Años de experiencia</p>
+  <!-- ── STATS / RESULTADOS ────────────────────────────────── -->
+  <section id="stats" class="border-b border-border bg-background">
+    <div class="wrap grid gap-8 py-14 md:grid-cols-12 md:items-center md:py-16">
+      <div class="md:col-span-4">
+        <p class="kicker mb-3 text-accent-deep">Respaldo en cifras</p>
+        <p class="text-sm leading-6 text-muted-foreground">Trayectoria verificable en obra propia y para terceros.</p>
       </div>
-      <div class="py-6 sm:px-10 sm:py-0 sm:first:pl-0 sm:last:pr-0">
-        <p class="text-6xl font-bold tracking-tight md:text-7xl">
-          {{ projectsExecuted() }}<span class="text-accent">+</span>
-        </p>
-        <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Proyectos ejecutados</p>
-      </div>
-      <div class="py-6 sm:px-10 sm:py-0 sm:first:pl-0 sm:last:pr-0">
-        <p class="text-6xl font-bold tracking-tight md:text-7xl">
-          {{ sectorsServed() }}<span class="text-accent">+</span>
-        </p>
-        <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Sectores atendidos</p>
+      <div class="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0 md:col-span-8">
+        <div class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <p class="text-6xl font-bold tracking-tight md:text-7xl">
+            {{ years() }}<span class="text-accent">+</span>
+          </p>
+          <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Años de experiencia</p>
+        </div>
+        <div class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <p class="text-6xl font-bold tracking-tight md:text-7xl">
+            {{ projectsExecuted() }}<span class="text-accent">+</span>
+          </p>
+          <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Proyectos ejecutados</p>
+        </div>
+        <div class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <p class="text-6xl font-bold tracking-tight md:text-7xl">
+            {{ sectorsServed() }}<span class="text-accent">+</span>
+          </p>
+          <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Sectores atendidos</p>
+        </div>
       </div>
     </div>
   </section>
@@ -112,11 +124,36 @@
     </div>
   </section>
 
+  <!-- ── CÓMO TRABAJAMOS ──────────────────────────────────── -->
+  <section id="proceso" class="border-t border-border bg-background py-24 md:py-36">
+    <div class="wrap">
+      <div class="grid gap-6 md:grid-cols-12">
+        <p class="kicker md:col-span-2 md:pt-2 text-accent-deep">03 / Cómo trabajamos</p>
+        <div class="md:col-span-9 md:col-start-4">
+          <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:text-6xl">Un proceso, cero sorpresas.</h2>
+          <p class="mt-6 max-w-xl text-base leading-7 text-muted-foreground">
+            Acompañamos cada etapa con un mismo equipo: de la idea en el plano a la obra terminada.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-16 grid gap-x-10 gap-y-12 md:grid-cols-4">
+        @for (step of processSteps; track step.n) {
+          <div class="border-t-2 border-foreground pt-7">
+            <p class="text-xs font-bold tracking-[0.3em] text-accent-deep">{{ step.n }}</p>
+            <h3 class="mt-5 text-2xl font-bold tracking-tight">{{ step.title }}</h3>
+            <p class="mt-4 text-sm leading-7 text-muted-foreground">{{ step.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
   <!-- ── CAPACIDAD ────────────────────────────────────────── -->
   <section id="capacidad" class="bg-background py-24 md:py-36">
     <div class="wrap">
       <div class="grid gap-6 md:grid-cols-12">
-        <p class="kicker md:col-span-2 md:pt-2">03 / Capacidad</p>
+        <p class="kicker md:col-span-2 md:pt-2">04 / Capacidad</p>
         <div class="md:col-span-9 md:col-start-4">
           <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:text-6xl">{{ capacidadTitle() }}</h2>
         </div>
@@ -138,19 +175,56 @@
     </div>
   </section>
 
+  <!-- ── OPERACIONES ──────────────────────────────────────── -->
+  <section id="operaciones" class="bg-secondary py-24 md:py-36">
+    <div class="wrap">
+      <div class="mb-12 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p class="kicker mb-4 text-accent-deep">05 / Operación real</p>
+          <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:text-6xl">El oficio, en obra.</h2>
+        </div>
+        <a routerLink="/quienes-somos" class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-accent-deep transition-colors hover:text-foreground">
+          Ver operaciones
+          <svg lucideArrowUpRight class="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </a>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        @for (image of operacionesPreview(); track image.src; let i = $index) {
+          <figure class="group relative aspect-[4/5] overflow-hidden bg-muted md:aspect-[3/4]">
+            <img
+              [src]="image.src"
+              [alt]="image.alt"
+              width="600"
+              height="800"
+              loading="lazy"
+              decoding="async"
+              class="media-zoom h-full w-full object-cover"
+            />
+            <span class="absolute bottom-3 left-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white/80">Operación 0{{ i + 1 }}</span>
+          </figure>
+        }
+      </div>
+    </div>
+  </section>
+
   <!-- ── CTA FINAL ────────────────────────────────────────── -->
   <section id="contacto" class="bg-primary px-0 text-white">
     <div class="wrap grid gap-12 py-24 md:grid-cols-12 md:items-end md:py-32">
       <div class="md:col-span-8">
-        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">04 / Hablemos</p>
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">06 / Hablemos</p>
         <h2 class="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-7xl">
           {{ ctaTitle() }}
         </h2>
       </div>
-      <div class="md:col-span-4 md:justify-self-end">
+      <div class="flex flex-col gap-3 md:col-span-4 md:justify-self-end">
         <a routerLink="/contacto" class="btn btn-accent w-full md:w-auto">
           {{ ctaLabel() }}
           <svg lucideArrowUpRight class="h-4 w-4" />
+        </a>
+        <a [href]="whatsappUrl()" target="_blank" rel="noopener" class="btn btn-outline border-white/40 text-white w-full md:w-auto">
+          Escribir por WhatsApp
+          <svg lucideMessageCircle class="h-4 w-4" />
         </a>
         <p class="mt-4 text-xs leading-5 text-white/50">Respuesta a la brevedad · Cotización sin compromiso</p>
       </div>

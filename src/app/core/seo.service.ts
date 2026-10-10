@@ -2,17 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
-
-const SITE_NAME = 'Ingesocc S.A.S.';
-
-/**
- * Dominio público del sitio. TODO Fase 9: reemplazar por el dominio real de
- * Ingesocc antes del despliegue (ver README → Despliegue).
- */
-const SITE_URL = 'https://ingesocc.com';
-
-const DEFAULT_DESCRIPTION =
-  'Ingesocc S.A.S. — arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.';
+import { SITE_NAME, SITE_URL, DEFAULT_DESCRIPTION } from './site-config';
 
 /**
  * SEO básico (plan, Fase 9): mantiene <title>, meta description, Open Graph y

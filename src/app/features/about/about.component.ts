@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal, HostListener } from '@angular/core';
-import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideX } from '@lucide/angular';
+import { RouterLink } from '@angular/router';
+import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideMessageCircle, LucideShieldCheck, LucideX } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
+import { CONTACT } from '../../core/site-config';
 import { OPERACIONES } from './operaciones.data';
 
 /** Slots fijos del timeline (plan 1.4): el admin edita el contenido, no la estructura. */
@@ -13,7 +15,7 @@ const TEAM_KEYS = ['member1', 'member2', 'member3', 'member4'] as const;
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideX],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideMessageCircle, LucideShieldCheck, LucideX],
   templateUrl: './about.component.html',
 })
 export class AboutComponent {
@@ -39,6 +41,9 @@ export class AboutComponent {
       title: this.blocks.text('about', `timeline.${key}.title`),
     })),
   );
+
+  /** WhatsApp del CTA final (contact.whatsapp; fallo: dato real verificado). */
+  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp));
 
   readonly team = computed(() =>
     TEAM_KEYS.map((key) => ({

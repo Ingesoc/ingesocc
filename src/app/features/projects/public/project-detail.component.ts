@@ -84,6 +84,15 @@ export class ProjectDetailComponent {
     return project ? projectLocation(project) : '';
   });
 
+  /**
+   * Mapa embebido (sin API key) a partir de la ubicación real de la obra.
+   * Devuelve '' cuando no hay ubicación: el template oculta la sección.
+   */
+  readonly mapEmbedUrl = computed(() => {
+    const where = this.location();
+    return where ? `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=13&output=embed` : '';
+  });
+
   /** Descripción corta: incluye la ubicación para que el dato sea rastreable. */
   readonly seoDescription = computed(() => {
     const project = this.project();

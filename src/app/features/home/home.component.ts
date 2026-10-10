@@ -1,11 +1,37 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideArrowUpRight, LucideChevronDown } from '@lucide/angular';
+import { LucideArrowUpRight, LucideChevronDown, LucideMessageCircle } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
+import { OPERACIONES } from '../about/operaciones.data';
+import { CONTACT } from '../../core/site-config';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
+
+/** Cómo trabajamos (Fase 2). Copy [PENDIENTE: validar con el cliente]. */
+const PROCESS_STEPS = [
+  {
+    n: '01',
+    title: 'Diseño',
+    description: 'Levantamiento, planimetría y conceptualización del proyecto a la medida de sus objetivos.',
+  },
+  {
+    n: '02',
+    title: 'Ingeniería',
+    description: 'Cálculo estructural, memoria técnica y planos de detalle listos para ejecutar.',
+  },
+  {
+    n: '03',
+    title: 'Construcción',
+    description: 'Ejecución y control en obra con seguimiento permanente de calidad y seguridad.',
+  },
+  {
+    n: '04',
+    title: 'Entrega',
+    description: 'Puesta en marcha, documentación y acompañamiento después del cierre.',
+  },
+] as const;
 
 /** Composición editorial del mosaico de destacados (Home).
  *
@@ -22,7 +48,7 @@ const BLOCK_B = ['md:col-span-4 md:row-span-2', 'md:col-span-4 md:row-span-2', '
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, ProjectCardComponent],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, ProjectCardComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
@@ -67,10 +93,26 @@ export class HomeComponent {
   readonly ctaTitle = computed(() => this.blocks.text('home', 'cta.title', '¿Tiene un proyecto en mente?'));
   readonly ctaLabel = computed(() => this.blocks.text('global', 'cta_label', 'Solicitar Cotización'));
 
+  /** CTA de WhatsApp del CTA final (contact.whatsapp; fallo: dato real verificado). */
+  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp));
+
   /** Solo `featured = true`, ordenados por sort_order (plan 1.2.2). */
   readonly featuredProjects = this.projects.featured;
 
   readonly previewServices = computed(() => this.services.published().slice(0, 3));
+
+  readonly processSteps = PROCESS_STEPS;
+
+  /** Primeras imágenes reales de obra para la preview de Operaciones (q_auto/f_auto). */
+  readonly operacionesPreview = computed(() =>
+    OPERACIONES.flatMap((group) => group.media)
+      .filter((media) => media.type === 'image')
+      .slice(0, 4)
+      .map((media) => ({
+        src: withCloudinaryTransform(media.src, CLOUDINARY_TRANSFORMS.gallery),
+        alt: media.alt,
+      })),
+  );
 
   /** Span de la tarjeta `index` dentro del mosaico (ver patrón arriba). */
   masonryClass(index: number, total: number): string {

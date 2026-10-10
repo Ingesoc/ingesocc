@@ -120,11 +120,34 @@
   </div>
 </section>
 
+<!-- ── CERTIFICACIONES / LICENCIAS ───────────────────────── -->
+<section class="border-t border-border bg-background py-24 md:py-32">
+  <div class="wrap">
+    <div class="mb-16 grid gap-6 md:grid-cols-12">
+      <p class="kicker text-accent-deep md:col-span-2">05 / Certificaciones</p>
+      <h2 class="text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Respaldo acreditado.</h2>
+    </div>
+
+    <!-- Placeholder de diseño: las certificaciones las aporta el cliente [PENDIENTE]. -->
+    <div class="flex flex-col items-start gap-6 border border-dashed border-border bg-surface p-8 md:flex-row md:items-center">
+      <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-secondary text-accent-deep">
+        <svg lucideShieldCheck class="h-7 w-7" />
+      </span>
+      <div>
+        <p class="text-lg font-bold tracking-tight">Certificaciones y licencias en validación</p>
+        <p class="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
+          Aquí se publicarán las certificaciones, licencias y habilitaciones de la empresa con sus soportes verificables.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ── EQUIPO ───────────────────────────────────────────── -->
 <section class="border-t border-border bg-background pb-24 pt-24 md:pb-36 md:pt-36">
   <div class="wrap">
     <div class="mb-16 grid gap-6 md:grid-cols-12">
-      <p class="kicker text-accent-deep md:col-span-2">05 / Equipo</p>
+      <p class="kicker text-accent-deep md:col-span-2">06 / Equipo</p>
       <h2 class="text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Las personas detrás de cada obra.</h2>
     </div>
 
@@ -143,6 +166,29 @@
           <p class="mt-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-accent-deep">{{ member.role }}</p>
         </article>
       }
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA FINAL ────────────────────────────────────────── -->
+<section class="bg-primary px-0 text-white">
+  <div class="wrap grid gap-12 py-24 md:grid-cols-12 md:items-end md:py-32">
+    <div class="md:col-span-8">
+      <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">Hablemos</p>
+      <h2 class="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-7xl">
+        Construyamos su próximo proyecto.
+      </h2>
+    </div>
+    <div class="flex flex-col gap-3 md:col-span-4 md:justify-self-end">
+      <a routerLink="/contacto" class="btn btn-accent w-full md:w-auto">
+        Solicitar Cotización
+        <svg lucideArrowUpRight class="h-4 w-4" />
+      </a>
+      <a [href]="whatsappUrl()" target="_blank" rel="noopener" class="btn btn-outline w-full border-white/40 text-white md:w-auto">
+        Escribir por WhatsApp
+        <svg lucideMessageCircle class="h-4 w-4" />
+      </a>
+      <p class="mt-4 text-xs leading-5 text-white/50">Respuesta a la brevedad · Cotización sin compromiso</p>
     </div>
   </div>
 </section>

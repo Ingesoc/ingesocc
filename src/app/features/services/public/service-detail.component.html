@@ -1,0 +1,132 @@
+@if (service(); as service) {
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section class="relative overflow-hidden bg-primary text-white">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary via-primary to-[#221f1b]"></div>
+    <div class="wrap relative pb-16 pt-36 md:pb-24 md:pt-48">
+      <nav class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.24em] text-white/50" aria-label="Ruta de página">
+        <a routerLink="/servicios" class="transition-colors hover:text-white">Servicios</a>
+        <span class="text-accent">/</span>
+        <span class="text-white/80">{{ service.name }}</span>
+      </nav>
+
+      <div class="mt-8 grid gap-10 md:grid-cols-12 md:items-end">
+        <div class="md:col-span-8">
+          <h1 class="text-balance text-5xl font-bold leading-[0.98] tracking-[-0.03em] md:text-7xl">{{ service.name }}</h1>
+          <p class="mt-6 max-w-2xl text-base leading-7 text-white/70 md:text-lg md:leading-8">{{ service.description }}</p>
+        </div>
+        <div class="hidden md:col-span-4 md:flex md:justify-end">
+          @if (photoUrl()) {
+            <img [src]="photoUrl()" [alt]="service.name" width="480" height="360" loading="eager" decoding="async" class="aspect-[4/3] w-full max-w-md object-cover" />
+          } @else if (iconComponent()) {
+            <div class="flex aspect-[4/3] w-full max-w-md items-center justify-center border border-white/15 bg-white/5">
+              <ng-container [ngComponentOutlet]="iconComponent()" [ngComponentOutletInputs]="{ size: 72 }" />
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ALCANCE ─────────────────────────────────────────── -->
+  <section class="bg-background py-16 md:py-24">
+    <div class="wrap grid gap-12 md:grid-cols-12">
+      <div class="md:col-span-4">
+        <p class="kicker mb-4 text-accent-deep">Alcance</p>
+        <h2 class="text-3xl font-bold tracking-[-0.02em] md:text-4xl">Qué incluye esta línea</h2>
+      </div>
+      <div class="md:col-span-7 md:col-start-6">
+        <p class="text-base leading-7 text-muted-foreground md:text-lg md:leading-8">{{ service.description }}</p>
+        <ul class="mt-8 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
+          @for (item of deliverables(); track item) {
+            <li class="flex items-start gap-3 text-sm leading-6 text-foreground">
+              <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
+              {{ item }}
+            </li>
+          }
+        </ul>
+        <p class="mt-8 text-xs leading-5 text-muted-foreground">
+          Cada obra se ajusta a las condiciones del proyecto y del terreno. Detalles de alcance y entregables por definir con el cliente.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Preguntas frecuentes ────────────────────────────── -->
+  <section class="border-y border-border bg-secondary py-16 md:py-24">
+    <div class="wrap grid gap-12 md:grid-cols-12">
+      <div class="md:col-span-4">
+        <p class="kicker mb-4 text-accent-deep">Preguntas frecuentes</p>
+        <h2 class="text-3xl font-bold tracking-[-0.02em] md:text-4xl">Para tomar decisiones</h2>
+      </div>
+      <div class="grid content-start gap-0 border-t border-border md:col-span-7 md:col-start-6">
+        @for (item of faq; track item.q; let i = $index) {
+          <details class="group border-b border-border">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-6 text-base font-bold tracking-tight [&::-webkit-details-marker]:hidden">
+              <span>0{{ i + 1 }} · {{ item.q }}</span>
+              <span class="text-2xl font-light leading-none text-accent-deep transition-transform duration-300 group-open:rotate-45">+</span>
+            </summary>
+            <p class="max-w-2xl pb-6 text-sm leading-7 text-muted-foreground">{{ item.a }}</p>
+          </details>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Proyectos relacionados ──────────────────────────── -->
+  @if (relatedProjects().length > 0) {
+    <section class="bg-background py-24 md:py-32">
+      <div class="wrap">
+        <div class="mb-12 flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p class="kicker mb-4 text-accent-deep">Proyectos relacionados</p>
+            <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:text-6xl">Obras que dan contexto</h2>
+          </div>
+          <a routerLink="/proyectos" class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-accent-deep transition-colors hover:text-foreground">
+            Ver todos
+            <svg lucideArrowUpRight class="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </a>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          @for (project of relatedProjects(); track project.slug) {
+            <app-project-card [project]="project" variant="panel" />
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ── CTA ─────────────────────────────────────────────── -->
+  <section class="bg-primary px-0 text-white">
+    <div class="wrap grid gap-10 py-20 md:grid-cols-12 md:items-end md:py-28">
+      <div class="md:col-span-8">
+        <p class="mb-5 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">¿Hablamos de su proyecto?</p>
+        <h2 class="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-6xl">Cotice {{ service.name }}</h2>
+      </div>
+      <div class="flex flex-col gap-3 md:col-span-4 md:justify-self-end">
+        <a routerLink="/contacto" class="btn btn-accent w-full md:w-auto">
+          Solicitar Cotización
+          <svg lucideArrowUpRight class="h-4 w-4" />
+        </a>
+        <a [href]="whatsappUrl()" target="_blank" rel="noopener" class="btn btn-outline w-full border-white/40 text-white md:w-auto">
+          Escribir por WhatsApp
+          <svg lucideMessageCircle class="h-4 w-4" />
+        </a>
+      </div>
+    </div>
+  </section>
+} @else {
+  <!-- ── Servicio no encontrado ──────────────────────────── -->
+  <section class="bg-primary px-0 text-white">
+    <div class="wrap py-40 text-center">
+      <p class="text-[6rem] font-bold leading-none tracking-[-0.05em] text-white/10">404</p>
+      <h1 class="mt-4 text-4xl font-bold tracking-[-0.02em]">Servicio no encontrado</h1>
+      <p class="mx-auto mt-4 max-w-md text-sm leading-6 text-white/60">
+        El servicio que busca no existe o fue retirado. Puede volver al listado completo.
+      </p>
+      <a routerLink="/servicios" class="btn btn-accent mt-10">
+        Ver todos los servicios
+        <svg lucideArrowUpRight class="h-4 w-4" />
+      </a>
+    </div>
+  </section>
+}

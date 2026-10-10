@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { LucideArrowRight } from '@lucide/angular';
 import type { LucideIcon } from '@lucide/angular';
 import { serviceIconFor } from '../data-access/service-icons';
@@ -9,7 +10,7 @@ import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cl
 @Component({
   selector: 'app-service-card',
   standalone: true,
-  imports: [NgComponentOutlet, LucideArrowRight],
+  imports: [NgComponentOutlet, RouterLink, LucideArrowRight],
   templateUrl: './service-card.component.html',
 })
 export class ServiceCardComponent {

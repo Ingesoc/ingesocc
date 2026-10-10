@@ -16,18 +16,39 @@
 
 <section class="px-5 py-16 md:px-10 md:py-24">
   <div class="wrap px-0">
-    <div class="mb-12 flex flex-wrap items-center gap-x-8 gap-y-3">
-      @for (category of categories(); track category) {
-        <button
-          type="button"
-          (click)="setCategory(category)"
-          [attr.aria-pressed]="isActive(category)"
-          [class]="isActive(category)
-            ? 'rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-primary transition-colors'
-            : 'rounded-full border border-border bg-surface/40 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep'"
-        >
-          {{ category }}
-        </button>
+    <div class="mb-12 grid gap-6">
+      <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
+        <span class="w-20 shrink-0 text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground/70">Categoría</span>
+        @for (category of categories(); track category) {
+          <button
+            type="button"
+            (click)="setCategory(category)"
+            [attr.aria-pressed]="isActive(category)"
+            [class]="isActive(category)
+              ? 'rounded-full bg-accent px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-primary transition-colors'
+              : 'rounded-full border border-border bg-surface/40 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep'"
+          >
+            {{ category }}
+          </button>
+        }
+      </div>
+
+      @if (locations().length > 1) {
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-border pt-6">
+          <span class="w-20 shrink-0 text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground/70">Ubicación</span>
+          @for (location of locations(); track location) {
+            <button
+              type="button"
+              (click)="setLocation(location)"
+              [attr.aria-pressed]="isLocationActive(location)"
+              [class]="isLocationActive(location)
+                ? 'rounded-full bg-primary px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-colors'
+                : 'rounded-full border border-border bg-surface/40 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep'"
+            >
+              {{ location }}
+            </button>
+          }
+        </div>
       }
     </div>
 
@@ -39,8 +60,8 @@
 
     @if (visible().length === 0) {
       <div class="border-t border-border py-16 text-center">
-        <p class="text-lg font-bold">No hay proyectos publicados en esta categoría.</p>
-        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">Prueba con otro filtro o vuelve pronto: seguimos sumando obras al portafolio.</p>
+        <p class="text-lg font-bold">No hay proyectos publicados con estos filtros.</p>
+        <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">Prueba con otra categoría u ubicación, o vuelve pronto: seguimos sumando obras al portafolio.</p>
       </div>
     }
 

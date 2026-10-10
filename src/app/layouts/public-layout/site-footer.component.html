@@ -2,7 +2,7 @@
   <div class="wrap pb-10 pt-16 md:pt-20">
     <div class="grid gap-12 lg:grid-cols-12">
       <!-- Marca + redes -->
-      <div class="lg:col-span-5">
+      <div class="lg:col-span-4">
         <a routerLink="/" class="flex items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">
           <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/20">
             <img src="/logo/logo.png" alt="" width="44" height="44" class="h-full w-full object-cover" />
@@ -35,7 +35,7 @@
       </div>
 
       <!-- Navegación -->
-      <nav class="lg:col-span-3" aria-label="Navegación del pie de página">
+      <nav class="lg:col-span-2" aria-label="Navegación del pie de página">
         <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Navegación</p>
         <ul class="grid gap-3">
           @for (item of navItems; track item.link) {
@@ -49,8 +49,23 @@
         </ul>
       </nav>
 
+      <!-- Servicios -->
+      <nav class="lg:col-span-3" aria-label="Servicios del pie de página">
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Servicios</p>
+        <ul class="grid gap-3">
+          @for (item of serviceLinks(); track item.label) {
+            <li>
+              <a [routerLink]="item.link"
+                class="text-sm font-medium text-white/70 transition-colors duration-200 hover:text-accent">
+                {{ item.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
+
       <!-- Contacto -->
-      <div class="lg:col-span-4">
+      <div class="lg:col-span-3">
         <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Contacto</p>
         <ul class="grid gap-3">
           <li class="flex items-baseline gap-3 border-b border-white/10 pb-3">
@@ -73,7 +88,12 @@
   <div class="border-t border-white/10">
     <div class="wrap flex flex-col items-center justify-between gap-3 py-6 text-[11px] uppercase tracking-[0.2em] text-white/40 md:flex-row">
       <p>© {{ year }} Ingesocc S.A.S. · Todos los derechos reservados</p>
-      <p class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span> Ingeniería · Arquitectura · Construcción</p>
+      <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        @for (item of legalItems; track item.link) {
+          <a [routerLink]="item.link" class="text-white/50 transition-colors hover:text-accent">{{ item.label }}</a>
+        }
+        <p class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span> Ingeniería · Arquitectura · Construcción</p>
+      </div>
     </div>
   </div>
 </footer>

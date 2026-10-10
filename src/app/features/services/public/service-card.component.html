@@ -4,9 +4,10 @@
     <p class="text-xs font-bold tracking-[0.3em] text-accent-deep">0{{ index() + 1 }}<span class="mx-2 text-border">/</span>{{ service().slug }}</p>
     <h2 class="mt-4 text-3xl font-bold leading-tight tracking-[-0.02em] transition-colors duration-300 group-hover:text-accent-deep md:text-4xl">{{ service().name }}</h2>
     <p class="mt-4 max-w-xl text-base leading-7 text-muted-foreground">{{ service().description }}</p>
-    <div class="mt-7 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground transition-colors duration-300 group-hover:text-accent-deep">
-      Servicio Ingesocc <svg lucideArrowRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-    </div>
+    <a [routerLink]="'/servicios/' + service().slug" class="mt-7 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground transition-colors duration-300 hover:text-accent-deep group-hover:text-accent-deep">
+      Ver detalle del servicio
+      <svg lucideArrowRight class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+    </a>
   </div>
 
   <!-- Imagen (si existe) o ícono de respaldo -->
