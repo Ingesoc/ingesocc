@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { LucideExternalLink, LucideMail, LucideMapPin, LucideMessageCircle, LucidePhone } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
@@ -23,6 +24,7 @@ function telLink(phone: string): string | null {
 export class ContactComponent {
   private readonly blocks = inject(ContentBlocksService);
   private readonly messages = inject(ContactMessagesService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly title = computed(() => this.blocks.text('contact', 'title', 'Contacto'));
   readonly subtitle = computed(() => this.blocks.text('contact', 'subtitle', ''));
@@ -34,10 +36,17 @@ export class ContactComponent {
   readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp'));
   readonly privacyNote = computed(() => this.blocks.text('contact', 'privacy_note'));
 
-  /** Mapa embebido (sin API key) a partir de la dirección real; '' = oculto. */
-  readonly mapEmbedUrl = computed(() => {
+  /**
+   * Mapa embebido (sin API key) a partir de la dirección real; null = oculto.
+   * Se marca como `SafeResourceUrl` porque el `src` de un `<iframe>` es un
+   * contexto de *resource URL*: Angular lo rechaza si recibe un string plano.
+   */
+  readonly mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const where = this.address();
-    return where ? `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=15&output=embed` : '';
+    if (!where) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=15&output=embed`,
+    );
   });
 
   /** Obligatorios: Nombre, Email, Mensaje. Teléfono, Asunto y contexto del

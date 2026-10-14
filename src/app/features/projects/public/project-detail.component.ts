@@ -1,5 +1,6 @@
-import { Component, computed, effect, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, HostListener, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin, LucideX } from '@lucide/angular';
@@ -37,6 +38,7 @@ export class ProjectDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly projects = inject(ProjectsService);
   private readonly seo = inject(SeoService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   private readonly slug = toSignal(this.route.paramMap.pipe(map((params) => params.get('slug'))));
 
@@ -112,11 +114,16 @@ export class ProjectDetailComponent {
 
   /**
    * Mapa embebido (sin API key) a partir de la ubicación real de la obra.
-   * Devuelve '' cuando no hay ubicación: el template oculta la sección.
+   * Devuelve null cuando no hay ubicación: el template oculta la sección.
+   * Se marca como `SafeResourceUrl` porque el `src` de un `<iframe>` es un
+   * contexto de *resource URL*: Angular lo rechaza si recibe un string plano.
    */
-  readonly mapEmbedUrl = computed(() => {
+  readonly mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const where = this.location();
-    return where ? `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=13&output=embed` : '';
+    if (!where) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=13&output=embed`,
+    );
   });
 
   /** Descripción corta: incluye la ubicación para que el dato sea rastreable. */
@@ -137,16 +144,25 @@ export class ProjectDetailComponent {
   /** Índice de la imagen abierta en el lightbox (null = cerrado). */
   readonly lightboxIndex = signal<number | null>(null);
 
+  /** Diálogo del lightbox: recibe el foco al abrir (gestión de foco accesible). */
+  private readonly lightboxDialog = viewChild<ElementRef<HTMLElement>>('lightboxDialog');
+
+  /** Elemento que tenía el foco antes de abrir el lightbox: se restaura al cerrar. */
+  private lastFocused: HTMLElement | null = null;
+
   gallerySpan(index: number): string {
     return GALLERY_SPANS[index % GALLERY_SPANS.length];
   }
 
   openLightbox(index: number): void {
+    this.lastFocused = typeof document !== 'undefined' ? (document.activeElement as HTMLElement) : null;
     this.lightboxIndex.set(index);
   }
 
   closeLightbox(): void {
     this.lightboxIndex.set(null);
+    this.lastFocused?.focus();
+    this.lastFocused = null;
   }
 
   /** URL de la imagen actualmente abierta en el lightbox ('' si cerrado). */
@@ -189,6 +205,21 @@ export class ProjectDetailComponent {
       if (project) {
         this.seo.set(project.title, this.seoDescription().slice(0, 160), undefined, this.coverUrl());
       }
+    });
+
+    // Lightbox: bloquea el scroll del fondo y mueve el foco al diálogo al abrir.
+    effect((onCleanup) => {
+      const open = this.lightboxIndex() !== null;
+      const dialog = this.lightboxDialog();
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
+      if (open && dialog) {
+        dialog.nativeElement.focus({ preventScroll: true });
+      }
+      onCleanup(() => {
+        if (typeof document !== 'undefined') document.body.style.overflow = '';
+      });
     });
   }
 }

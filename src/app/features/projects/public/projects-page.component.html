@@ -52,7 +52,7 @@
       }
     </div>
 
-    <div class="grid auto-rows-[300px] grid-cols-1 gap-x-6 gap-y-14 md:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-x-6 gap-y-14 md:grid-cols-2 lg:grid-cols-3">
       @for (project of visible(); track project.slug; let i = $index) {
         <app-project-card [project]="project" variant="panel" />
       }

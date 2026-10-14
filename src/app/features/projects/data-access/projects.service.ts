@@ -114,7 +114,7 @@ const SEED_PROJECTS: Project[] = [
     categories: ['Puentes'],
     images: [
       { url: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1600&q=85', isCover: true },
-      { url: 'https://images.unsplash.com/photo-1504307651254-35680f583dfb?auto=format&fit=crop&w=1400&q=85', isCover: false },
+      { url: 'https://images.unsplash.com/photo-1429497419816-9ca5cfb4571a?auto=format&fit=crop&w=1400&q=85', isCover: false },
     ],
   },
   {

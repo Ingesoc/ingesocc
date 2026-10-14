@@ -145,6 +145,24 @@ test.describe('Sitio público', () => {
     expect(overflowProjects).toBe(false);
   });
 
+  test('menú móvil: cierra con Escape, devuelve el foco y bloquea el scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const toggle = page.getByRole('button', { name: 'Abrir menú' });
+    await toggle.click();
+    await expect(page.getByRole('navigation', { name: 'Menú móvil' })).toBeVisible();
+
+    // El fondo no debe poder desplazarse mientras el menú está abierto.
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+
+    // Escape cierra el menú y devuelve el foco al botón que lo abrió.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('navigation', { name: 'Menú móvil' })).toHaveCount(0);
+    await expect(toggle).toBeFocused();
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
+  });
+
   test('el filtro de categorías se sincroniza con ?categoria= y sobrevive un reload', async ({ page }) => {
     await page.goto('/proyectos');
 

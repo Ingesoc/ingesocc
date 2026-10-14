@@ -39,10 +39,12 @@
 
     <!-- Botón móvil -->
     <button
+      #menuButton
       type="button"
       class="flex h-11 w-11 items-center justify-center rounded-sm border border-white/30 text-white transition-colors hover:border-accent hover:bg-accent hover:text-primary lg:hidden"
       (click)="toggleMenu()"
       [attr.aria-expanded]="menuOpen()"
+      aria-controls="mobile-menu"
       [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'"
     >
       <app-morph-icon [icon]="menuOpen() ? closeIcon : menuIcon" class="h-5 w-5" />
@@ -51,7 +53,7 @@
 
   <!-- Menú móvil: pantalla completa -->
   @if (menuOpen()) {
-    <nav class="fixed inset-0 z-0 flex flex-col bg-primary lg:hidden" aria-label="Menú móvil">
+    <nav id="mobile-menu" class="fixed inset-0 z-0 flex flex-col bg-primary lg:hidden" aria-label="Menú móvil">
       <div class="wrap flex flex-1 flex-col justify-center gap-1 py-24">
         @for (item of navItems; track item.link; let i = $index) {
           <a

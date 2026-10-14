@@ -334,6 +334,39 @@ test.describe('Responsive UI · cobertura total de contenido', () => {
   }
 });
 
+// Regresión: las tarjetas de proyecto no deben solaparse verticalmente.
+// El grid de /proyectos no puede fijar alto de fila menor que el contenido
+// de la tarjeta (imagen + texto), o una fila invade la siguiente.
+test.describe('Proyectos · tarjetas sin solape vertical', () => {
+  for (const vp of [VIEWPORTS[0], VIEWPORTS[6], VIEWPORTS[10]]) {
+    test(`${vp.width}px`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/proyectos', { waitUntil: 'domcontentloaded' });
+      await settle(page);
+
+      const boxes = await page.locator('app-project-card').evaluateAll((nodes) =>
+        nodes.map((n) => {
+          const r = (n as HTMLElement).getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, left: r.left };
+        }),
+      );
+      expect(boxes.length, 'debe haber tarjetas de proyecto').toBeGreaterThan(0);
+
+      for (let i = 1; i < boxes.length; i++) {
+        for (let j = 0; j < i; j++) {
+          const above = boxes[j];
+          const below = boxes[i];
+          const sameColumn = Math.abs(above.left - below.left) < 8;
+          expect(
+            sameColumn && below.top < above.bottom - 1,
+            `tarjeta #${i} (top ${Math.round(below.top)}) se solapa con la #${j} (bottom ${Math.round(above.bottom)}) en ${vp.width}px`,
+          ).toBe(false);
+        }
+      }
+    });
+  }
+});
+
 // Panel admin (solo con credenciales: login real contra el proyecto Supabase de pruebas).
 if (hasAdminCredentials) {
   const ADMIN_ROUTES = [

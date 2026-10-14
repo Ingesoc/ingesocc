@@ -207,6 +207,7 @@
   <!-- ── LIGHTBOX ───────────────────────────────────────── -->
   @if (lightboxIndex() !== null && lightboxImageUrl()) {
     <div
+      #lightboxDialog
       class="fixed inset-0 z-[80] flex items-center justify-center bg-primary/95 p-4 backdrop-blur-sm md:p-10"
       role="dialog"
       aria-modal="true"

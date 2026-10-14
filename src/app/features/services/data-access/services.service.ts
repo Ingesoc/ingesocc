@@ -27,7 +27,7 @@ const SEED_SERVICES: Service[] = [
     ],
     faq: null,
     photoUrl:
-      'https://images.unsplash.com/photo-1504307651254-35680f583dfb?auto=format&fit=crop&w=1200&q=85',
+      'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=85',
     iconName: null,
     status: 'published',
     sortOrder: 1,
