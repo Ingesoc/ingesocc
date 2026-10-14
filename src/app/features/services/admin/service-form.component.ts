@@ -56,7 +56,13 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
   readonly photo = signal<{ url: string; file?: File; existingPath?: string } | null>(null);
   /** Etiqueta de la acción principal según la fase en curso. */
   readonly submitLabel = computed(() =>
-    this.photoBusy() ? 'Subiendo foto…' : this.saving() ? 'Guardando…' : 'Guardar servicio',
+    this.photoBusy()
+      ? 'Subiendo foto…'
+      : this.saving()
+        ? 'Guardando…'
+        : this.isEdit()
+          ? 'Guardar cambios'
+          : 'Crear servicio',
   );
 
   private slugEditedByUser = false;

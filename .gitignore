@@ -57,3 +57,17 @@ Thumbs.db
 # Supabase CLI (archivos generados)
 supabase/.temp/
 supabase/.branches/
+
+# Prompts maestros y material de trabajo local del agente (no versionar)
+prompt-agente-visual-ingesocc.md
+PROMPT_REDISENO_VISUAL_INGESOCC.md
+PROMPT_*.md
+*prompt*.md
+
+# Habilidades y binarios del agente (residual de IA, solo local)
+tools/archify/
+tools/archify-bin/
+tools/archify-skill/
+
+# Estado local de herramientas de IA
+.freebuff/

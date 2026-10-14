@@ -181,7 +181,7 @@
       <!-- Acciones -->
       <div class="flex flex-wrap items-center gap-4 pb-4">
         <button type="submit" [disabled]="saving() || photoBusy()" class="btn btn-solid">
-          {{ isEdit() && !photoBusy() && !saving() ? 'Guardar cambios' : submitLabel() }}
+          {{ submitLabel() }}
           <svg lucideCheck class="h-4 w-4" />
         </button>
         <a routerLink="/admin/servicios" [class.pointer-events-none]="saving() || photoBusy()" [attr.aria-disabled]="saving() || photoBusy()" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
