@@ -39,7 +39,9 @@ Teléfono, email, dirección, redes y equipo son **placeholders** (nombres de ej
 La fuente de verdad son las migraciones versionadas:
 
 1. `supabase link --project-ref <ref>` (una vez) → 2. `supabase db push`
-   (aplica TODAS las pendientes, incluidas las funciones) → 3. usuario admin + rol:
+   (aplica TODAS las pendientes —incluidas las de la fase de contenido
+   `20260918000005…0008`: metadatos/anti-spam de contacto, detalle de servicio,
+   caso de estudio y `testimonials`— y las funciones) → 3. usuario admin + rol:
 
 ```sql
 insert into public.profiles (id, email)
@@ -49,7 +51,7 @@ on conflict (id) do nothing;
 update public.profiles set role = 'admin' where email = 'ADMIN@EMAIL';
 ```
 
-Verificar: `select count(*) from pg_catalog.pg_tables where schemaname = 'public';` → **8**, y los counts de [[Seeds]].
+Verificar: `select count(*) from pg_catalog.pg_tables where schemaname = 'public';` → **9** (la novena es `testimonials`), y los counts de [[Seeds]].
 
 Además, para el guardado de proyectos:
 
@@ -59,6 +61,13 @@ Además, para el guardado de proyectos:
 > [!note] Estado del proyecto de pruebas `ietjikoddwpdybarcwfk`
 > Tablas y buckets presentes; `admin_save_project` **no** estaba aplicada (verificado
 > por PGRST202 contra `/rest/v1/rpc/admin_save_project`). Pendiente: `supabase db push`.
+> La fase de contenido añade además `contact_messages` (lead/status/spam), `services`
+> (scope/deliverables/faq) y `projects` (caso de estudio) — la RPC canónica pasa a 13
+> parámetros; los bundles viejos siguen resolviendo por `default`. Tras el push, la
+> bandeja recarga con las columnas nuevas (filas previas: `status='new'`, `is_spam=false`).
+>
+> **Testimonios** (slice 3.5): hasta que el admin publique el primer testimonio, la
+> sección del Home se oculta (no se inventan opiniones de clientes).
 
 
 ## 4. Regresión RLS

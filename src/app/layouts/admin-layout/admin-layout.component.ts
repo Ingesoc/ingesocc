@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { filter } from 'rxjs';
@@ -9,6 +10,7 @@ import {
   LucideLogOut,
   LucideMenu,
   LucidePenLine,
+  LucideStar,
   LucideWrench,
   LucideX,
 } from '@lucide/angular';
@@ -20,6 +22,7 @@ const ICONS = {
   projects: LucideFolderKanban,
   services: LucideWrench,
   content: LucidePenLine,
+  testimonials: LucideStar,
   messages: LucideInbox,
 } as const;
 
@@ -36,6 +39,7 @@ const ICONS = {
     LucideFolderKanban,
     LucideWrench,
     LucidePenLine,
+    LucideStar,
     LucideInbox,
     LucideLogOut,
     LucideMenu,
@@ -53,6 +57,7 @@ export class AdminLayoutComponent implements OnInit {
     { label: 'Proyectos', link: '/admin/proyectos', exact: false, icon: 'projects' as const },
     { label: 'Servicios', link: '/admin/servicios', exact: false, icon: 'services' as const },
     { label: 'Contenido', link: '/admin/contenido', exact: false, icon: 'content' as const },
+    { label: 'Testimonios', link: '/admin/testimonios', exact: false, icon: 'testimonials' as const },
     { label: 'Mensajes', link: '/admin/mensajes', exact: false, icon: 'messages' as const },
   ];
 
@@ -64,7 +69,10 @@ export class AdminLayoutComponent implements OnInit {
 
   constructor() {
     this.router.events
-      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
       .subscribe(() => this.syncSection());
   }
 

@@ -5,6 +5,7 @@ import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from '../contact/data-access/contact-messages.service';
+import { TestimonialsService } from '../testimonials/data-access/testimonials.service';
 
 describe('AdminDashboardComponent', () => {
   let messagesStub: {
@@ -42,6 +43,14 @@ describe('AdminDashboardComponent', () => {
           useValue: { byPage: () => ({ home: { a: {} } }), load: () => Promise.resolve(true), loadState: () => false },
         },
         { provide: ContactMessagesService, useValue: messagesStub },
+        {
+          provide: TestimonialsService,
+          useValue: {
+            adminTestimonials: () => [],
+            load: () => Promise.resolve(true),
+            loadState: () => false,
+          },
+        },
       ],
     });
   });
@@ -52,9 +61,9 @@ describe('AdminDashboardComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const component = fixture.componentInstance;
-    expect(component.cards().length).toBe(4);
-    expect(component.cards()[3].value).toBe('1');
-    expect(component.cards()[3].detail).toContain('2 en total');
+    expect(component.cards().length).toBe(5);
+    expect(component.cards()[4].value).toBe('1');
+    expect(component.cards()[4].detail).toContain('2 en total');
   });
 
   it('carga todos los módulos al iniciar y apaga el loading', async () => {

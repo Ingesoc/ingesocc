@@ -40,7 +40,7 @@ Las imágenes **no** pasan por aquí: van a Cloudinary con firma de Vercel Funct
 
 ## Notas del cluster
 
-- [[Esquema de Base de Datos]] — las 8 tablas, funciones y triggers
+- [[Esquema de Base de Datos]] — las 9 tablas, funciones y triggers
 - [[Row Level Security]] — matriz de políticas anon / user / admin
 - [[Storage]] — buckets legacy y políticas de archivos
 - [[Cloudinary y Media]] — el proveedor actual de imágenes (fuera de este cluster, pero comparte el JWT del admin)

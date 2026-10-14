@@ -270,7 +270,10 @@ describe('ProjectsService', () => {
             { id: 'img-1', storage_path: 'p1/a.jpg', is_cover: true, sort_order: 0, alt: null, title: null, description: null, category: null },
             { id: null, storage_path: 'p1/nueva.jpg', is_cover: false, sort_order: 1, alt: null, title: null, description: null, category: null },
           ],
+          // La RPC conserva lo ya guardado cuando el admin no tocó el caso
+          // de estudio: viaja null (no un objeto que borraría los campos).
           p_external_url: null,
+          p_case_study: null,
         },
       },
     ]);
@@ -442,5 +445,129 @@ describe('ProjectsService', () => {
       'https://res.cloudinary.com/demo/image/upload/ingesocc/projects/abc/x.jpg',
       'abc/b98272ab-0a0c-42f8-92a7-f4ea4345baad.jpg',
     ]);
+  });
+
+  it('mapea los campos del caso de estudio desde la base de datos', async () => {
+    results['projects'] = {
+      data: [
+        {
+          id: 'p1',
+          title: 'Con caso',
+          slug: 'con-caso',
+          description: 'x',
+          price_min_wages: null,
+          status: 'published',
+          featured: false,
+          sort_order: 1,
+          client: 'Empresa XYZ',
+          scope: 'Alcance completo',
+          timeline: '8 meses',
+          progress: 'En ejecución, 60%',
+          results: 'Entrega a satisfacción',
+          key_figures: [{ label: 'Área construida', value: '2.400 m²' }],
+        },
+      ],
+    };
+    results['project_categories'] = { data: [] };
+    results['project_images'] = { data: [] };
+    const service = setup();
+
+    await service.load();
+
+    const project = service.bySlug('con-caso')!;
+    expect(project.client).toBe('Empresa XYZ');
+    expect(project.scope).toBe('Alcance completo');
+    expect(project.timeline).toBe('8 meses');
+    expect(project.progress).toBe('En ejecución, 60%');
+    expect(project.results).toBe('Entrega a satisfacción');
+    expect(project.keyFigures).toEqual([{ label: 'Área construida', value: '2.400 m²' }]);
+  });
+
+  it('trata filas sin caso de estudio como null / array vacío', async () => {
+    results['projects'] = {
+      data: [
+        { id: 'p1', title: 'Sin caso', slug: 'sin-caso', description: 'x', price_min_wages: null, status: 'published', featured: false, sort_order: 1 },
+      ],
+    };
+    results['project_categories'] = { data: [] };
+    results['project_images'] = { data: [] };
+    const service = setup();
+
+    await service.load();
+
+    const project = service.bySlug('sin-caso')!;
+    expect(project.client).toBeNull();
+    expect(project.scope).toBeNull();
+    expect(project.timeline).toBeNull();
+    expect(project.progress).toBeNull();
+    expect(project.results).toBeNull();
+    expect(project.keyFigures).toEqual([]);
+  });
+
+  it('saveProjectAtomic envía el caso de estudio recortado y filtra cifras incompletas', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'abc', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      {
+        title: 'Casa',
+        slug: 'casa',
+        description: 'Desc',
+        priceMinWages: null,
+        status: 'draft',
+        featured: false,
+        sortOrder: 0,
+        client: '  Empresa XYZ  ',
+        scope: 'Alcance completo',
+        timeline: '8 meses',
+        progress: 'En ejecución, 60%',
+        results: 'Entrega a satisfacción',
+        keyFigures: [
+          { label: '  Área construida  ', value: ' 2.400 m² ' },
+          { label: '   ', value: 'Sin concepto' },
+          { label: 'Sin valor', value: '' },
+        ],
+      },
+      [],
+      [],
+    );
+
+    const payload = writes[0].payload as { p_case_study: Record<string, unknown> };
+    expect(payload.p_case_study).toEqual({
+      client: 'Empresa XYZ',
+      scope: 'Alcance completo',
+      timeline: '8 meses',
+      progress: 'En ejecución, 60%',
+      results: 'Entrega a satisfacción',
+      key_figures: [{ label: 'Área construida', value: '2.400 m²' }],
+    });
+  });
+
+  it('saveProjectAtomic envía p_case_study null si el admin no tocó el caso', async () => {
+    results['__rpc:admin_save_project'] = {
+      data: [{ project_id: 'abc', orphan_storage_paths: [] }],
+    };
+    const service = setup();
+
+    await service.saveProjectAtomic(
+      'abc',
+      {
+        title: 'Casa',
+        slug: 'casa',
+        description: 'Desc',
+        priceMinWages: null,
+        status: 'draft',
+        featured: false,
+        sortOrder: 0,
+      },
+      [],
+      [],
+    );
+
+    const payload = writes[0].payload as { p_case_study: unknown };
+    expect(payload.p_case_study).toBeNull();
   });
 });

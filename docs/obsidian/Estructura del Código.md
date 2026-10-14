@@ -65,7 +65,7 @@ src/environments/              # environment.ts / environment.prod.ts (URL + ano
 ## Raíz del repo
 
 ```text
-e2e/                 # specs Playwright (public-flows, admin-projects, admin-services, contact-inbox)
+e2e/                 # specs Playwright (public-flows, password-recovery, responsive-overflow, admin-*, contact-inbox)
 tools/               # lighthouse-ci.mjs · visual-qa.mjs · serve-dist.mjs
 supabase/            # schema.sql · seed.sql · rls-checks.sql
 public/              # logo/, favicons, site.webmanifest, sitemap.xml, robots.txt, fonts/ (Archivo variable latin + latin-ext)

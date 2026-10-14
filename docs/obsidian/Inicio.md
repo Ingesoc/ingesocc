@@ -16,6 +16,7 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 > - **Producto**: sitio corporativo + panel admin (Angular 19 SPA, CSR)
 > - **Backend**: Supabase (Postgres + Auth + RLS) + **Cloudinary** para imágenes vía Vercel Functions
 > - **UI**: rediseño integral UI/UX completado (2026-09-04) — ver [[Guía de Estilo Visual]] y [[Auditoría y Correcciones]] nº 21
+> - **Contenido**: fase de contenido productivo (slices 3.1–3.5) — contacto/lead con anti-spam, detalle de servicio, caso de estudio de proyecto, certificaciones y testimonios
 > - **Estado**: production-ready en desarrollo — ver [[Pendientes Manuales]]
 > - **Docs fuente (repo)**: [[Auditoría y Correcciones]] · [[Testing]]
 
@@ -34,7 +35,7 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 
 ### Supabase (datos y seguridad)
 - [[Supabase]] — hub de la capa de datos
-- [[Esquema de Base de Datos]] — las 8 tablas, funciones y triggers
+- [[Esquema de Base de Datos]] — las 9 tablas, funciones y triggers
 - [[Row Level Security]] — matriz de políticas por rol (anon / user / admin)
 - [[Storage]] — buckets legacy y por qué siguen existiendo
 - [[Seeds]] — `schema.sql` + `seed.sql` y su paridad con los seeds estáticos
@@ -44,15 +45,16 @@ Documentación técnica del sitio corporativo de Ingesocc S.A.S., estructurada c
 
 ### Funcionalidades
 - [[Autenticación y Autorización]] — login, sesión, guard y roles
-- [[CRUD Proyectos]] — ciclo de vida completo de `projects`
-- [[CRUD Servicios]] — ciclo de vida completo de `services`
-- [[Content Blocks]] — modo de edición in-place del contenido
-- [[Contacto y Mensajes]] — formulario público y bandeja admin
+- [[CRUD Proyectos]] — ciclo de vida completo de `projects` (incl. caso de estudio, slice 3.3)
+- [[CRUD Servicios]] — ciclo de vida completo de `services` (incl. detalle editable, slice 3.2)
+- [[Content Blocks]] — modo de edición in-place + CMS de contenido
+- [[Contacto y Mensajes]] — formulario público y bandeja admin (incl. metadatos de lead y anti-spam, slice 3.1)
+- **[[Testimonios]]** — CRUD admin y sección del Home (slice 3.5)
 
 ### Calidad y operación
 - [[SEO]] — meta por ruta, OG, canonical, sitemap
 - [[Performance y Lighthouse]] — presupuestos y hallazgos
-- [[Testing]] — unit (105/105), API (33/33), E2E (13/13) y QA visual
+- [[Testing]] — unit (164/164), API (33/33), E2E (30/33; 3 admin sin credenciales) y QA visual
 - [[Despliegue Vercel]] — config SPA + functions, variables de entorno y checklist pre-producción
 - [[Auditoría y Correcciones]] — registro de bugs encontrados y corregidos
 - [[Pendientes Manuales]] — lo que requiere intervención humana

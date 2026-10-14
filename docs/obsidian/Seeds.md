@@ -14,25 +14,25 @@ Dos archivos SQL en `supabase/`, **idempotentes** (se pueden re-aplicar sin romp
 
 | Archivo | Contenido | Orden |
 |---|---|---|
-| `schema.sql` | 8 tablas + funciones + triggers + RLS + buckets | **Primero** |
+| `schema.sql` | 9 tablas (incl. `testimonials`) + funciones + triggers + RLS + buckets | **Primero** |
 | `seed.sql` | categorías, servicios, `content_blocks`, proyectos + imágenes | Después |
 
 Verificación tras aplicar (contra el proyecto de pruebas):
 
 ```sql
-select count(*) from pg_catalog.pg_tables where schemaname = 'public';  -- → 8
+select count(*) from pg_catalog.pg_tables where schemaname = 'public';  -- → 9
 select 'projects' as t, count(*) from public.projects
 union all select 'services', count(*) from public.services
 union all select 'content_blocks', count(*) from public.content_blocks
 union all select 'project_images', count(*) from public.project_images;
--- → 10 proyectos · 6 servicios · 53 content_blocks · 17 project_images
+-- → 10 proyectos · 6 servicios · 69 content_blocks · 17 project_images
 ```
 
 ## Contenido del seed
 
 - **4 categorías** — Edificaciones, Estructuras Metálicas, Puentes, Proyectos Especiales.
 - **6 servicios** publicados — `sort_order` prioriza infraestructura/hospitalario/industrial sobre vivienda.
-- **53 `content_blocks`** — inventario completo por página (`global`, `home`, `about`, `contact`): textos, richtext, números (stats, años de timeline) y 6 imágenes.
+- **69 `content_blocks`** — inventario completo por página (`global`, `home`, `about`, `contact`): textos, richtext, números (stats, años de timeline) e imágenes. Las 16 claves de `certificaciones` (slice 3.4) nacen **vacías** a propósito.
 - **10 proyectos** publicados (3 destacados) con **17 filas en `project_images`** (portadas + galería). Son **ilustrativos** — el portafolio real se carga vía el panel admin.
 
 ## Paridad con los seeds estáticos (regla §22 del plan)
@@ -40,7 +40,7 @@ union all select 'project_images', count(*) from public.project_images;
 La app mantiene seeds estáticos en memoria (`content-blocks.service.ts`, `projects.service.ts`, `services.service.ts`) como fallback. **Con la DB aplicada, el sitio confía en las filas reales** — por eso el seed de DB debe verse igual que el fallback estático:
 
 - Mismas URLs de Unsplash en `content_blocks` (hero, historia, equipo), `photo_path` de servicios y portadas de proyectos.
-- Verificado programáticamente: 53 claves de `content_blocks` idénticas DB↔estático, URLs de imagen idénticas, portadas idénticas.
+- Verificado programáticamente: 69 claves de `content_blocks` idénticas DB↔estático, URLs de imagen idénticas, portadas idénticas.
 
 ## Bugs de primer-apply corregidos
 

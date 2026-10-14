@@ -11,7 +11,7 @@ estado: activo
 
 # Content Blocks
 
-Sistema de **contenido editable sin tocar código**: un admin modifica textos, números e imágenes de las páginas públicas desde el propio sitio (modo edición in-place). **No es CRUD admin** — `/admin/contenido` es un placeholder informativo (intencional).
+Sistema de **contenido editable sin tocar código**: un admin modifica textos, números e imágenes de las páginas públicas desde el propio sitio (modo edición in-place) **o** desde el CMS `/admin/contenido` (pestañas por página, editor según el tipo de bloque: texto, enriquecido, número, imagen).
 
 ```text
 Edit Mode (toggle flotante, solo admin)
@@ -41,7 +41,9 @@ Público ve el cambio guardado
 
 ## Inventario de bloques
 
-53 `section_key`s (texto, richtext, número e imagen) repartidos en `global` (header/footer), `home`, `about` y `contact` — idénticos entre DB y seed estático (ver [[Seeds]]).
+**69 `section_key`s** (texto, richtext, número e imagen) repartidos en `global` (header/footer), `home`, `about` y `contact` — idénticos entre DB y seed estático (ver [[Seeds]]).
+
+Del slice 3.4: el grupo `about.certificaciones` (4 items × `title`/`issuer`/`link`/`logo`) nace **vacío** a propósito — las certificaciones/licencias las aporta el cliente desde el CMS (plan 1.4); la sección de Quiénes Somos muestra el estado "en validación" mientras no haya títulos. Catálogo en `content-blocks.catalog.ts` (`GROUP_LABELS.certificaciones`).
 
 ## Ver también
 

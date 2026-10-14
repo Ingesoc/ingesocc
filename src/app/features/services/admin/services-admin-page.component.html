@@ -23,7 +23,7 @@
         <div class="h-20 animate-pulse rounded-sm border border-border bg-surface"></div>
       }
     </div>
-  } @else if (adminServices().length === 0) {
+  } @else if (!error() && adminServices().length === 0) {
     <div class="mt-10 rounded-sm border border-border bg-surface px-8 py-14 text-center">
       <p class="text-lg font-bold">Todavía no hay servicios.</p>
       <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">

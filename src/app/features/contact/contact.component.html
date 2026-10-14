@@ -3,7 +3,7 @@
   <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(242,86,35,0.14),transparent_55%)]"></div>
   <div class="wrap relative pb-16 pt-36 md:pb-20 md:pt-44">
     <p class="kicker mb-5 text-accent">Hablemos</p>
-    <h1 class="text-balance text-5xl font-bold leading-[0.98] tracking-[-0.03em] md:text-7xl">
+    <h1 class="text-balance [overflow-wrap:anywhere] text-5xl font-bold leading-[0.98] tracking-[-0.03em] md:text-7xl">
       {{ title() }}
     </h1>
     <p class="mt-6 max-w-xl text-base leading-7 text-white/70">
@@ -14,9 +14,9 @@
 
 <!-- ── CONTENIDO ────────────────────────────────────────── -->
 <section class="bg-background py-20 md:py-28">
-  <div class="wrap grid gap-16 md:grid-cols-12">
+  <div class="wrap grid grid-cols-1 gap-y-16 md:grid-cols-12 md:gap-x-[min(4rem,6vw)]">
     <!-- Información -->
-    <div class="md:col-span-5">
+    <div class="min-w-0 md:col-span-5">
       <p class="kicker text-accent-deep mb-5">Información de contacto</p>
       <h2 class="text-balance text-3xl font-bold leading-tight tracking-[-0.02em] md:text-4xl">Cuéntenos sobre su proyecto.</h2>
       <p class="mt-5 max-w-md text-base leading-7 text-muted-foreground">
@@ -47,21 +47,21 @@
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
             <svg lucideMail class="h-4 w-4" />
           </span>
-          <div>
+          <div class="min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Escríbanos</p>
-            <a [href]="'mailto:' + email()" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep">{{ email() }}</a>
+            <a [href]="'mailto:' + email()" class="mt-1.5 block [overflow-wrap:anywhere] text-base font-medium transition-colors hover:text-accent-deep">{{ email() }}</a>
           </div>
         </div>
         <div class="flex items-start gap-5 border-t border-border py-7">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
             <svg lucidePhone class="h-4 w-4" />
           </span>
-          <div>
+          <div class="min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Llámenos</p>
             @if (phoneHref(); as href) {
-              <a [href]="href" class="mt-1.5 block text-base font-medium transition-colors hover:text-accent-deep">{{ phone() }}</a>
+              <a [href]="href" class="mt-1.5 block [overflow-wrap:anywhere] text-base font-medium transition-colors hover:text-accent-deep">{{ phone() }}</a>
             } @else {
-              <p class="mt-1.5 text-base font-medium">{{ phone() }}</p>
+              <p class="mt-1.5 [overflow-wrap:anywhere] text-base font-medium">{{ phone() }}</p>
             }
           </div>
         </div>
@@ -70,13 +70,13 @@
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
               <svg lucideMessageCircle class="h-4 w-4" />
             </span>
-            <div>
+            <div class="min-w-0">
               <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">WhatsApp</p>
               <a
                 [href]="whatsappUrl()"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="mt-1.5 inline-flex items-center gap-1.5 text-base font-medium transition-colors hover:text-accent-deep"
+                class="mt-1.5 inline-flex items-center gap-1.5 [overflow-wrap:anywhere] text-base font-medium transition-colors hover:text-accent-deep"
               >
                 Escríbanos por WhatsApp
                 <svg lucideExternalLink class="h-3.5 w-3.5 opacity-60" />
@@ -88,9 +88,9 @@
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
             <svg lucideMapPin class="h-4 w-4" />
           </span>
-          <div>
+          <div class="min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Encuéntrenos</p>
-            <p class="mt-1.5 text-base font-medium">{{ address() }}</p>
+            <p class="mt-1.5 [overflow-wrap:anywhere] text-base font-medium">{{ address() }}</p>
           </div>
         </div>
       </div>
@@ -109,7 +109,7 @@
     </div>
 
     <!-- Formulario -->
-    <div class="md:col-span-6 md:col-start-7">
+    <div class="min-w-0 md:col-span-6 md:col-start-7">
       @if (submitted()) {
         <div class="panel p-10 md:p-12">
           <span class="flex h-12 w-12 items-center justify-center rounded-full bg-success-soft text-success">
@@ -131,7 +131,12 @@
           }
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-8 grid gap-6" novalidate>
-            <div class="grid gap-6 sm:grid-cols-2">
+            <!-- Honeypot anti-spam: oculto para humanos (no required); los bots lo rellenan y la DB lo marca como spam. -->
+            <div class="sr-only" aria-hidden="true">
+              <label for="website">Déjenos este campo vacío</label>
+              <input id="website" type="text" formControlName="website" tabindex="-1" autocomplete="off" />
+            </div>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
               <div>
                 <label for="name" class="field-label">Nombre *</label>
                 <input id="name" type="text" formControlName="name" autocomplete="name" class="field" />
@@ -147,7 +152,7 @@
                 }
               </div>
             </div>
-            <div class="grid gap-6 sm:grid-cols-2">
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
               <div>
                 <label for="phone" class="field-label">Teléfono</label>
                 <input id="phone" type="tel" formControlName="phone" autocomplete="tel" class="field" />
@@ -163,6 +168,35 @@
                 }
               </div>
             </div>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-6">
+              <div>
+                <label for="projectType" class="field-label">Tipo de proyecto</label>
+                <select id="projectType" formControlName="projectType" class="field">
+                  <option value="">Seleccione…</option>
+                  @for (option of projectTypeOptions; track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label for="budgetRange" class="field-label">Presupuesto</label>
+                <select id="budgetRange" formControlName="budgetRange" class="field">
+                  <option value="">Seleccione…</option>
+                  @for (option of budgetRangeOptions; track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label for="timeline" class="field-label">Plazo estimado</label>
+                <select id="timeline" formControlName="timeline" class="field">
+                  <option value="">Seleccione…</option>
+                  @for (option of timelineOptions; track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              </div>
+            </div>
             <div>
               <label for="message" class="field-label">Mensaje *</label>
               <textarea id="message" rows="5" formControlName="message" class="field"></textarea>
@@ -173,7 +207,7 @@
 
             <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
               <p class="text-xs leading-5 text-muted-foreground">{{ privacyNote() }}</p>
-              <button type="submit" [disabled]="submitting()" class="btn btn-solid shrink-0">
+              <button type="submit" [disabled]="submitting()" class="btn btn-solid">
                 @if (submitting()) {
                   Enviando…
                 } @else {

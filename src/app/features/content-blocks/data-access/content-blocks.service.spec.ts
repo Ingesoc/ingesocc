@@ -149,4 +149,34 @@ describe('ContentBlocksService', () => {
 
     expect(service.image('home', 'hero.title')).toBe('https://cdn.test/content/home/abc.png');
   });
+
+  it('el seed estático mantiene vacíos los cupos de certificaciones (nada inventado)', async () => {
+    // Supabase inexistente (42P01) → se conserva el seed estático.
+    const failure = {
+      data: null,
+      error: { message: 'relation "public.content_blocks" does not exist', code: '42P01' },
+    };
+    const chain = {
+      select: () => chain,
+      order: () => chain,
+      eq: () => chain,
+      then: (resolve: (v: unknown) => void, reject: (e: unknown) => void) =>
+        Promise.resolve(failure).then(resolve, reject),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: SupabaseService,
+          useValue: { clientPromise: Promise.resolve({}), client: { from: () => chain }, ready: false },
+        },
+      ],
+    });
+    const service = TestBed.inject(ContentBlocksService);
+    await service.load();
+
+    expect(service.text('about', 'certificaciones.item1.title').trim()).toBe('');
+    expect(service.text('about', 'certificaciones.item2.issuer').trim()).toBe('');
+    expect(service.text('about', 'certificaciones.item4.link').trim()).toBe('');
+    expect(service.image('about', 'certificaciones.item1.logo').trim()).toBe('');
+  });
 });

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -44,6 +44,14 @@ function parseNumber(value: unknown): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+/** Grupo de una cifra del caso de estudio (label + value). */
+function keyFigureGroup(label = '', value = ''): FormGroup {
+  return new FormGroup({
+    label: new FormControl<string>(label),
+    value: new FormControl<string>(value),
+  });
+}
+
 @Component({
   selector: 'app-project-form',
   standalone: true,
@@ -69,6 +77,12 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     featured: new FormControl(false),
     sortOrder: new FormControl(0),
     externalUrl: new FormControl('', [Validators.pattern(/^https:\/\/\S+$/)]),
+    client: new FormControl(''),
+    scope: new FormControl(''),
+    timeline: new FormControl(''),
+    progress: new FormControl(''),
+    results: new FormControl(''),
+    keyFigures: new FormArray<ReturnType<typeof keyFigureGroup>>([]),
   });
 
   readonly selectedCategoryIds = signal<string[]>([]);
@@ -130,7 +144,16 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         featured: project.featured,
         sortOrder: project.sortOrder,
         externalUrl: project.externalUrl ?? '',
+        client: project.client ?? '',
+        scope: project.scope ?? '',
+        timeline: project.timeline ?? '',
+        progress: project.progress ?? '',
+        results: project.results ?? '',
       });
+      this.form.controls.keyFigures.clear();
+      for (const figure of project.keyFigures ?? []) {
+        this.form.controls.keyFigures.push(keyFigureGroup(figure.label ?? '', figure.value ?? ''));
+      }
       this.selectedCategoryIds.set(project.categoryIds);
       this.imageSlots.set(
         project.images.map((image) => ({
@@ -160,6 +183,17 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
     this.selectedCategoryIds.update((ids) =>
       ids.includes(categoryId) ? ids.filter((id) => id !== categoryId) : [...ids, categoryId],
     );
+  }
+
+  /** Grupos de cifras editables del caso de estudio. */
+  readonly keyFigureItems = () => this.form.controls.keyFigures.controls;
+
+  addKeyFigure(): void {
+    this.form.controls.keyFigures.push(keyFigureGroup());
+  }
+
+  removeKeyFigure(index: number): void {
+    this.form.controls.keyFigures.removeAt(index);
   }
 
   /**
@@ -286,6 +320,15 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
         featured: Boolean(value.featured),
         sortOrder: Number(value.sortOrder ?? 0),
         externalUrl: value.externalUrl?.trim() || null,
+        client: value.client?.trim() || null,
+        scope: value.scope?.trim() || null,
+        timeline: value.timeline?.trim() || null,
+        progress: value.progress?.trim() || null,
+        results: value.results?.trim() || null,
+        keyFigures: this.form.controls.keyFigures.value.map((figure) => ({
+          label: figure.label,
+          value: figure.value,
+        })),
       };
 
       const slots = this.imageSlots();

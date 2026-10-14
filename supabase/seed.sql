@@ -23,27 +23,41 @@ on conflict (slug) do nothing;
 -- Servicios (sección 1.3 del plan — los 6 del maquetado como semilla)
 -- sort_order prioriza infraestructura / hospitalario / industrial sobre vivienda
 -- photo_path: mismas URLs de Unsplash que los seeds estáticos (services.service.ts)
--- para que el sitio se vea igual con la DB aplicada que sin ella (plan 1.7/§22).
+-- deliverables: mismas listas que el seed estático (Fase 3.2). scope/faq en
+-- NULL: la página usa sus respaldos genéricos. Copy [PENDIENTE: validar con
+-- el cliente] — para que el sitio se vea igual con la DB aplicada que sin ella.
 -- ----------------------------------------------------------------------------
-insert into public.services (name, slug, description, icon_name, photo_path, status, sort_order) values
+insert into public.services (name, slug, description, scope, deliverables, faq, icon_name, photo_path, status, sort_order) values
   ('Proyectos de Infraestructura', 'proyectos-de-infraestructura',
    'Desarrollamos puentes, obras civiles y grandes estructuras que conectan comunidades y fomentan el progreso',
-   null, 'https://images.unsplash.com/photo-1504307651254-35680f583dfb?auto=format&fit=crop&w=1200&q=85', 'published', 1),
+   null,
+   '["Estudios y diseños preliminares", "Gerencia de obra e interventoría", "Construcción de obras civiles", "Entrega y puesta en servicio"]'::jsonb,
+   null, null, 'https://images.unsplash.com/photo-1504307651254-35680f583dfb?auto=format&fit=crop&w=1200&q=85', 'published', 1),
   ('Proyectos Hospitalarios', 'proyectos-hospitalarios',
    'Construcción especializada de centros de salud, cumpliendo con los más altos estándares de calidad y funcionalidad',
-   null, 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=1200&q=85', 'published', 2),
+   null,
+   '["Adecuación y montaje de áreas asistenciales", "Instalaciones y redes hospitalarias", "Acabados y control de bioseguridad", "Documentación y puesta en marcha"]'::jsonb,
+   null, null, 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=1200&q=85', 'published', 2),
   ('Proyectos Industriales', 'proyectos-industriales',
    'Fabricamos e instalamos naves industriales, plantas de producción y bodegas optimizadas para la eficiencia operativa',
-   'factory', null, 'published', 3),
+   null,
+   '["Obra civil para nave industrial", "Estructuras metálicas y cubiertas", "Instalaciones técnicas industriales", "Montaje y puesta en marcha"]'::jsonb,
+   null, 'factory', null, 'published', 3),
   ('Consultoría y Diseño', 'consultoria-y-diseno',
    'Acompañamos desde la conceptualización, ofreciendo diseños innovadores y viables que optimizan recursos y garantizan resultados',
-   'ruler', null, 'published', 4),
+   null,
+   '["Levantamientos y diagnóstico", "Diseño arquitectónico y estructural", "Documentos técnicos y memorias", "Acompañamiento en licencias"]'::jsonb,
+   null, 'ruler', null, 'published', 4),
   ('Fabricación Metálica', 'fabricacion-metalica',
    'Especialistas en la fabricación a medida de estructuras metálicas de alta precisión para cualquier tipo de proyecto',
-   'frame', null, 'published', 5),
+   null,
+   '["Diseño y despiece técnico", "Fabricación en taller", "Recubrimiento anticorrosivo", "Montaje en sitio"]'::jsonb,
+   null, 'frame', null, 'published', 5),
   ('Proyectos de Vivienda', 'proyectos-de-vivienda',
    'Ejecutamos proyectos de vivienda unifamiliar y multifamiliar con diseños modernos y estructuras duraderas',
-   'home', null, 'published', 6)
+   null,
+   '["Diseño y legalización del proyecto", "Construcción de vivienda", "Urbanismo y zonas comunes", "Entrega de obra y acompañamiento"]'::jsonb,
+   null, 'home', null, 'published', 6)
 on conflict (slug) do nothing;
 
 -- ----------------------------------------------------------------------------
@@ -99,6 +113,21 @@ insert into public.content_blocks (page, section_key, type, value_text, value_nu
   ('about',  'equipo.member3.role',   'text', 'Ingeniero Estructural', null),
   ('about',  'equipo.member4.name',   'text', 'Ana Martínez', null),
   ('about',  'equipo.member4.role',   'text', 'Arquitecta Líder', null),
+  -- Certificaciones/licencias: cupos VACÍOS a propósito. Las aporta el cliente
+  -- vía el CMS (plan 1.4); no se inventan datos (la sección muestra el estado
+  -- "en validación" mientras no haya títulos).
+  ('about',  'certificaciones.item1.title', 'text', '', null),
+  ('about',  'certificaciones.item1.issuer','text', '', null),
+  ('about',  'certificaciones.item1.link',  'text', '', null),
+  ('about',  'certificaciones.item2.title', 'text', '', null),
+  ('about',  'certificaciones.item2.issuer','text', '', null),
+  ('about',  'certificaciones.item2.link',  'text', '', null),
+  ('about',  'certificaciones.item3.title', 'text', '', null),
+  ('about',  'certificaciones.item3.issuer','text', '', null),
+  ('about',  'certificaciones.item3.link',  'text', '', null),
+  ('about',  'certificaciones.item4.title', 'text', '', null),
+  ('about',  'certificaciones.item4.issuer','text', '', null),
+  ('about',  'certificaciones.item4.link',  'text', '', null),
   -- Contacto (datos de ejemplo del diseño actual — reemplazar por los reales, plan 1.6/1.7)
   ('contact','title',                 'text', 'Contacto', null),
   ('contact','subtitle',              'text', 'Cuéntenos sobre su proyecto y le responderemos a la brevedad.', null),
@@ -123,7 +152,12 @@ insert into public.content_blocks (page, section_key, type, value_image_path) va
   ('about',  'equipo.member1.photo',  'image', 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80'),
   ('about',  'equipo.member2.photo',  'image', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80'),
   ('about',  'equipo.member3.photo',  'image', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80'),
-  ('about',  'equipo.member4.photo',  'image', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80')
+  ('about',  'equipo.member4.photo',  'image', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80'),
+  -- Logos de certificaciones: vacíos (los aporta el cliente desde el CMS).
+  ('about',  'certificaciones.item1.logo', 'image', null),
+  ('about',  'certificaciones.item2.logo', 'image', null),
+  ('about',  'certificaciones.item3.logo', 'image', null),
+  ('about',  'certificaciones.item4.logo', 'image', null)
 on conflict (page, section_key) do nothing;
 
 -- ----------------------------------------------------------------------------

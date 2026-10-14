@@ -41,6 +41,14 @@ Abrir en Obsidian: *Open folder as vault* → `docs/obsidian/` → empezar por
 - [x] **Fase 8** — Proyectos destacados en Home con `featured` (1.2.2) y filtros de categoría (implementados en Fases 2 y 4)
 - [x] **Fase 9** — SEO básico (títulos/descripciones por ruta, Open Graph, canonical, sitemap/robots, JSON-LD) + preparación de despliegue (Vercel). **Pendiente operativo**: reemplazar los datos de relleno (contacto, equipo, redes) por los reales — se editan en el panel sin tocar código (`content_blocks`), o en `supabase/seed.sql`
 
+### Fase de contenido productivo (slices 3.1–3.5, sobre el rediseño)
+
+- [x] **3.1 — Contacto/lead**: metadatos comerciales del lead (`project_type`, `budget_range`, `timeline`) y estado de gestión (`status` en `contact_messages`) + **anti-spam en DB**: honeypot `website` y rate-limit por email en el trigger `contact_messages_lead_guard` (la validación del cliente no es barrera de seguridad).
+- [x] **3.2 — Detalle de servicio**: campos editables desde el CRUD (`scope`, `deliverables`, `faq` como jsonb) + vista `/servicios/:slug` con alcance, entregables, FAQ y proyectos relacionados (respaldo genérico si quedan `null`).
+- [x] **3.3 — Caso de estudio de proyecto**: `client`, `scope`, `timeline`, `progress`, `results` y `key_figures` (jsonb `{label, value}[]`) en el CRUD y en el detalle público; la RPC `admin_save_project` pasa a 13 parámetros y persiste todo el caso de estudio en la misma transacción.
+- [x] **3.4 — Quiénes Somos**: certificaciones/licencias editables vía `content_blocks` (título, emisor, enlace y logo por item; vacías a propósito hasta que el cliente las aporte).
+- [x] **3.5 — Testimonios**: tabla `testimonials` + CRUD admin en `/admin/testimonios` + sección en el Home ordenada por `sort_order`. Sin fixtures inventadas (plan 1.7): mientras no haya publicados la sección se oculta.
+
 ## Rutas públicas
 
 | Ruta | Página |
@@ -65,7 +73,10 @@ Abrir en Obsidian: *Open folder as vault* → `docs/obsidian/` → empezar por
 | `/admin/servicios/nuevo` | Crear servicio |
 | `/admin/servicios/:id` | Editar servicio (foto, ícono, estado) |
 | `/admin/contenido` | CMS de contenido del sitio (pestañas por página, bloques por tipo, subida de imágenes) |
-| `/admin/mensajes` | Bandeja de `contact_messages` (leído/no leído, eliminar) |
+| `/admin/testimonios` | Testimonios de clientes (crear/editar/eliminar, estado borrador/publicado, orden) |
+| `/admin/testimonios/nuevo` | Crear testimonio |
+| `/admin/testimonios/:id` | Editar testimonio |
+| `/admin/mensajes` | Bandeja de `contact_messages` (leído/no leído, estado de gestión, spam, eliminar) |
 
 **Acceso admin**: crea el usuario en Supabase (Authentication → Users) y asigna `role = 'admin'` en la tabla `profiles` (ver abajo).
 
@@ -277,7 +288,7 @@ npx vercel --prod
 
 ## Supabase
 
-El proyecto ya está conectado: `@supabase/supabase-js` con URL y clave publishable en `src/environments/`. Los servicios de `data-access/` (`content-blocks`, `projects`, `services`) consultan las tablas reales y mantienen sus seeds estáticos como respaldo si la tabla no existe o está vacía (los componentes no cambian). `AuthService` usa `supabase.auth` con rol desde `profiles`.
+El proyecto ya está conectado: `@supabase/supabase-js` con URL y clave publishable en `src/environments/`. Los servicios de `data-access/` (`content-blocks`, `projects`, `services`, `testimonials`) consultan las tablas reales y mantienen sus seeds estáticos como respaldo si la tabla no existe o está vacía (los componentes no cambian). `AuthService` usa `supabase.auth` con rol desde `profiles`.
 
 Pendiente en el panel de Supabase:
 
@@ -287,7 +298,16 @@ Pendiente en el panel de Supabase:
 4. Asignar rol: `update public.profiles set role = 'admin' where id = '<user id>';`
 5. Verificar el guardado de proyectos con `supabase/verify-admin-save-project.sql` en el SQL Editor (proyecto de pruebas): comprueba que `public.admin_save_project` existe con la firma exacta que llama el panel, sus permisos (`authenticated` sí, `anon` no) y que crear/actualizar imágenes, categorías, portada y huérfanos funcionan. Si tras aplicar el DDL la llamada sigue dando `PGRST202`: `notify pgrst, 'reload schema';`
 
-El guardado de proyectos es una única llamada RPC (`rpc('admin_save_project')` en `projects.service.ts`): una transacción de Postgres que hace upsert del proyecto, sincroniza `project_images` (insert/update/delete según el diff, con `orphan_storage_paths` para limpiar los assets después del commit) y reemplaza `project_categories`. Es `SECURITY INVOKER` con `EXECUTE` solo para `authenticated` y un check explícito de `public.is_admin()`: las políticas RLS siguen mandando y un usuario sin rol admin recibe `42501`.
+El guardado de proyectos es una única llamada RPC (`rpc('admin_save_project')` en `projects.service.ts`): una transacción de Postgres que hace upsert del proyecto, sincroniza `project_images` (insert/update/delete según el diff, con `orphan_storage_paths` para limpiar los assets después del commit) y reemplaza `project_categories`. Es `SECURITY INVOKER` con `EXECUTE` solo para `authenticated` y un check explícito de `public.is_admin()`: las políticas RLS siguen mandando y un usuario sin rol admin recibe `42501`. La versión canónica tiene **13 parámetros** (11 de la variante de ubicación + `p_external_url` + `p_case_study`): el caso de estudio completo (`client`, `scope`, `timeline`, `progress`, `results`, `key_figures`) se persiste en la misma transacción; `null` en la tabla de imágenes no toca nada y `null` en `p_case_study` conserva el caso vigente (los bundles viejos no lo borran).
+
+Migraciones de la fase de contenido (todas idempotentes, aplicables con `supabase db push`):
+
+| Migración | Qué crea |
+|---|---|
+| `20260918000005_contact_lead_metadata_and_antispam` | Columnas de lead y estado en `contact_messages` (`project_type`, `budget_range`, `timeline`, `status`, `is_spam`, `website`) + constraint checks + trigger `contact_messages_lead_guard` (honeypot + rate-limit por email) |
+| `20260918000006_service_detail_fields` | `services.scope` (text), `services.deliverables` (jsonb) y `services.faq` (jsonb), con checks `jsonb_typeof = 'array'` |
+| `20260918000007_project_case_study_fields` | Columnas de caso de estudio en `projects` (`client/scope/timeline/progress/results` text + `key_figures` jsonb) y RPC `admin_save_project` canónica de 13 parámetros |
+| `20260918000008_testimonials` | Tabla `testimonials` (`author`, `role`, `quote`, `rating`, `status`, `sort_order`) con RLS (lectura pública solo `published`, CRUD solo admin) |
 
 Buckets de storage creados por el esquema: `project-images`, `service-images`, `content-images` (lectura pública, escritura solo admin; límites de tamaño y MIME por bucket en la migración `20260917000003` — 2 MB para proyectos/servicios, 5 MB para el CMS). Con Cloudinary estos buckets quedan en modo *legacy*: solo se leen y solo se escriben si Cloudinary no está disponible.
 
@@ -314,6 +334,7 @@ src/app/
     content-blocks/      # data-access/ (modelo + servicio + catálogo de etiquetas) + admin/ (CMS de contenido)
     projects/            # data-access/ (modelo + servicio) + public/ (card, listado, detalle)
     services/            # data-access/ (modelo + servicio) + public/ (card, página)
+    testimonials/        # data-access/ (modelo + servicio) + admin/ (listado y formulario)
     auth/                # AuthService (data-access/), authGuard.ts, LoginComponent
     admin/               # dashboard + placeholders de módulos
     home/ about/ contact/ # páginas públicas

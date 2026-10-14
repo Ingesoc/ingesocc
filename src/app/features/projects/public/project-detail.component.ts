@@ -85,6 +85,32 @@ export class ProjectDetailComponent {
   });
 
   /**
+   * Cifras del caso de estudio listas para renderizar: solo pares completos
+   * (label y value), en el orden del panel. Vacío = la vista no muestra cifras.
+   */
+  readonly keyFigures = computed(() =>
+    (this.project()?.keyFigures ?? []).filter((figure) => figure.label?.trim() && figure.value?.trim()),
+  );
+
+  /**
+   * ¿El caso de estudio tiene contenido visible? Separa el SÍ (se renderiza la
+   * sección completa, incluye la columna de cifras) del NO (no hay nada que
+   * inventar ni mostrar): cliente, alcance, plazo, avance, resultados o cifras.
+   */
+  readonly hasCaseStudy = computed(() => {
+    const project = this.project();
+    if (!project) return false;
+    return Boolean(
+      project.client?.trim() ||
+        project.scope?.trim() ||
+        project.timeline?.trim() ||
+        project.progress?.trim() ||
+        project.results?.trim() ||
+        this.keyFigures().length > 0,
+    );
+  });
+
+  /**
    * Mapa embebido (sin API key) a partir de la ubicación real de la obra.
    * Devuelve '' cuando no hay ubicación: el template oculta la sección.
    */

@@ -32,9 +32,7 @@
   } @else {
     <div class="mt-10 grid gap-4">
       @for (item of items(); track item.id) {
-        <article [class]="item.read
-          ? 'rounded-sm border border-border bg-surface p-6'
-          : 'rounded-sm border-l-2 border-l-accent border border-border bg-surface p-6'">
+        <article [class]="cardClass(item)">
           <div class="flex flex-wrap items-start justify-between gap-5">
             <div class="flex min-w-0 items-center gap-4">
               <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary font-bold uppercase text-muted-foreground"
@@ -42,6 +40,9 @@
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2.5">
                   <p class="font-bold tracking-tight">{{ item.name }}</p>
+                  @if (item.is_spam) {
+                    <span class="badge badge-accent">Spam</span>
+                  }
                   @if (!item.read) {
                     <span class="badge badge-accent">Sin leer</span>
                   }
@@ -50,6 +51,12 @@
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-4">
+              <select [value]="item.status" (change)="onStatusChange(item, $any($event.target).value)"
+                class="field max-w-36 text-xs" aria-label="Estado del lead">
+                @for (option of statusOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
               <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{{ formatDate(item.created_at) }}</span>
               <button type="button" (click)="toggleRead(item.id, item.read)"
                 class="btn btn-outline btn-sm border-border text-muted-foreground hover:border-accent hover:text-accent-deep">
@@ -68,6 +75,19 @@
 
           @if (item.subject) {
             <p class="mt-5 border-t border-border pt-4 text-sm font-bold tracking-tight">{{ item.subject }}</p>
+          }
+          @if (hasContext(item)) {
+            <div class="mt-3 flex flex-wrap gap-2">
+              @if (item.project_type) {
+                <span class="badge badge-neutral">{{ item.project_type }}</span>
+              }
+              @if (item.budget_range) {
+                <span class="badge badge-neutral">{{ item.budget_range }}</span>
+              }
+              @if (item.timeline) {
+                <span class="badge badge-neutral">{{ item.timeline }}</span>
+              }
+            </div>
           }
           <p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item.message }}</p>
         </article>

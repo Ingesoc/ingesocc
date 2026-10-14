@@ -65,6 +65,25 @@ const SEED_CONTENT_BLOCKS: ContentBlock[] = [
   { page: 'about', sectionKey: 'equipo.member4.name', type: 'text', valueText: 'Ana Martínez', valueNumber: null, valueImagePath: null },
   { page: 'about', sectionKey: 'equipo.member4.role', type: 'text', valueText: 'Arquitecta Líder', valueNumber: null, valueImagePath: null },
   { page: 'about', sectionKey: 'equipo.member4.photo', type: 'image', valueText: null, valueNumber: null, valueImagePath: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80' },
+  // Certificaciones/licencias: cupos vacíos a propósito. El cliente los llena en
+  // el CMS; NO se inventan datos (mientras estén vacíos, la sección muestra el
+  // estado "en validación").
+  { page: 'about', sectionKey: 'certificaciones.item1.title', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item1.issuer', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item1.link', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item1.logo', type: 'image', valueText: null, valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item2.title', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item2.issuer', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item2.link', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item2.logo', type: 'image', valueText: null, valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item3.title', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item3.issuer', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item3.link', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item3.logo', type: 'image', valueText: null, valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item4.title', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item4.issuer', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item4.link', type: 'text', valueText: '', valueNumber: null, valueImagePath: null },
+  { page: 'about', sectionKey: 'certificaciones.item4.logo', type: 'image', valueText: null, valueNumber: null, valueImagePath: null },
 
   // ---- contact ----
   // Datos reales de la empresa (fuente: src/constants/project.ts de VentaDeLotes).

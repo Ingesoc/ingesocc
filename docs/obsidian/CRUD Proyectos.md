@@ -19,7 +19,16 @@ UI (form) → validación → data-access (ProjectsService) → PostgREST → Po
 
 ## Campos soportados
 
-`title` · `slug` (auto desde título, único en DB) · `description` · `price_min_wages` (valor en salarios mínimos, nullable) · `status` (`draft`/`published`) · `featured` · `sort_order` · categorías (`project_categories` N:M con `categories`) · imágenes (`project_images`: portada `is_cover` + galería).
+`title` · `slug` (auto desde título, único en DB) · `description` · `location` · `price_min_wages` (valor en salarios mínimos, nullable) · `external_url` (micrositio oficial) · `status` (`draft`/`published`) · `featured` · `sort_order` · categorías (`project_categories` N:M con `categories`) · imágenes (`project_images`: portada `is_cover` + galería) · **caso de estudio** (slice 3.3).
+
+## Caso de estudio (slice 3.3)
+
+El CRUD y el detalle público soportan el caso de estudio completo del proyecto:
+
+- `client` (cliente/entidad que contrató) · `scope` (alcance del trabajo) · `timeline` (plazo en texto) · `progress` (avance) · `results` (resultados destacados) — `text`, nullable.
+- `key_figures` — `jsonb` `{label, value}[]` (p. ej. `2400 m²`); el público solo muestra los pares con ambas partes y se editan como pares en el form.
+- Semántica de guardado en la RPC: `null` **no toca** el caso vigente; un objeto reemplaza el caso completo. Los `''` se normalizan a `null` y `key_figures` se filtra (sin pares vacíos).
+- El detalle muestra el caso de estudio con cifras destacadas + texto libre de resultados (mosaico editorial).
 
 ## Reglas de negocio
 
@@ -37,7 +46,8 @@ UI (form) → validación → data-access (ProjectsService) → PostgREST → Po
 ## Imágenes
 
 - Upload con compresión (`browser-image-compression` ≤2 MB / 2000 px) + validación MIME/extensión/tamaño (`image-utils.ts`, nº 7).
-- El guardado es **atómico**: el form sube los archivos nuevos a Cloudinary (sin fila en DB) y luego una sola RPC `admin_save_project` crea/actualiza proyecto + imágenes + categorías en una transacción. Para proyectos nuevos el uuid se genera en el cliente, lo que permite subir al prefijo antes de que exista la fila.
+- El guardado es **atómico**: el form sube los archivos nuevos a Cloudinary (sin fila en DB) y luego una sola RPC `admin_save_project` crea/actualiza proyecto + imágenes + categorías + **caso de estudio** en una transacción. Para proyectos nuevos el uuid se genera en el cliente, lo que permite subir al prefijo antes de que exista la fila.
+- La RPC canónica tiene **13 parámetros** (`20260918000007`): 11 de la variante de ubicación + `p_external_url` (se reintroduce porque `0004` lo omitió — PGRST202) + `p_case_study`. `null` en `p_location`/`p_external_url`/`p_case_study` conserva el valor vigente; los bundles viejos siguen resolviendo por los `default`. Se dropan las dos variantes intermedias (11 args) para no dejar aridad ambigua.
 - Compensación: si la RPC falla, se borran los assets recién subidos; si acierta, se limpian las imágenes eliminadas que la RPC devuelve en `orphan_storage_paths` (Storage no es transaccional).
 - Cover por `is_cover`; galería con `sort_order`; el borrado pasa por `CloudinaryService` (Cloudinary o bucket legacy según la referencia, ver [[Cloudinary y Media]]).
 - El detalle usa la portada como `og:image`, con `fetchpriority="high"` y transform `hero` (ver [[SEO]] y [[Performance y Lighthouse]]).

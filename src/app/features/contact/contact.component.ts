@@ -40,14 +40,25 @@ export class ContactComponent {
     return where ? `https://maps.google.com/maps?q=${encodeURIComponent(where)}&z=15&output=embed` : '';
   });
 
-  /** Obligatorios: Nombre, Email, Mensaje. Teléfono y Asunto opcionales. */
+  /** Obligatorios: Nombre, Email, Mensaje. Teléfono, Asunto y contexto del
+ *  proyecto (tipo/presupuesto/plazo) opcionales. `website` es el honeypot
+ *  anti-spam: oculto y sin validar, los bots lo rellenan. */
   readonly form = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]),
     email: new FormControl('', [Validators.required, Validators.email, Validators.maxLength(254)]),
     phone: new FormControl('', [Validators.maxLength(30)]),
     subject: new FormControl('', [Validators.maxLength(200)]),
     message: new FormControl('', [Validators.required, Validators.minLength(10), Validators.maxLength(5000)]),
+    projectType: new FormControl(''),
+    budgetRange: new FormControl(''),
+    timeline: new FormControl(''),
+    website: new FormControl(''),
   });
+
+  /** Opciones del contexto del proyecto (labels en español = valores en DB). */
+  readonly projectTypeOptions = ['Construcción', 'Diseño', 'Remodelación', 'Infraestructura', 'Industria', 'Salud', 'Otro'];
+  readonly budgetRangeOptions = ['Menos de $100M', 'Entre $100M y $500M', 'Más de $500M', 'Aún sin definir'];
+  readonly timelineOptions = ['Inmediato', '1 a 3 meses', '3 a 6 meses', '6 a 12 meses', 'Más de un año'];
 
   /** Mensaje de error por campo (primer validador fallido). */
   fieldError(control: 'name' | 'email' | 'phone' | 'subject' | 'message'): string {
@@ -96,6 +107,10 @@ export class ContactComponent {
         phone: this.form.value.phone?.trim() || null,
         subject: this.form.value.subject?.trim() || null,
         message: this.form.value.message!.trim(),
+        project_type: this.form.value.projectType?.trim() || null,
+        budget_range: this.form.value.budgetRange?.trim() || null,
+        timeline: this.form.value.timeline?.trim() || null,
+        website: this.form.value.website ?? '',
       });
       this.submitted.set(true);
     } catch {

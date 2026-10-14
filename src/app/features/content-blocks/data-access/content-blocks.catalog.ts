@@ -73,6 +73,23 @@ const LABELS: Record<string, string> = {
   'about.equipo.member4.name': 'Miembro 4 · Nombre',
   'about.equipo.member4.role': 'Miembro 4 · Cargo',
   'about.equipo.member4.photo': 'Miembro 4 · Foto',
+  // about — certificaciones (cupos vacíos: los aporta el cliente)
+  'about.certificaciones.item1.title': 'Certificación 1 · Nombre',
+  'about.certificaciones.item1.issuer': 'Certificación 1 · Entidad emisora',
+  'about.certificaciones.item1.link': 'Certificación 1 · Enlace de soporte',
+  'about.certificaciones.item1.logo': 'Certificación 1 · Logo',
+  'about.certificaciones.item2.title': 'Certificación 2 · Nombre',
+  'about.certificaciones.item2.issuer': 'Certificación 2 · Entidad emisora',
+  'about.certificaciones.item2.link': 'Certificación 2 · Enlace de soporte',
+  'about.certificaciones.item2.logo': 'Certificación 2 · Logo',
+  'about.certificaciones.item3.title': 'Certificación 3 · Nombre',
+  'about.certificaciones.item3.issuer': 'Certificación 3 · Entidad emisora',
+  'about.certificaciones.item3.link': 'Certificación 3 · Enlace de soporte',
+  'about.certificaciones.item3.logo': 'Certificación 3 · Logo',
+  'about.certificaciones.item4.title': 'Certificación 4 · Nombre',
+  'about.certificaciones.item4.issuer': 'Certificación 4 · Entidad emisora',
+  'about.certificaciones.item4.link': 'Certificación 4 · Enlace de soporte',
+  'about.certificaciones.item4.logo': 'Certificación 4 · Logo',
   // contact
   'contact.title': 'Título de la página',
   'contact.subtitle': 'Subtítulo de la página',
@@ -108,6 +125,7 @@ const GROUP_LABELS: Record<string, string> = {
   vision: 'Visión',
   valores: 'Valores',
   equipo: 'Equipo',
+  certificaciones: 'Certificaciones',
   social: 'Redes sociales',
 };
 

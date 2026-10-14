@@ -15,7 +15,7 @@
         <p class="mt-6 max-w-sm text-sm leading-6 text-white/55">
           Arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.
         </p>
-        <div class="mt-8 flex items-center gap-3">
+        <div class="mt-8 flex flex-wrap items-center gap-3">
           <a [href]="linkedin()" target="_blank" rel="noopener" aria-label="LinkedIn de Ingesocc"
             class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
             LinkedIn
@@ -68,17 +68,17 @@
       <div class="lg:col-span-3">
         <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Contacto</p>
         <ul class="grid gap-3">
-          <li class="flex items-baseline gap-3 border-b border-white/10 pb-3">
+          <li class="flex min-w-0 items-baseline gap-3 border-b border-white/10 pb-3">
             <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Email</span>
-            <a [href]="'mailto:' + email()" class="text-sm text-white/75 transition-colors hover:text-accent">{{ email() }}</a>
+            <a [href]="'mailto:' + email()" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ email() }}</a>
           </li>
-          <li class="flex items-baseline gap-3 border-b border-white/10 pb-3">
+          <li class="flex min-w-0 items-baseline gap-3 border-b border-white/10 pb-3">
             <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Teléfono</span>
-            <a [href]="'tel:' + phone()" class="text-sm text-white/75 transition-colors hover:text-accent">{{ phone() }}</a>
+            <a [href]="'tel:' + phone()" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ phone() }}</a>
           </li>
-          <li class="flex items-baseline gap-3">
+          <li class="flex min-w-0 items-baseline gap-3">
             <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Ubicación</span>
-            <span class="text-sm leading-6 text-white/75">{{ address() }}</span>
+            <span class="min-w-0 break-words text-sm leading-6 text-white/75">{{ address() }}</span>
           </li>
         </ul>
       </div>

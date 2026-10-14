@@ -1,14 +1,15 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/supabase.service';
 import { CloudinaryService } from '../../../core/cloudinary.service';
-import type { AdminService, Service, ServiceInput } from './service.model';
+import type { AdminService, Service, ServiceFaqItem, ServiceInput } from './service.model';
 
 /**
  * Catálogo de servicios (tabla `services` del plan, sección 3.3).
  *
  * Al iniciar intenta cargar desde Supabase (RLS ya filtra `status =
  * 'published'`). Si la tabla no existe todavía o está vacía, mantiene el seed
- * con los 6 servicios del maquetado (plan 1.3).
+ * con los 6 servicios del maquetado (plan 1.3). Los entregables por línea son
+ * copy del diseño [PENDIENTE: validar con el cliente].
  */
 const SEED_SERVICES: Service[] = [
   {
@@ -17,6 +18,14 @@ const SEED_SERVICES: Service[] = [
     slug: 'proyectos-de-infraestructura',
     description:
       'Desarrollamos puentes, obras civiles y grandes estructuras que conectan comunidades y fomentan el progreso.',
+    scope: null,
+    deliverables: [
+      'Estudios y diseños preliminares',
+      'Gerencia de obra e interventoría',
+      'Construcción de obras civiles',
+      'Entrega y puesta en servicio',
+    ],
+    faq: null,
     photoUrl:
       'https://images.unsplash.com/photo-1504307651254-35680f583dfb?auto=format&fit=crop&w=1200&q=85',
     iconName: null,
@@ -29,6 +38,14 @@ const SEED_SERVICES: Service[] = [
     slug: 'proyectos-hospitalarios',
     description:
       'Construcción especializada de centros de salud, cumpliendo con los más altos estándares de calidad y funcionalidad.',
+    scope: null,
+    deliverables: [
+      'Adecuación y montaje de áreas asistenciales',
+      'Instalaciones y redes hospitalarias',
+      'Acabados y control de bioseguridad',
+      'Documentación y puesta en marcha',
+    ],
+    faq: null,
     photoUrl:
       'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=1200&q=85',
     iconName: null,
@@ -41,6 +58,14 @@ const SEED_SERVICES: Service[] = [
     slug: 'proyectos-industriales',
     description:
       'Fabricamos e instalamos naves industriales, plantas de producción y bodegas optimizadas para la eficiencia operativa.',
+    scope: null,
+    deliverables: [
+      'Obra civil para nave industrial',
+      'Estructuras metálicas y cubiertas',
+      'Instalaciones técnicas industriales',
+      'Montaje y puesta en marcha',
+    ],
+    faq: null,
     photoUrl: null,
     iconName: 'factory',
     status: 'published',
@@ -52,6 +77,14 @@ const SEED_SERVICES: Service[] = [
     slug: 'consultoria-y-diseno',
     description:
       'Acompañamos desde la conceptualización, ofreciendo diseños innovadores y viables que optimizan recursos y garantizan resultados.',
+    scope: null,
+    deliverables: [
+      'Levantamientos y diagnóstico',
+      'Diseño arquitectónico y estructural',
+      'Documentos técnicos y memorias',
+      'Acompañamiento en licencias',
+    ],
+    faq: null,
     photoUrl: null,
     iconName: 'ruler',
     status: 'published',
@@ -63,6 +96,14 @@ const SEED_SERVICES: Service[] = [
     slug: 'fabricacion-metalica',
     description:
       'Especialistas en la fabricación a medida de estructuras metálicas de alta precisión para cualquier tipo de proyecto.',
+    scope: null,
+    deliverables: [
+      'Diseño y despiece técnico',
+      'Fabricación en taller',
+      'Recubrimiento anticorrosivo',
+      'Montaje en sitio',
+    ],
+    faq: null,
     photoUrl: null,
     iconName: 'frame',
     status: 'published',
@@ -74,6 +115,14 @@ const SEED_SERVICES: Service[] = [
     slug: 'proyectos-de-vivienda',
     description:
       'Ejecutamos proyectos de vivienda unifamiliar y multifamiliar con diseños modernos y estructuras duraderas.',
+    scope: null,
+    deliverables: [
+      'Diseño y legalización del proyecto',
+      'Construcción de vivienda',
+      'Urbanismo y zonas comunes',
+      'Entrega de obra y acompañamiento',
+    ],
+    faq: null,
     photoUrl: null,
     iconName: 'home',
     status: 'published',
@@ -86,6 +135,9 @@ interface ServiceRow {
   name: string;
   slug: string;
   description: string;
+  scope: string | null;
+  deliverables: string[] | null;
+  faq: ServiceFaqItem[] | null;
   photo_path: string | null;
   icon_name: string | null;
   status: Service['status'];
@@ -134,7 +186,10 @@ export class ServicesService {
 
   /** Recarga lo que consume el panel admin y el sitio público. */
   async refreshAll(): Promise<void> {
-    await Promise.all([this.load(), this.loadAll()]);
+    await this.load();
+    // Relectura del panel best-effort: una caída transitoria no debe hacer que
+    // una mutación ya confirmada se reporte como fallida en la UI.
+    await this.loadAll().catch(() => undefined);
   }
 
   /**
@@ -145,7 +200,7 @@ export class ServicesService {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
-      .select('id, name, slug, description, photo_path, icon_name, status, sort_order');
+      .select('id, name, slug, description, scope, deliverables, faq, photo_path, icon_name, status, sort_order');
 
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
@@ -166,6 +221,9 @@ export class ServicesService {
         name: row.name,
         slug: row.slug,
         description: row.description,
+        scope: row.scope,
+        deliverables: row.deliverables,
+        faq: row.faq,
         photoUrl: this.supabase.resolvePublicUrl('service-images', row.photo_path),
         iconName: row.icon_name,
         status: row.status,
@@ -183,12 +241,13 @@ export class ServicesService {
     await this.supabase.clientPromise;
     const { data, error } = await this.supabase.client
       .from('services')
-      .select('id, name, slug, description, photo_path, icon_name, status, sort_order')
+      .select('id, name, slug, description, scope, deliverables, faq, photo_path, icon_name, status, sort_order')
       .order('sort_order');
 
     if (error) {
-      console.warn('[services/admin] sin datos:', error.message);
-      return;
+      // Relanza para que el panel distinga "sin datos" de "fallo de carga".
+      console.warn('[services/admin] error de carga:', error.message);
+      throw new Error(error.message);
     }
     if (!data || data.length === 0) {
       this.adminServicesSignal.set([]);
@@ -201,6 +260,9 @@ export class ServicesService {
         name: row.name,
         slug: row.slug,
         description: row.description,
+        scope: row.scope,
+        deliverables: row.deliverables,
+        faq: row.faq,
         photoPath: row.photo_path,
         photoUrl: this.supabase.resolvePublicUrl('service-images', row.photo_path),
         iconName: row.icon_name,
@@ -215,6 +277,9 @@ export class ServicesService {
     name: string;
     slug: string;
     description: string;
+    scope: string | null;
+    deliverables: string[];
+    faq: ServiceFaqItem[];
     icon_name: string | null;
     status: string;
     sort_order: number;
@@ -223,6 +288,9 @@ export class ServicesService {
       name: input.name,
       slug: input.slug,
       description: input.description,
+      scope: input.scope,
+      deliverables: input.deliverables,
+      faq: input.faq,
       icon_name: input.iconName,
       status: input.status,
       sort_order: input.sortOrder,

@@ -2,6 +2,9 @@
 
 Fecha: 2026-09-03 · Rama: `main` · Base: el "Plan maestro de pruebas — Ingesocc" enviado por el usuario.
 
+> [!note] Snapshot posterior
+> Auditoría fechada; captura el estado en `main` de esa fecha. Desde entonces se añadió el **CMS de `content_blocks` en `/admin/contenido`** (la divergencia del §1.4 quedó resuelta) y la fase de contenido 3.1–3.5 (lead/anti-spam, detalle de servicio, caso de estudio, certificaciones, testimonios). Los bugs P0 del §4 están cerrados. Ver [[Inicio]] y [[Testing]].
+
 Método: lectura completa de `src/app` (40 TS + plantillas), `supabase/schema.sql`, `supabase/seed.sql`, `angular.json`, `vercel.json`, assets SEO, y verificación empírica de build y runner de tests.
 
 ```bash

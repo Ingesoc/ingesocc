@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ContactComponent } from './contact.component';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
+import { ContactMessagesService } from './data-access/contact-messages.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { CloudinaryService } from '../../core/cloudinary.service';
 import { SupabaseStorageService } from '../../core/supabase-storage.service';
@@ -89,5 +90,50 @@ describe('ContactComponent (datos corporativos reales)', () => {
     expect(service.text('contact', 'email')).toBe(REAL_CONTACT.email);
     expect(service.text('contact', 'address')).toBe(REAL_CONTACT.address);
     expect(service.text('contact', 'whatsapp')).toBe(REAL_CONTACT.whatsapp);
+  });
+});
+
+describe('ContactComponent (formulario → lead)', () => {
+  it('onSubmit() envía metadata del proyecto y honeypot al servicio', async () => {
+    const insertSpy = jasmine.createSpy('insert').and.resolveTo();
+    const blocks = {
+      text: (page: string, key: string, fallback = '') =>
+        page === 'contact' ? ((REAL_CONTACT as Record<string, string>)[key] ?? fallback) : fallback,
+    } as unknown as ContentBlocksService;
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ContentBlocksService, useValue: blocks },
+        { provide: SupabaseService, useValue: {} },
+        { provide: CloudinaryService, useValue: {} },
+        { provide: ContactMessagesService, useValue: { insert: insertSpy } },
+      ],
+    });
+    const component = TestBed.createComponent(ContactComponent).componentInstance;
+    component.form.setValue({
+      name: 'Cliente Prueba',
+      email: 'cliente@test.com',
+      phone: '',
+      subject: 'Cotización bodega',
+      message: 'Quiero una cotización para una bodega en Quimbaya.',
+      projectType: 'Industria',
+      budgetRange: 'Entre $100M y $500M',
+      timeline: '3 a 6 meses',
+      website: '',
+    });
+
+    await component.onSubmit();
+
+    expect(insertSpy).toHaveBeenCalledWith({
+      name: 'Cliente Prueba',
+      email: 'cliente@test.com',
+      phone: null,
+      subject: 'Cotización bodega',
+      message: 'Quiero una cotización para una bodega en Quimbaya.',
+      project_type: 'Industria',
+      budget_range: 'Entre $100M y $500M',
+      timeline: '3 a 6 meses',
+      website: '',
+    });
   });
 });

@@ -204,6 +204,75 @@
         }
       </section>
 
+      <!-- Caso de estudio -->
+      <section class="panel p-6 md:p-8">
+        <div class="mb-6 flex items-center gap-3 border-b border-border pb-5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-sm bg-secondary text-[11px] font-bold text-muted-foreground">4</span>
+          <div>
+            <p class="text-sm font-bold tracking-tight">Caso de estudio</p>
+            <p class="text-xs text-muted-foreground">Opcional. Si se dejan vacíos, el detalle público no muestra estas secciones.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-6">
+          <div class="grid gap-6 md:grid-cols-2">
+            <div>
+              <label for="client" class="field-label">Cliente</label>
+              <input id="client" type="text" formControlName="client" class="field" placeholder="Nombre del contratante" />
+            </div>
+            <div>
+              <label for="timeline" class="field-label">Plazo</label>
+              <input id="timeline" type="text" formControlName="timeline" class="field" placeholder="Ej. 8 meses" />
+            </div>
+          </div>
+
+          <div>
+            <label for="scope" class="field-label">Alcance</label>
+            <textarea id="scope" rows="3" formControlName="scope" class="field" placeholder="Qué se contrató: actividades, entregables, etapas…"></textarea>
+          </div>
+
+          <div>
+            <label for="progress" class="field-label">Avance actual</label>
+            <input id="progress" type="text" formControlName="progress" class="field" placeholder="Ej. En ejecución, 60%" />
+          </div>
+
+          <div>
+            <label for="results" class="field-label">Resultados</label>
+            <textarea id="results" rows="3" formControlName="results" class="field" placeholder="Entregas, hitos logrados, recepción de la obra…"></textarea>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-4">
+              <p class="field-label">Cifras destacadas</p>
+              <button type="button" (click)="addKeyFigure()" class="btn btn-outline btn-sm border-border text-muted-foreground hover:border-accent hover:text-accent-deep">
+                Agregar cifra
+              </button>
+            </div>
+            <p class="mt-1.5 text-xs text-muted-foreground">
+              Pares concepto + valor (p. ej. "Área construida" / "2.400 m²"). Se descartan las filas incompletas.
+            </p>
+            <div class="mt-4 space-y-3">
+              @for (group of keyFigureItems(); track $index; let i = $index) {
+                <div class="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]" [formGroup]="group">
+                  <div>
+                    <label [for]="'figure-label-' + i" class="field-label">Concepto</label>
+                    <input [id]="'figure-label-' + i" type="text" formControlName="label" class="field" placeholder="Ej. Área construida" />
+                  </div>
+                  <div>
+                    <label [for]="'figure-value-' + i" class="field-label">Valor</label>
+                    <input [id]="'figure-value-' + i" type="text" formControlName="value" class="field" placeholder="Ej. 2.400 m²" />
+                  </div>
+                  <button type="button" (click)="removeKeyFigure($index)" title="Quitar cifra" [disabled]="busy()"
+                    class="flex h-10 w-10 items-center justify-center rounded-sm border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep">
+                    <svg lucideTrash2 class="h-4 w-4" />
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Acciones -->
       <div class="flex flex-wrap items-center gap-4 pb-4">
         <button type="submit" [disabled]="busy()" class="btn btn-solid">

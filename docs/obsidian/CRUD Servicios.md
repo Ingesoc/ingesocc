@@ -15,7 +15,18 @@ Ciclo de vida completo de la entidad `services` contra Supabase (via `ServicesSe
 
 ## Campos soportados
 
-`name` · `slug` (único) · `description` · `photo_path` (nullable) · `icon_name` (fallback lucide) · `status` (`draft`/`published`) · `sort_order`.
+`name` · `slug` (único) · `description` · `scope` (nullable) · `deliverables` (jsonb de textos, nullable) · `faq` (jsonb `{q, a}[]`, nullable) · `photo_path` (nullable) · `icon_name` (fallback lucide) · `status` (`draft`/`published`) · `sort_order`.
+
+## Detalle editable (`/servicios/:slug`, slice 3.2)
+
+La vista de detalle lee:
+
+- **Alcance** → `scope` si existe, si no cae a `description` (nunca sección vacía).
+- **Entregables** → `deliverables` (lista numerada); si `null`, respaldo genérico de la línea de servicio.
+- **FAQ** → `faq`; si `null`, preguntas frecuentes genéricas.
+- **Proyectos relacionados** → primeras obras publicadas (mapeo por área en `[PENDIENTE: validar con el cliente]`).
+
+Estos campos se editan como un bloque en el formulario admin (lista de entregables ordenadas + preguntas `{pregunta, respuesta}`). Se guardan como jsonb (no tablas hijas): listas cortas ordenadas que se editan en conjunto; los checks `jsonb_typeof = 'array'` en la migración `20260918000006` evitan romper el render público.
 
 ## Foto o ícono
 

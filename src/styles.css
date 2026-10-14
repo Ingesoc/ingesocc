@@ -172,6 +172,13 @@ body {
     text-decoration: inherit;
   }
 
+  /* Tolerancia a zoom de texto (WCAG 1.4.4/1.4.10): palabras o tokens largos
+     (p. ej. emails, slugs, cifras) se parten SOLO cuando no caben en su línea,
+     evitando desbordes horizontales al 150 % de tamaño de texto. */
+  body {
+    overflow-wrap: anywhere;
+  }
+
   /* Enfoque visible en toda la interfaz (WCAG 2.4.7). */
   :focus-visible {
     outline: 2px solid var(--accent-deep);
@@ -231,7 +238,8 @@ body {
     letter-spacing: 0.16em;
     line-height: 1;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   }
@@ -294,6 +302,7 @@ body {
   /* Campos de formulario: altura, borde y foco idénticos en todo el sitio. */
   .field {
     width: 100%;
+    min-width: 0;
     min-height: 2.875rem;
     border: 1px solid var(--border);
     border-radius: 2px;

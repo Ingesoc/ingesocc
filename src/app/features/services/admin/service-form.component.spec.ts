@@ -1,5 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
 import { of } from 'rxjs';
 import { ServicesService } from '../data-access/services.service';
 import { ServiceFormComponent } from './service-form.component';
@@ -87,5 +88,88 @@ describe('ServiceFormComponent', () => {
       expect(revoke).not.toHaveBeenCalled();
       expect(component.photoBusy()).toBeFalse();
     });
+  });
+});
+
+describe('ServiceFormComponent (detalle editable)', () => {
+  const SERVICE = {
+    id: 's1',
+    name: 'Proyectos de Infraestructura',
+    slug: 'proyectos-de-infraestructura',
+    description: 'Desarrollamos puentes y obras civiles.',
+    scope: 'Alcance mutado por el cliente.',
+    deliverables: ['Estudios y diseños preliminares', 'Gerencia de obra'],
+    faq: [{ q: '¿Cómo se cotiza?', a: 'Con la información del proyecto.' }],
+    photoPath: null,
+    photoUrl: null,
+    iconName: null,
+    status: 'published' as const,
+    sortOrder: 1,
+  };
+
+  function setupEditFixture(overrides: Record<string, unknown>) {
+    TestBed.configureTestingModule({
+      imports: [ServiceFormComponent],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ id: 's1' })) } },
+        {
+          provide: ServicesService,
+          useValue: {
+            adminServices: () => [SERVICE],
+            loadAll: jasmine.createSpy('loadAll').and.resolveTo(undefined),
+            byId: (id: string) => (id === 's1' ? SERVICE : null),
+            updateService: jasmine.createSpy('updateService').and.resolveTo(undefined),
+            createService: jasmine.createSpy('createService').and.resolveTo('s1'),
+            removeServicePhoto: jasmine.createSpy('removeServicePhoto').and.resolveTo(undefined),
+            refreshAll: jasmine.createSpy('refreshAll').and.resolveTo(undefined),
+            ...overrides,
+          },
+        },
+      ],
+    });
+  }
+
+  async function render(): Promise<ComponentFixture<ServiceFormComponent>> {
+    const fixture = TestBed.createComponent(ServiceFormComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    return fixture;
+  }
+
+  it('al editar carga alcance, entregables (por línea) y FAQ del servicio', async () => {
+    setupEditFixture({});
+    const fixture = await render();
+    const component = fixture.componentInstance;
+
+    expect(component.form.controls.scope.value).toBe(SERVICE.scope);
+    expect(component.form.controls.deliverables.value).toBe(SERVICE.deliverables.join('\n'));
+    expect(component.faqItems().length).toBe(1);
+    expect(component.faqItems()[0].controls.q.value).toBe('¿Cómo se cotiza?');
+    fixture.destroy();
+  });
+
+  it('al guardar convierte entregables (líneas) y FAQ (filtradas) en los tipos jsonb', async () => {
+    const updateService = jasmine.createSpy('updateService').and.resolveTo(undefined);
+    setupEditFixture({ updateService });
+    const fixture = await render();
+    const component = fixture.componentInstance;
+
+    component.form.controls.deliverables.setValue('  Ítem A \nÍtem B\n\nÍtem C ');
+    component.form.controls.faq.clear();
+    component.form.controls.faq.push(new FormGroup({ q: new FormControl('¿Pregunta?'), a: new FormControl('Respuesta.') }));
+    component.form.controls.faq.push(new FormGroup({ q: new FormControl('   '), a: new FormControl('Respuesta sin pregunta') }));
+
+    await component.onSave();
+
+    expect(updateService).toHaveBeenCalledWith(
+      's1',
+      jasmine.objectContaining({
+        scope: SERVICE.scope,
+        deliverables: ['Ítem A', 'Ítem B', 'Ítem C'],
+        faq: [{ q: '¿Pregunta?', a: 'Respuesta.' }],
+      }),
+    );
+    fixture.destroy();
   });
 });

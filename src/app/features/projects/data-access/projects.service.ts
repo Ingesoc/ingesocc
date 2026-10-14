@@ -10,6 +10,7 @@ import type {
   ProjectImage,
   ProjectImageInput,
   ProjectInput,
+  ProjectKeyFigure,
 } from './project.model';
 
 /**
@@ -233,6 +234,20 @@ function mapProjectWriteError(error: DbError): Error {
   return new Error(error.message);
 }
 
+/**
+ * Normaliza las cifras del caso de estudio al contrato de la RPC: solo pares
+ * con `label` Y `value` no vacíos, recortados y en orden. La función SQL aplica
+ * el mismo filtro; esto mantiene el payload mínimo y explícito.
+ */
+function normalizeKeyFigures(figures: ProjectKeyFigure[] | undefined): ProjectKeyFigure[] {
+  return (figures ?? [])
+    .map((figure) => ({
+      label: figure.label?.trim() ?? '',
+      value: figure.value?.trim() ?? '',
+    }))
+    .filter((figure) => figure.label !== '' && figure.value !== '');
+}
+
 /** Categorías reales del filtro (plan 1.2 — "Todos" es el filtro por defecto, no una categoría). */
 const PROJECT_CATEGORIES: readonly string[] = [
   'Edificaciones',
@@ -252,6 +267,12 @@ interface ProjectRow {
   featured: boolean;
   sort_order: number;
   external_url: string | null;
+  client: string | null;
+  scope: string | null;
+  timeline: string | null;
+  progress: string | null;
+  results: string | null;
+  key_figures: ProjectKeyFigure[] | null;
 }
 
 interface CategoryLinkRow {
@@ -316,7 +337,10 @@ export class ProjectsService {
 
   /** Recarga todo lo que consume el panel admin y el sitio público. */
   async refreshAll(): Promise<void> {
-    await Promise.all([this.load(), this.loadAll(), this.loadCategories()]);
+    await Promise.all([this.load(), this.loadCategories()]);
+    // Relectura del panel best-effort: una caída transitoria no debe hacer que
+    // una mutación ya confirmada se reporte como fallida en la UI.
+    await this.loadAll().catch(() => undefined);
   }
 
   /**
@@ -329,7 +353,7 @@ export class ProjectsService {
 
     const { data: projects, error } = await client
       .from('projects')
-      .select('id, title, slug, description, location, price_min_wages, status, featured, sort_order, external_url');
+      .select('id, title, slug, description, location, price_min_wages, status, featured, sort_order, external_url, client, scope, timeline, progress, results, key_figures');
 
     if (error) {
       // Tabla inexistente (schema.sql sin aplicar) o sin credenciales: seed estático.
@@ -392,6 +416,12 @@ export class ProjectsService {
         categories: categoriesByProject.get(row.id) ?? [],
         images: imagesByProject.get(row.id) ?? [],
         externalUrl: row.external_url ?? null,
+        client: row.client ?? null,
+        scope: row.scope ?? null,
+        timeline: row.timeline ?? null,
+        progress: row.progress ?? null,
+        results: row.results ?? null,
+        keyFigures: row.key_figures ?? [],
       })),
     );
     return true;
@@ -407,12 +437,14 @@ export class ProjectsService {
 
     const { data: rows, error } = await client
       .from('projects')
-      .select('id, title, slug, description, location, price_min_wages, status, featured, sort_order, external_url')
+      .select('id, title, slug, description, location, price_min_wages, status, featured, sort_order, external_url, client, scope, timeline, progress, results, key_figures')
       .order('sort_order');
 
     if (error) {
-      console.warn('[projects/admin] sin datos:', error.message);
-      return;
+      // Relanza para que el panel distinga "sin datos" de "fallo de carga"
+      // (antes el catch de la página nunca se disparaba y pintaba vacío).
+      console.warn('[projects/admin] error de carga:', error.message);
+      throw new Error(error.message);
     }
     if (!rows || rows.length === 0) {
       this.adminProjectsSignal.set([]);
@@ -463,6 +495,12 @@ export class ProjectsService {
         categoryIds: categoryIdsByProject.get(row.id) ?? [],
         images: imagesByProject.get(row.id) ?? [],
         externalUrl: row.external_url ?? null,
+        client: row.client ?? null,
+        scope: row.scope ?? null,
+        timeline: row.timeline ?? null,
+        progress: row.progress ?? null,
+        results: row.results ?? null,
+        keyFigures: row.key_figures ?? [],
       })),
     );
   }
@@ -532,6 +570,14 @@ export class ProjectsService {
     // Los metadatos de imagen (alt/title/description/category) viajan dentro de
     // este mismo jsonb, así que añadirlos no cambia la firma de la RPC. Los
     // vacíos se mandan como null y la RPC los trata como "sin valor".
+    //
+    // p_case_study: si el admin no tocó ninguno de los campos del caso de
+    // estudio, se envía null y la RPC conserva lo ya guardado; si alguna de las
+    // cadenas viene definida (aunque sea ''), se envía el objeto completo y la
+    // RPC hace un "reemplazo" ('' -> null, cifras incompletas se descartan).
+    const caseStudyKeys = ['client', 'scope', 'timeline', 'progress', 'results'] as const;
+    const hasCaseStudy =
+      caseStudyKeys.some((key) => input[key] != null) || (input.keyFigures?.length ?? 0) > 0;
     const { data, error } = await this.supabase.client.rpc('admin_save_project', {
       p_project_id: projectId,
       p_title: input.title,
@@ -555,6 +601,16 @@ export class ProjectsService {
         category: row.category?.trim() || null,
       })),
       p_external_url: externalUrl,
+      p_case_study: hasCaseStudy
+        ? {
+            client: input.client?.trim() || null,
+            scope: input.scope?.trim() || null,
+            timeline: input.timeline?.trim() || null,
+            progress: input.progress?.trim() || null,
+            results: input.results?.trim() || null,
+            key_figures: normalizeKeyFigures(input.keyFigures),
+          }
+        : null,
     });
     if (error) throw mapProjectWriteError(error as DbError);
 

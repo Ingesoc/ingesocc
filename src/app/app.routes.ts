@@ -152,6 +152,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'testimonios',
+        loadComponent: () =>
+          import('./features/testimonials/admin/testimonials-admin-page.component').then(
+            (m) => m.TestimonialsAdminPageComponent,
+          ),
+      },
+      { path: 'testimonios/nuevo', loadComponent: () => import('./features/testimonials/admin/testimonial-form.component').then((m) => m.TestimonialFormComponent) },
+      { path: 'testimonios/:id', loadComponent: () => import('./features/testimonials/admin/testimonial-form.component').then((m) => m.TestimonialFormComponent) },
+      {
         path: 'mensajes',
         loadComponent: () =>
           import('./features/contact/admin/messages-inbox.component').then((m) => m.MessagesInboxComponent),

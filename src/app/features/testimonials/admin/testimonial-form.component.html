@@ -1,0 +1,93 @@
+<div class="mx-auto max-w-4xl">
+  <a routerLink="/admin/testimonios" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-accent-deep">
+    <svg lucideChevronLeft class="h-4 w-4" /> Volver a testimonios
+  </a>
+
+  <h1 class="mt-6 text-3xl font-bold tracking-[-0.02em] md:text-4xl">{{ isEdit() ? 'Editar Testimonio' : 'Nuevo Testimonio' }}</h1>
+  <p class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+    Solo los testimonios "Publicado" se muestran en el Home, en el orden indicado.
+  </p>
+
+  @if (error()) {
+    <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="mt-10 grid gap-3" aria-label="Cargando testimonio">
+      @for (skeleton of [1, 2]; track skeleton) {
+        <div class="h-32 animate-pulse rounded-sm border border-border bg-surface"></div>
+      }
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="mt-10 grid gap-6">
+      <section class="panel p-6 md:p-8">
+        <div class="mb-7 flex items-center gap-3 border-b border-border pb-5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-sm bg-secondary text-[11px] font-bold text-muted-foreground">1</span>
+          <div>
+            <p class="text-sm font-bold tracking-tight">Testimonio</p>
+            <p class="text-xs text-muted-foreground">Los campos con * son obligatorios.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-6">
+          <div class="grid gap-6 md:grid-cols-2">
+            <div>
+              <label for="author" class="field-label">Autor *</label>
+              <input id="author" type="text" formControlName="author" class="field" />
+              @if (form.controls.author.touched && form.controls.author.invalid) {
+                <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese el nombre o empresa (mínimo 3 caracteres).</p>
+              }
+            </div>
+            <div>
+              <label for="role" class="field-label">Cargo o contexto</label>
+              <input id="role" type="text" formControlName="role" class="field" placeholder="Ej.: Alcaldía de Armenia · proyecto puente" />
+            </div>
+          </div>
+
+          <div>
+            <label for="quote" class="field-label">Testimonio *</label>
+            <textarea id="quote" rows="5" formControlName="quote" class="field"></textarea>
+            @if (form.controls.quote.touched && form.controls.quote.invalid) {
+              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese el testimonio (mínimo 10 caracteres).</p>
+            }
+          </div>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            <div>
+              <label for="rating" class="field-label">Valoración</label>
+              <select id="rating" formControlName="rating" class="field">
+                <option [ngValue]="null">Sin mostrar</option>
+                @for (rating of ratingOptions; track rating ?? 'none') {
+                  @if (rating !== null) {
+                    <option [ngValue]="rating">{{ rating }} estrella{{ rating === 1 ? '' : 's' }}</option>
+                  }
+                }
+              </select>
+              <p class="mt-1.5 text-xs text-muted-foreground">Opción editorial: no tenemos el dato real de la valoración del cliente.</p>
+            </div>
+            <div>
+              <label for="status" class="field-label">Estado</label>
+              <select id="status" formControlName="status" class="field">
+                <option value="draft">Borrador</option>
+                <option value="published">Publicado</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="sortOrder" class="field-label">Orden</label>
+            <input id="sortOrder" type="number" formControlName="sortOrder" class="field max-w-40" />
+            <p class="mt-1.5 text-xs text-muted-foreground">Los testimonios se muestran de menor a mayor orden.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="flex items-center gap-3">
+        <button type="submit" class="btn btn-solid" [disabled]="saving()">
+          {{ submitLabel() }}
+        </button>
+        <a routerLink="/admin/testimonios" class="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground hover:text-accent-deep">Cancelar</a>
+      </div>
+    </form>
+  }
+</div>

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { LucideTrash2 } from '@lucide/angular';
-import { ContactMessagesService } from '../data-access/contact-messages.service';
+import { ContactMessagesService, type ContactMessage, type LeadStatus } from '../data-access/contact-messages.service';
 
 @Component({
   selector: 'app-messages-inbox',
@@ -15,6 +15,12 @@ export class MessagesInboxComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal('');
 
+  readonly statusOptions: { value: LeadStatus; label: string }[] = [
+    { value: 'new', label: 'Nuevo' },
+    { value: 'contacted', label: 'Contactado' },
+    { value: 'closed', label: 'Cerrado' },
+  ];
+
   readonly unreadCount = () => this.items().filter((item) => !item.read).length;
 
   async ngOnInit(): Promise<void> {
@@ -27,11 +33,32 @@ export class MessagesInboxComponent implements OnInit {
     }
   }
 
+  /** Resalta spam y mensajes sin leer sin anidar ternarios en la plantilla. */
+  cardClass(item: ContactMessage): string {
+    if (item.is_spam) return 'rounded-sm border border-accent/50 bg-accent-soft/40 p-6';
+    return item.read
+      ? 'rounded-sm border border-border bg-surface p-6'
+      : 'rounded-sm border-l-2 border-l-accent border border-border bg-surface p-6';
+  }
+
+  /** ¿El lead trae contexto comercial del formulario (tipo/presupuesto/plazo)? */
+  hasContext(item: ContactMessage): boolean {
+    return Boolean(item.project_type || item.budget_range || item.timeline);
+  }
+
   async toggleRead(id: string, current: boolean): Promise<void> {
     try {
       await this.messages.setRead(id, !current);
     } catch {
       this.error.set('No se pudo actualizar el mensaje.');
+    }
+  }
+
+  async onStatusChange(item: ContactMessage, value: string): Promise<void> {
+    try {
+      await this.messages.setStatus(item.id, value as LeadStatus);
+    } catch {
+      this.error.set('No se pudo actualizar el estado del lead.');
     }
   }
 

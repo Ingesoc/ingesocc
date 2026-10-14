@@ -12,6 +12,13 @@ const TIMELINE_KEYS = ['item1', 'item2', 'item3', 'item4'] as const;
 /** Slots fijos del equipo (plan 1.4): 4 miembros editables, sin añadir/quitar sin cambio de código. */
 const TEAM_KEYS = ['member1', 'member2', 'member3', 'member4'] as const;
 
+/**
+ * Slots fijos de certificaciones/licencias (plan 1.4): 4 cupos editables vía CMS.
+ * El cliente los llena en /admin; sin título no se renderiza la tarjeta (el
+ * sitio público nunca muestra certificaciones inventadas).
+ */
+const CERT_KEYS = ['item1', 'item2', 'item3', 'item4'] as const;
+
 @Component({
   selector: 'app-about',
   standalone: true,
@@ -55,6 +62,23 @@ export class AboutComponent {
         CLOUDINARY_TRANSFORMS.thumbnail,
       ),
     })),
+  );
+
+  /**
+   * Certificaciones/licencias cargadas por el cliente desde el CMS.
+   * Solo se listan las que tienen título: los cupos vacíos no se publican.
+   */
+  readonly certificaciones = computed(() =>
+    CERT_KEYS.map((key) => ({
+      key,
+      title: this.blocks.text('about', `certificaciones.${key}.title`).trim(),
+      issuer: this.blocks.text('about', `certificaciones.${key}.issuer`).trim(),
+      link: this.blocks.text('about', `certificaciones.${key}.link`).trim(),
+      logo: withCloudinaryTransform(
+        this.blocks.image('about', `certificaciones.${key}.logo`),
+        CLOUDINARY_TRANSFORMS.thumbnail,
+      ),
+    })).filter((cert) => cert.title !== ''),
   );
 
   // ── Operaciones en ejecución (galería con lightbox) ────────

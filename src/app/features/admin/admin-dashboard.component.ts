@@ -5,6 +5,7 @@ import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from '../contact/data-access/contact-messages.service';
+import { TestimonialsService } from '../testimonials/data-access/testimonials.service';
 
 /**
  * Dashboard del panel (plan §3): métricas reales desde Supabase, con estados
@@ -22,6 +23,7 @@ export class AdminDashboardComponent implements OnInit {
   private readonly services = inject(ServicesService);
   private readonly blocks = inject(ContentBlocksService);
   private readonly messages = inject(ContactMessagesService);
+  private readonly testimonials = inject(TestimonialsService);
 
   readonly loading = signal(true);
   readonly refreshing = signal(false);
@@ -40,6 +42,10 @@ export class AdminDashboardComponent implements OnInit {
   readonly projectsCount = computed(() => this.projects.published().length);
   readonly featuredCount = computed(() => this.projects.featured().length);
   readonly servicesCount = computed(() => this.services.published().length);
+  readonly testimonialsCount = computed(() => this.testimonials.adminTestimonials().length);
+  readonly testimonialsPublishedCount = computed(() =>
+    this.testimonials.adminTestimonials().filter((item) => item.status === 'published').length,
+  );
   readonly blocksCount = computed(() =>
     Object.values(this.blocks.byPage()).reduce((total, page) => total + Object.keys(page).length, 0),
   );
@@ -68,6 +74,12 @@ export class AdminDashboardComponent implements OnInit {
         ? 'Textos e imágenes editables · datos de ejemplo'
         : 'Textos e imágenes editables',
       link: '/admin/contenido',
+    },
+    {
+      label: 'Testimonios',
+      value: String(this.testimonialsCount()),
+      detail: `${this.testimonialsPublishedCount()} publicados · sección del Home oculta si no hay`,
+      link: '/admin/testimonios',
     },
     {
       label: 'Mensajes de contacto',
@@ -101,6 +113,7 @@ export class AdminDashboardComponent implements OnInit {
       this.services.load(),
       this.blocks.load(),
       this.messages.load(),
+      this.testimonials.load(),
     ]);
 
     /** true si la carga falló (rechazo) o reportó Supabase caído (false). */
@@ -115,6 +128,7 @@ export class AdminDashboardComponent implements OnInit {
       failed.push('Mensajes');
       this.messagesError.set('No se pudieron cargar los mensajes.');
     }
+    if (failedIf(results[4])) failed.push('Testimonios');
     this.failedModules.set(failed);
 
     this.refreshing.set(false);

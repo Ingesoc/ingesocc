@@ -18,7 +18,7 @@
     { "id": "admin", "type": "frontend", "label": "Admin Layout", "sublabel": "CRUD + bandeja", "pos": [660, 200], "size": [150, 64], "tag": "authGuard" },
     { "id": "dataaccess", "type": "frontend", "label": "Data Access", "sublabel": "servicios Signals", "pos": [880, 120], "size": [150, 64] },
     { "id": "auth", "type": "security", "label": "Supabase Auth", "sublabel": "email + password", "pos": [430, 430], "size": [140, 60] },
-    { "id": "postgres", "type": "database", "label": "PostgreSQL", "sublabel": "8 tablas", "pos": [660, 430], "size": [150, 64] },
+    { "id": "postgres", "type": "database", "label": "PostgreSQL", "sublabel": "9 tablas", "pos": [660, 430], "size": [150, 64] },
     { "id": "rls", "type": "security", "label": "Row Level Security", "sublabel": "is_admin() · políticas", "pos": [660, 580], "size": [150, 60] },
     { "id": "storage", "type": "cloud", "label": "Supabase Storage", "sublabel": "3 buckets públicos", "pos": [890, 430], "size": [140, 60] }
   ],
@@ -41,6 +41,6 @@
   "cards": [
     { "dot": "cyan", "title": "Flujo principal", "items": ["El visitante recibe la SPA desde Vercel (rewrites a index.html)", "Todas las páginas son standalone con lazy loading en /admin/*", "Los componentes nunca consultan Supabase: pasa por data-access/"] },
     { "dot": "rose", "title": "Seguridad", "items": ["authGuard exige sesión con rol admin (profiles.role)", "RLS filtra publicados para anónimos y escritura solo admin", "Storage: lectura pública, insert/update/delete solo admin"] },
-    { "dot": "emerald", "title": "Datos y contenido", "items": ["8 tablas: profiles, categories, projects, project_categories, project_images, services, content_blocks, contact_messages", "Buckets: project-images, service-images, content-images", "content_blocks se edita in-place con el modo edición admin"] }
+    { "dot": "emerald", "title": "Datos y contenido", "items": ["9 tablas: profiles, categories, projects, project_categories, project_images, services, content_blocks, contact_messages, testimonials", "Buckets: project-images, service-images, content-images", "content_blocks se edita in-place o desde el CMS /admin/contenido (pestañas por página)"] }
   ]
 }

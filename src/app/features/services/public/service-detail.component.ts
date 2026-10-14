@@ -15,49 +15,9 @@ import { ProjectsService } from '../../projects/data-access/projects.service';
 import { ProjectCardComponent } from '../../projects/public/project-card.component';
 
 /**
- * Entregables típicos por línea de servicio.
- * Copy genérica de diseño [PENDIENTE: validar con el cliente].
+ * Respaldo genérico de entregables si el servicio no define los suyos (columna
+ * `deliverables` en null). Copy de diseño [PENDIENTE: validar con el cliente].
  */
-const DELIVERABLES: Record<string, readonly string[]> = {
-  'proyectos-de-infraestructura': [
-    'Estudios y diseños preliminares',
-    'Gerencia de obra e interventoría',
-    'Construcción de obras civiles',
-    'Entrega y puesta en servicio',
-  ],
-  'proyectos-hospitalarios': [
-    'Adecuación y montaje de áreas asistenciales',
-    'Instalaciones y redes hospitalarias',
-    'Acabados y control de bioseguridad',
-    'Documentación y puesta en marcha',
-  ],
-  'proyectos-industriales': [
-    'Obra civil para nave industrial',
-    'Estructuras metálicas y cubiertas',
-    'Instalaciones técnicas industriales',
-    'Montaje y puesta en marcha',
-  ],
-  'consultoria-y-diseno': [
-    'Levantamientos y diagnóstico',
-    'Diseño arquitectónico y estructural',
-    'Documentos técnicos y memorias',
-    'Acompañamiento en licencias',
-  ],
-  'fabricacion-metalica': [
-    'Diseño y despiece técnico',
-    'Fabricación en taller',
-    'Recubrimiento anticorrosivo',
-    'Montaje en sitio',
-  ],
-  'proyectos-de-vivienda': [
-    'Diseño y legalización del proyecto',
-    'Construcción de vivienda',
-    'Urbanismo y zonas comunes',
-    'Entrega de obra y acompañamiento',
-  ],
-};
-
-/** Respaldo si un slug futuro aún no tiene entregables definidos. */
 const DEFAULT_DELIVERABLES: readonly string[] = [
   'Levantamiento y diagnóstico inicial',
   'Diseño y documentación técnica',
@@ -66,10 +26,11 @@ const DEFAULT_DELIVERABLES: readonly string[] = [
 ];
 
 /**
- * Preguntas frecuentes genéricas del detalle (diseño).
+ * Preguntas frecuentes genéricas del detalle (diseño), usadas cuando el
+ * servicio no define las suyas (`faq` en null).
  * Content decided by the client later [PENDIENTE: validar con el cliente].
  */
-const FAQ: readonly { q: string; a: string }[] = [
+const DEFAULT_FAQ: readonly { q: string; a: string }[] = [
   {
     q: '¿Cómo se cotiza un proyecto?',
     a: 'Con la información del proyecto (planos, fotos o una visita) preparamos una cotización a la brevedad.',
@@ -110,13 +71,23 @@ export class ServiceDetailComponent {
     withCloudinaryTransform(this.service()?.photoUrl ?? '', CLOUDINARY_TRANSFORMS.service),
   );
 
-  /** Entregables del servicio (respaldo genérico si el slug no está mapeado). */
-  readonly deliverables = computed(() => {
-    const slug = this.service()?.slug ?? '';
-    return DELIVERABLES[slug] ?? DEFAULT_DELIVERABLES;
+  /** Párrafo de alcance: el propio del servicio o, si no, su descripción. */
+  readonly scope = computed(() => {
+    const service = this.service();
+    return service?.scope?.trim() || service?.description || '';
   });
 
-  readonly faq = FAQ;
+  /** Entregables del servicio (respaldo genérico si no define los suyos). */
+  readonly deliverables = computed(() => {
+    const own = this.service()?.deliverables;
+    return own && own.length > 0 ? own : DEFAULT_DELIVERABLES;
+  });
+
+  /** Preguntas frecuentes del servicio (respaldo genérico si no define ninguna). */
+  readonly faq = computed(() => {
+    const own = this.service()?.faq;
+    return own && own.length > 0 ? own : DEFAULT_FAQ;
+  });
 
   /** Proyectos relacionados: primeras obras publicadas [PENDIENTE: mapear por área]. */
   readonly relatedProjects = computed(() => this.projects.published().slice(0, 3));

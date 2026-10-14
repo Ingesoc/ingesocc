@@ -4,9 +4,9 @@
     'border-b border-white/10 bg-primary/90 shadow-lg backdrop-blur-sm': isScrolled()
   }"
 >
-  <div class="wrap relative z-10 flex items-center justify-between py-5 md:py-6">
+  <div class="wrap relative z-10 flex items-center justify-between gap-4 py-5 md:py-6">
     <!-- Marca -->
-    <a routerLink="/" class="group flex items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">
+    <a routerLink="/" class="group flex min-w-0 items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">
       <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/20">
         <img src="/logo/logo.png" alt="" width="40" height="40" class="h-full w-full object-cover" />
       </span>
@@ -17,7 +17,7 @@
     </a>
 
     <!-- Navegación desktop -->
-    <nav class="hidden items-center gap-9 lg:flex" aria-label="Navegación principal">
+    <nav class="hidden min-w-0 flex-wrap items-center justify-end gap-x-9 gap-y-2 lg:flex" aria-label="Navegación principal">
       @for (item of navItems; track item.link) {
         <a
           [routerLink]="item.link"

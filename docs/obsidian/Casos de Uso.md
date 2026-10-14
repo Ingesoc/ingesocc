@@ -80,15 +80,18 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Actor**: Visitante
 - **Precondiciones**: el formulario de `/contacto` está visible.
 - **Flujo principal**:
-  1. El visitante completa nombre (mín. 2), email (formato válido) y mensaje (mín. 10); teléfono y asunto son opcionales.
-  2. El visitante envía el formulario.
-  3. El sistema valida, deshabilita el botón mientras procesa (anti doble submit) e inserta la fila en `contact_messages` (RLS permite insert público).
-  4. El sistema muestra el estado de éxito.
+  1. El visitante completa nombre (mín. 2), email (formato válido) y mensaje (mín. 10).
+  2. Opcionalmente completa los metadatos de lead (tipo de proyecto, rango presupuestal, plazo deseado) que ayudan al admin a priorizar, y teléfono/asunto.
+  3. El visitante envía el formulario.
+  4. El sistema valida, deshabilita el botón mientras procesa (anti doble submit) e inserta la fila en `contact_messages` (RLS permite insert público; el trigger `contact_messages_lead_guard` aplica anti-spam).
+  5. El sistema muestra el estado de éxito.
 - **Flujos alternos**:
   - Validación fallida: errores en vivo por campo (incluidos `maxLength`: 80/254/30/200/5000).
+  - Honeypot rellenado por un bot: el mensaje se guarda con `is_spam = true` (imperceptible para el visitante).
+  - Rate-limit del mismo correo dentro de la ventana: la inserción se descarta en silencio (se muestra éxito; la DB es la barrera).
   - Error de inserción: estado `submitError` visible con el mensaje.
   - Intento de doble submit: bloqueado por el estado `submitting`.
-- **Postcondiciones**: el mensaje queda en la bandeja admin como no leído.
+- **Postcondiciones**: el mensaje queda en la bandeja admin como no leído (o marcado spam como falso positivo a revisar).
 
 ## CU-06 Iniciar sesión como administrador
 
@@ -124,10 +127,10 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Precondiciones**: sesión admin activa; tabla `projects` creada (o fallback estático solo para lectura).
 - **Flujo principal**:
   1. El admin entra a `/admin/proyectos` y pulsa "Nuevo proyecto".
-  2. Completa título (min. 3), slug (autogenerado desde el título, editable), descripción (min. 10), valor en salarios mínimos (opcional), estado, destacado, orden y categorías.
+  2. Completa título (min. 3), slug (autogenerado desde el título, editable), descripción (min. 10), valor en salarios mínimos (opcional), ubicación (opcional), caso de estudio (cliente, alcance, plazo, avance, resultados y cifras — opcional, sin cifras vacías), estado, destacado, orden y categorías.
   3. Sube imágenes: se validan (MIME/extensión), se comprimen (≤2 MB / 2000 px) y se marcan portada/orden.
-  4. Guarda: el sistema inserta la fila en `projects`, sube las imágenes a Cloudinary, registra `project_images`, sincroniza portada/orden, reemplaza `project_categories` y refresca señales. Si la fila falla, se compensan borrando los assets recién subidos.
-  5. El sistema navega al listado admin.
+4. Guarda: el sistema llama a la RPC `admin_save_project` (13 parámetros: datos + ubicación + `external_url` + `case_study`), que inserta/actualiza proyecto, imágenes y categorías de forma atómica, sube las imágenes a Cloudinary y refresca señales. Si la fila falla, se compensan borrando los assets recién subidos; al acertar, se limpian los `orphan_storage_paths` devueltos.
+5. El sistema navega al listado admin.
 - **Flujos alternos**:
   - Slug duplicado (23505): mensaje "Ya existe un proyecto con ese slug (URL)…".
   - Imagen no válida: mensaje con los formatos aceptados; el archivo se descarta.
@@ -165,7 +168,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Precondiciones**: sesión admin activa.
 - **Flujo principal**:
   1. El admin entra a `/admin/servicios` y pulsa "Nuevo servicio".
-  2. Completa nombre (min. 3), slug (autogenerado, editable), descripción (min. 10), ícono de respaldo, estado y orden.
+  2. Completa nombre (min. 3), slug (autogenerado, editable), descripción (min. 10), detalle editable opcional (alcance, entregables como lista ordenada y FAQ), ícono de respaldo, estado y orden.
   3. Opcionalmente selecciona una foto: se valida, se comprime (≤2 MB / 1600 px) y se muestra preview.
   4. Guarda: inserta el servicio; si hay foto, la sube a Cloudinary y actualiza `photo_path`. Si la fila ya está guardada y la subida falla, el asset nuevo se elimina para no dejar huérfanos.
 - **Flujos alternos**:
@@ -180,8 +183,8 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Precondiciones**: el servicio existe; sesión admin activa.
 - **Flujo principal**:
   1. El admin entra a `/admin/servicios/:id`.
-  2. El sistema precarga los campos y la foto actual (si existe).
-  3. El admin modifica datos, reemplaza la foto (la anterior se borra de Cloudinary o del almacenamiento legacy), o la quita para volver al ícono de respaldo.
+2. El sistema precarga los campos, la foto actual (si existe) y el detalle editable.
+3. El admin modifica datos (incluidos alcance, entregables y FAQ), reemplaza la foto (la anterior se borra de Cloudinary o del almacenamiento legacy), o la quita para volver al ícono de respaldo.
   4. Guarda: actualiza la fila y aplica los cambios de foto.
 - **Flujos alternos**: mismo manejo de errores que CU-11.
 - **Postcondiciones**: los cambios se reflejan en el panel y en `/servicios`.
@@ -210,6 +213,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
   - Tabla inexistente (42P01/PGRST205) o sin credenciales: el cambio se aplica solo en memoria y se pierde al recargar (reservado para entorno sin esquema).
   - Cualquier otro error real (RLS, red): se re-lanza y la UI lo muestra (nº 4 de [[Auditoría y Correcciones]]).
   - Cerrar sesión o perder rol admin: el modo edición se desactiva automáticamente.
+  - Certificaciones (Quiénes Somos): los cupos nacen vacíos; el admin los llena cuando el cliente aporte los títulos.
 - **Postcondiciones**: el bloque queda actualizado en DB y visible en público.
 
 ## CU-15 Gestionar la bandeja de mensajes
@@ -218,9 +222,10 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 - **Precondiciones**: sesión admin activa; hay mensajes en `contact_messages` (RLS: lectura solo admin).
 - **Flujo principal**:
   1. El admin entra a `/admin/mensajes`.
-  2. El sistema lista los mensajes del más reciente al más antiguo, con los no leídos resaltados.
-  3. El admin marca un mensaje como leído o no leído (persiste).
-  4. El admin elimina un mensaje con confirmación (persiste gracias a la política `contact_messages_admin_delete`).
+  2. El sistema lista los mensajes del más reciente al más antiguo, con los no leídos resaltados y los de spam marcados.
+  3. El admin revisa los metadatos de lead (tipo de proyecto, rango presupuestal, plazo) y cambia el estado de gestión (`new` → `contacted` → `closed`); el spam es un flag aparte (`is_spam`).
+  4. El admin marca un mensaje como leído o no leído (persiste).
+  5. El admin elimina un mensaje con confirmación (persiste gracias a la política `contact_messages_admin_delete`).
 - **Flujos alternos**: bandeja vacía muestra "No hay mensajes todavía"; errores de actualización/eliminación muestran mensaje.
 - **Postcondiciones**: el estado de la bandeja refleja los cambios tras recargar.
 
@@ -283,6 +288,19 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
   - El refresh falla por red temporal: supabase-js reintenta el refresco; la sesión no se descarta hasta que el intento falla de forma definitiva.
 - **Postcondiciones**: la sesión queda invalidada en el cliente; el panel vuelve a estar protegido y el contenido público no se ve afectado.
 
+## CU-20 Gestionar testimonios
+
+- **Actor**: Admin
+- **Precondiciones**: sesión admin activa; tabla `testimonials` (RLS admin: CRUD completo).
+- **Flujo principal**:
+  1. El admin entra a `/admin/testimonios`.
+  2. Listado con autor, preview de la cita, estrellas y badge de estado; pulsa "Nuevo testimonio" o edita uno existente (`/admin/testimonios/nuevo` o `/admin/testimonios/:id`).
+  3. Completa autor (mín. 3), cita (mín. 10), cargo/contexto (opcional), valoración 1–5 (o "sin mostrar"), estado y orden, y guarda.
+  4. Al guardar/eliminar, el sistema refresca y navega al listado.
+  5. Mientras haya al menos un testimonio publicado, la sección del Home los muestra ordenados por `sort_order` (RLS devuelve solo `published`).
+- **Flujos alternos**: sin testimonios publicados, la sección del Home se oculta (no se inventan opiniones de clientes — plan 1.7); valoración nula se omite en el render.
+- **Postcondiciones**: el testimonio queda en DB (borrador o publicado) y, si publicado, visible en el Home.
+
 ## Matriz de trazabilidad
 
 | Caso de uso | Ruta(s) | Feature | Nota relacionada |
@@ -295,6 +313,7 @@ Catálogo completo de los casos de uso del sistema, con actores, precondiciones,
 | CU-11 a CU-13 | `/admin/servicios` | servicios | [[CRUD Servicios]] |
 | CU-14 | páginas públicas en modo edición | content blocks | [[Content Blocks]] |
 | CU-15 | `/admin/mensajes` | contacto | [[Contacto y Mensajes]] |
+| CU-20 | `/admin/testimonios*` | testimonios | [[Testimonios]] |
 
 ## Ver también
 

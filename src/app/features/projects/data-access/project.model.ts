@@ -21,6 +21,16 @@ export interface ProjectImage extends ProjectImageMetadata {
   isCover: boolean;
 }
 
+/**
+ * Cifra del caso de estudio (p. ej. "Área construida", "2.400 m²"). Ambas
+ * partes son requeridas por el panel; la vista pública solo renderiza pares
+ * completos (sin inventar contenido).
+ */
+export interface ProjectKeyFigure {
+  label: string;
+  value: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -43,6 +53,17 @@ export interface Project {
    * termina con el CTA de contacto habitual, sin enlace externo.
    */
   externalUrl?: string | null;
+  /**
+   * Datos del caso de estudio. Todos opcionales: la vista oculta las secciones
+   * vacías en lugar de inventar contenido (regla: no atribuir características
+   * no verificables). `keyFigures` es un array de {label, value}.
+   */
+  client?: string | null;
+  scope?: string | null;
+  timeline?: string | null;
+  progress?: string | null;
+  results?: string | null;
+  keyFigures?: ProjectKeyFigure[];
 }
 
 /**
@@ -110,6 +131,13 @@ export interface AdminProject {
   images: AdminProjectImage[];
   /** Igual que `Project.externalUrl`: opcional y genérico. */
   externalUrl: string | null;
+  /** Datos del caso de estudio (ver `Project`): null/vacío = no registrado. */
+  client: string | null;
+  scope: string | null;
+  timeline: string | null;
+  progress: string | null;
+  results: string | null;
+  keyFigures: ProjectKeyFigure[];
 }
 
 /** Campos que el admin diligencia al crear/editar (plan 1.2). */
@@ -125,6 +153,14 @@ export interface ProjectInput {
   sortOrder: number;
   /** Enlace externo opcional (vacío/null = sin micrositio). */
   externalUrl?: string | null;
+  /** Datos del caso de estudio (vacío/null = no registrado). */
+  client?: string | null;
+  scope?: string | null;
+  timeline?: string | null;
+  progress?: string | null;
+  results?: string | null;
+  /** Cifras del caso de estudio; se filtran las incompletas al guardar. */
+  keyFigures?: ProjectKeyFigure[];
 }
 
 /**

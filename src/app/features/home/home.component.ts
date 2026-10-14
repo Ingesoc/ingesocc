@@ -1,9 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideArrowUpRight, LucideChevronDown, LucideMessageCircle } from '@lucide/angular';
+import { LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, LucideStar } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
+import { TestimonialsService } from '../testimonials/data-access/testimonials.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
 import { OPERACIONES } from '../about/operaciones.data';
 import { CONTACT } from '../../core/site-config';
@@ -48,13 +49,14 @@ const BLOCK_B = ['md:col-span-4 md:row-span-2', 'md:col-span-4 md:row-span-2', '
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, ProjectCardComponent],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, LucideStar, ProjectCardComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
   private readonly blocks = inject(ContentBlocksService);
   private readonly projects = inject(ProjectsService);
   private readonly services = inject(ServicesService);
+  private readonly testimonials = inject(TestimonialsService);
 
   readonly heroTitle = computed(() => this.blocks.text('home', 'hero.title', 'Construimos espacios que trascienden.'));
   readonly heroSubtitle = computed(() => this.blocks.text('home', 'hero.subtitle', ''));
@@ -100,6 +102,22 @@ export class HomeComponent {
   readonly featuredProjects = this.projects.featured;
 
   readonly previewServices = computed(() => this.services.published().slice(0, 3));
+
+  /** Solo testimonios publicados (RLS ya filtra); la sección se oculta si no hay. */
+  readonly testimonios = this.testimonials.published;
+
+  /** Enumeración del CTA final: "07" si existe la sección de testimonios. */
+  readonly ctaKicker = computed(() => (this.testimonios().length > 0 ? '07' : '06'));
+
+  /** ¿El testimonio tiene valoración para mostrar? (evita `!=` en el template). */
+  isStarred(rating: number | null): boolean {
+    return rating !== null;
+  }
+
+  /** ¿La estrella `star` (1–5) se pinta rellena para esta valoración? */
+  starFilled(star: number, rating: number | null): boolean {
+    return rating !== null && star <= rating;
+  }
 
   readonly processSteps = PROCESS_STEPS;
 

@@ -1,22 +1,30 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import imageCompression from 'browser-image-compression';
 import { NgComponentOutlet } from '@angular/common';
-import { LucideChevronLeft, LucideTrash2, LucideUpload } from '@lucide/angular';
+import { LucideChevronLeft, LucidePlus, LucideTrash2, LucideUpload } from '@lucide/angular';
 import type { LucideIcon } from '@lucide/angular';
 import { ServicesService } from '../data-access/services.service';
 import { SERVICE_ICON_NAMES, serviceIconFor } from '../data-access/service-icons';
-import type { ServiceInput } from '../data-access/service.model';
+import type { ServiceFaqItem, ServiceInput } from '../data-access/service.model';
 import { slugify } from '../../../core/slugify';
 import { MAX_IMAGE_BYTES, validateImageFile } from '../../../core/image-utils';
+
+/** Grupo del editor de FAQ (una pregunta con su respuesta). */
+function faqFormGroup(q = '', a = '') {
+  return new FormGroup({
+    q: new FormControl(q),
+    a: new FormControl(a),
+  });
+}
 
 @Component({
   selector: 'app-service-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, NgComponentOutlet, LucideChevronLeft, LucideUpload, LucideTrash2],
+  imports: [ReactiveFormsModule, RouterLink, NgComponentOutlet, LucideChevronLeft, LucidePlus, LucideUpload, LucideTrash2],
   templateUrl: './service-form.component.html',
 })
 export class ServiceFormComponent implements OnInit, OnDestroy {
@@ -32,6 +40,9 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
     name: new FormControl('', [Validators.required, Validators.minLength(3)]),
     slug: new FormControl('', [Validators.required]),
     description: new FormControl('', [Validators.required, Validators.minLength(10)]),
+    scope: new FormControl(''),
+    deliverables: new FormControl(''),
+    faq: new FormArray<ReturnType<typeof faqFormGroup>>([]),
     iconName: new FormControl<string | null>(null),
     status: new FormControl<'draft' | 'published'>('draft'),
     sortOrder: new FormControl(0),
@@ -49,6 +60,8 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
   );
 
   private slugEditedByUser = false;
+  /** Id de la fila creada en este formulario; evita duplicar si la foto falla y se reintenta. */
+  private createdId: string | null = null;
 
   constructor() {
     // Slug automático desde el nombre mientras el admin no lo edite a mano.
@@ -79,10 +92,16 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
         name: service.name,
         slug: service.slug,
         description: service.description,
+        scope: service.scope ?? '',
         iconName: service.iconName,
         status: service.status,
         sortOrder: service.sortOrder,
       });
+      this.form.controls.deliverables.setValue((service.deliverables ?? []).join('\n'));
+      this.form.controls.faq.clear();
+      for (const item of service.faq ?? []) {
+        this.form.controls.faq.push(faqFormGroup(item.q, item.a));
+      }
       if (service.photoUrl) {
         this.photo.set({ url: service.photoUrl, existingPath: service.photoPath ?? undefined });
       }
@@ -99,6 +118,16 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
 
   selectedIcon(): LucideIcon | null {
     return serviceIconFor(this.form.value.iconName ?? null);
+  }
+
+  readonly faqItems = () => this.form.controls.faq.controls;
+
+  addFaq(): void {
+    this.form.controls.faq.push(faqFormGroup());
+  }
+
+  removeFaq(index: number): void {
+    this.form.controls.faq.removeAt(index);
   }
 
   /** Valida, comprime y prepara la nueva foto; se sube al guardar. */
@@ -166,20 +195,33 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
 
     try {
       const value = this.form.value;
+      const deliverables = (value.deliverables ?? '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      const faq: ServiceFaqItem[] = (value.faq ?? [])
+        .map((item) => ({ q: (item.q ?? '').trim(), a: (item.a ?? '').trim() }))
+        .filter((item) => item.q.length > 0 && item.a.length > 0);
       const input: ServiceInput = {
         name: value.name!.trim(),
         slug: value.slug!.trim(),
         description: value.description!.trim(),
+        scope: value.scope?.trim() || null,
+        deliverables,
+        faq,
         iconName: value.iconName ?? null,
         status: value.status!,
         sortOrder: Number(value.sortOrder ?? 0),
       };
 
-      let finalId = this.serviceId();
+      let finalId = this.serviceId() ?? this.createdId;
       if (finalId) {
         await this.services.updateService(finalId, input);
       } else {
         finalId = await this.services.createService(input);
+        // La fila ya existe: un reintento tras un fallo posterior (p. ej. la
+        // foto) debe actualizarla, no volver a insertarla.
+        this.createdId = finalId;
       }
 
       const photo = this.photo();

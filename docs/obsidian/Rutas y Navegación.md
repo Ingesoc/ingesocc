@@ -35,8 +35,11 @@ Definidas en `src/app/app.routes.ts`. Catch-all (`**`) → `/`. El admin complet
 | `/admin/servicios` | Listado (editar/eliminar) |
 | `/admin/servicios/nuevo` | Crear servicio |
 | `/admin/servicios/:id` | Editar servicio (foto, ícono, estado) |
-| `/admin/contenido` | Placeholder informativo: el contenido se edita **in-place** en las páginas públicas (ver [[Content Blocks]]) |
-| `/admin/mensajes` | Bandeja de `contact_messages` (leído/no leído, eliminar) |
+| `/admin/contenido` | CMS de contenido del sitio (pestañas por página, bloques por tipo; ver [[Content Blocks]]) |
+| `/admin/testimonios` | Bandeja de testimonios (slice 3.5): crear/editar/eliminar, estado, orden |
+| `/admin/testimonios/nuevo` | Crear testimonio |
+| `/admin/testimonios/:id` | Editar testimonio |
+| `/admin/mensajes` | Bandeja de `contact_messages` (leído, estado de gestión, spam, eliminar) |
 
 ## Guard y deep links
 

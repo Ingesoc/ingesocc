@@ -21,11 +21,12 @@ El sitio público no requiere sesión. Todo el contenido se sirve desde Supabase
 
 | Ruta | Qué se ve |
 |---|---|
-| `/` | Hero con título/subtítulo editables, banda de stats, proyectos destacados (mosaico), servicios numerados y CTA final |
-| `/quienes-somos` | Historia, timeline, misión/visión/valores y equipo (nombres y fotos editables) |
+| `/` | Hero con título/subtítulo editables, banda de stats, proyectos destacados (mosaico), servicios numerados, **testimonios** (si hay publicados) y CTA final |
+| `/quienes-somos` | Historia, timeline, misión/visión/valores, equipo (nombres y fotos editables) y **certificaciones** (cupos editables, vacíos hasta que el cliente los aporte) |
 | `/servicios` | Los 6 servicios; cada uno con foto o ícono de respaldo |
+| `/servicios/:slug` | Detalle con alcance, entregables, FAQ y proyectos relacionados (contenido editable desde el CRUD) |
 | `/proyectos` | Grid con filtros de categoría y paginación "Cargar Más" (bloques de 8) |
-| `/proyectos/:slug` | Detalle: descripción, valor en salarios mínimos y galería con lightbox |
+| `/proyectos/:slug` | Detalle: descripción, caso de estudio (cliente, cifras, resultados), valor, ubicación y galería con lightbox |
 | `/contacto` | Formulario que guarda en `contact_messages` + datos de contacto editables |
 
 ### 1.2 Cómo filtrar proyectos
@@ -44,9 +45,11 @@ El sitio público no requiere sesión. Todo el contenido se sirve desde Supabase
 ### 1.4 Cómo enviar un mensaje de contacto
 
 1. Entra a `/contacto`.
-2. Completa los campos obligatorios: nombre (mínimo 2 caracteres), email (formato válido) y mensaje (mínimo 10 caracteres). Teléfono y asunto son opcionales.
-3. Envía el formulario. El botón se deshabilita mientras se procesa para evitar envíos dobles.
-4. Si todo es correcto, verás la confirmación de éxito y el mensaje queda guardado en la tabla `contact_messages` (el admin lo verá en la bandeja).
+2. Completa los campos obligatorios: nombre (mínimo 2 caracteres), email (formato válido) y mensaje (mínimo 10 caracteres).
+3. Opcionales: teléfono, asunto y los metadatos de lead — **tipo de proyecto**, **rango presupuestal** y **plazo deseado** — que ayudan al admin a priorizar (verse en la bandeja).
+4. El campo "Déjenos este campo vacío" está oculto (honeypot): si un bot lo rellena, el mensaje se guarda marcado como **spam**.
+5. Envía el formulario. El botón se deshabilita mientras se procesa para evitar envíos dobles.
+6. Si todo es correcto, verás la confirmación de éxito y el mensaje queda guardado en la tabla `contact_messages` (el admin lo verá en la bandeja).
 
 ## 2. Panel de administración
 
@@ -90,13 +93,14 @@ Muestra tarjetas con los contadores: proyectos publicados (y cuántos están des
 1. **Título** (obligatorio, mínimo 3 caracteres). El slug se autogenera desde el título mientras no lo edites a mano.
 2. **Slug** (obligatorio). Debe ser único: si ya existe, el guardado falla con un mensaje en español.
 3. **Descripción** (obligatoria, mínimo 10 caracteres).
-4. **Valor en salarios mínimos** (opcional).
-5. **Estado**: `draft` (no aparece en público) o `published`.
-6. **Destacado** (`featured`): si está activo, el proyecto aparece en la sección destacada del Home.
-7. **Orden** (`sort_order`): controla la posición en el listado público.
-8. **Categorías**: selecciona una o varias de las disponibles.
-9. **Imágenes**: sube una o más; la primera subida se marca como portada automáticamente. Puedes cambiar la portada con la estrella, reordenar y quitar imágenes. Las imágenes se comprimen en el cliente (máximo 2 MB / 2000 px).
-10. **Guardar**: crea el proyecto, sube las imágenes a **Cloudinary**, sincroniza orden/portada, asigna categorías y vuelve al listado. Si Cloudinary no está disponible, las imágenes se guardan en el bucket legacy `project-images`.
+4. **Valor en salarios mínimos** (opcional) y **ubicación** (opcional).
+5. **Caso de estudio** (opcional): cliente, alcance, plazo, avance, resultados y cifras destacadas (`label` + `valor`, p. ej. "2400 m²"). Las cifras vacías se ignoran. Dejar el caso sin tocar lo conserva al editar.
+6. **Estado**: `draft` (no aparece en público) o `published`.
+7. **Destacado** (`featured`): si está activo, el proyecto aparece en la sección destacada del Home.
+8. **Orden** (`sort_order`): controla la posición en el listado público.
+9. **Categorías**: selecciona una o varias de las disponibles.
+10. **Imágenes**: sube una o más; la primera subida se marca como portada automáticamente. Puedes cambiar la portada con la estrella, reordenar y quitar imágenes. Las imágenes se comprimen en el cliente (máximo 2 MB / 2000 px).
+11. **Guardar**: crea el proyecto (caso de estudio incluido, de forma atómica), sube las imágenes a **Cloudinary**, sincroniza orden/portada, asigna categorías y vuelve al listado. Si Cloudinary no está disponible, las imágenes se guardan en el bucket legacy `project-images`.
 
 #### Editar (`/admin/proyectos/:id`)
 - Misma pantalla precargada. Puedes cambiar cualquier campo, subir nuevas imágenes, quitar existentes (borra el asset y su fila), cambiar portada y estado.
@@ -114,17 +118,18 @@ Muestra tarjetas con los contadores: proyectos publicados (y cuántos están des
 1. **Nombre** (obligatorio, mínimo 3 caracteres). El slug se autogenera.
 2. **Slug** (obligatorio, único).
 3. **Descripción** (obligatoria, mínimo 10 caracteres).
-4. **Ícono de respaldo** (`icon_name`): se muestra si el servicio no tiene foto.
-5. **Foto** (opcional): se valida tipo (MIME y extensión) y se comprime en el cliente (máximo 2 MB / 1600 px) para mostrar el preview. La subida real a **Cloudinary** ocurre al pulsar **Guardar**. Mientras la foto se comprime o se sube, el botón queda deshabilitado ("Subiendo foto…") para no guardar sin ella.
-6. **Estado** (`draft`/`published`) y **orden**.
-7. **Guardar**: crea el servicio y, si hay foto, la sube y actualiza `photo_path`.
+4. **Detalle editable** (opcional): alcance, entregables (lista ordenada) y FAQ (preguntas + respuestas). Si se dejan vacíos, el detalle público muestra respaldos genéricos.
+5. **Ícono de respaldo** (`icon_name`): se muestra si el servicio no tiene foto.
+6. **Foto** (opcional): se valida tipo (MIME y extensión) y se comprime en el cliente (máximo 2 MB / 1600 px) para mostrar el preview. La subida real a **Cloudinary** ocurre al pulsar **Guardar**. Mientras la foto se comprime o se sube, el botón queda deshabilitado ("Subiendo foto…") para no guardar sin ella.
+7. **Estado** (`draft`/`published`) y **orden**.
+8. **Guardar**: crea el servicio y, si hay foto, la sube y actualiza `photo_path`.
 
 #### Editar (`/admin/servicios/:id`)
 - Puedes reemplazar la foto (la anterior se borra de Cloudinary o del almacenamiento legacy) o quitarla para volver al ícono de respaldo.
 
-### 2.6 Edición de contenido in-place (`content_blocks`)
+### 2.6 Edición de contenido (`content_blocks`)
 
-No es un CRUD: `/admin/contenido` es una página informativa. La edición se hace directamente sobre las páginas públicas.
+La edición se hace **in-place** sobre las páginas públicas (o desde el CMS `/admin/contenido`, que lista los mismos bloques por pestañas).
 
 1. Con sesión admin, ve a cualquier página pública (Home, Quiénes Somos, Contacto).
 2. Activa el botón flotante **"Modo edición"** (solo visible para admin).
@@ -132,7 +137,7 @@ No es un CRUD: `/admin/contenido` es una página informativa. La edición se hac
 4. Guarda el cambio: se persiste en `content_blocks` (clave única `page + section_key`).
 5. El público ve el cambio de inmediato. Si la tabla no existe aún, el cambio se aplica solo en memoria (se perderá al recargar) — es el comportamiento reservado para entorno sin esquema.
 
-Los bloques editables cubren: header/footer global (CTA, redes sociales), Home (hero, stats, capacidad, CTA), Quiénes Somos (historia, misión/visión/valores, equipo) y Contacto (título, subtítulo, teléfono, email, dirección).
+Los bloques editables cubren: header/footer global (CTA, redes sociales), Home (hero, stats, capacidad, CTA), Quiénes Somos (historia, misión/visión/valores, equipo, **certificaciones**) y Contacto (título, subtítulo, teléfono, email, dirección). Las certificaciones nacen vacías: se llenan desde aquí cuando el cliente aporte los títulos.
 
 > [!tip] Cómo cambiar los datos de la empresa
 > Teléfono, email, dirección y redes son placeholders editables: entra al modo edición sobre `/contacto` o el footer y modifica el bloque correspondiente.
@@ -140,8 +145,17 @@ Los bloques editables cubren: header/footer global (CTA, redes sociales), Home (
 ### 2.7 Bandeja de mensajes (`/admin/mensajes`)
 
 1. Lista los mensajes de `contact_messages` del más reciente al más antiguo; los no leídos aparecen resaltados.
-2. Marca un mensaje como leído o no leído (persiste tras recargar).
-3. Elimina con confirmación (persiste: existe política RLS de delete para admin).
+2. Revisa los metadatos de lead (tipo de proyecto, rango presupuestal, plazo) y el estado de cada mensaje.
+3. Los mensajes de spam (honeypot auto-rellenado o exceso de intentos del mismo correo) aparecen resaltados con badge **spam** — atiéndelos por si es un falso positivo.
+4. Cambia el estado de gestión (`new` → `contacted` → `closed`) y marca leído/no leído (persiste tras recargar).
+5. Elimina con confirmación (persiste: existe política RLS de delete para admin).
+
+### 2.8 Testimonios (`/admin/testimonios`)
+
+1. **Listado**: autor, preview de la cita, estrellas y badge de estado (borrador/publicado), con editar y eliminar.
+2. **Nuevo / Editar**: autor (obligatorio), cargo o contexto (opcional), cita (obligatoria), valoración 1–5 (o "sin mostrar"), estado y orden.
+3. Publica el primero y la sección de **testimonios del Home** aparece automáticamente (mientras no haya publicados, se oculta; no se cargan opiniones inventadas).
+4. La RLS decide qué ve el público (solo `published`); este panel ve todos, incluidos borradores.
 
 ## 3. Desarrollo local
 
@@ -185,20 +199,20 @@ Las credenciales de Supabase viven en `src/environments/environment.ts` y `envir
 
 En el SQL Editor del proyecto Supabase, ejecuta **en este orden**:
 
-1. `supabase/schema.sql` — 8 tablas, funciones, triggers, políticas RLS y 3 buckets de storage.
-2. `supabase/seed.sql` — categorías, servicios, 53 content_blocks y 10 proyectos de ejemplo con imágenes.
+1. `supabase/schema.sql` — 9 tablas, funciones, triggers, políticas RLS y 3 buckets de storage.
+2. `supabase/seed.sql` — categorías, servicios, 69 content_blocks y 10 proyectos de ejemplo con imágenes.
 
-Ambos son idempotentes (se pueden re-aplicar).
+Ambos son idempotentes (se pueden re-aplicar). En un proyecto ya migrado, esquema y seed equivalen a la cadena de migraciones `supabase/migrations/`.
 
 ### 4.2 Verificar
 
 ```sql
-select count(*) from pg_catalog.pg_tables where schemaname = 'public';  -- 8
+select count(*) from pg_catalog.pg_tables where schemaname = 'public';  -- 9 (la novena es testimonials)
 select 'projects' as t, count(*) from public.projects
 union all select 'services', count(*) from public.services
 union all select 'content_blocks', count(*) from public.content_blocks
 union all select 'project_images', count(*) from public.project_images;
--- 10 proyectos · 6 servicios · 53 content_blocks · 17 project_images
+-- 10 proyectos · 6 servicios · 69 content_blocks · 17 project_images
 ```
 
 ### 4.3 Buckets de storage
@@ -234,5 +248,5 @@ Ver [[Despliegue Vercel]] y [[Pendientes Manuales]].
 - [[Casos de Uso]] — la versión formal de cada flujo con actores y postcondiciones
 - [[Cloudinary y Media]] — cómo se suben y borran las imágenes, y qué pasa si Cloudinary no está disponible
 - [[Inicio]] — mapa del vault · [[Estructura del Código]] · [[Rutas y Navegación]]
-- [[CRUD Proyectos]] · [[CRUD Servicios]] · [[Content Blocks]] · [[Contacto y Mensajes]]
+- [[CRUD Proyectos]] · [[CRUD Servicios]] · [[Content Blocks]] · [[Contacto y Mensajes]] · [[Testimonios]]
 - [[Testing]] · [[Despliegue Vercel]] · [[Pendientes Manuales]]

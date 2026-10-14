@@ -9,7 +9,7 @@
         <span>Arquitectura</span><span class="h-1 w-1 rounded-full bg-accent/60"></span><span>Ingeniería</span><span class="h-1 w-1 rounded-full bg-accent/60"></span><span>Construcción</span>
       </div>
 
-      <h1 class="mt-7 max-w-5xl text-balance text-[2.7rem] font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl md:text-7xl xl:text-[5.75rem]">
+      <h1 class="mt-7 max-w-5xl text-balance [overflow-wrap:anywhere] text-[2.7rem] font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl md:text-7xl xl:text-[5.75rem]">
         {{ heroTitle() }}
       </h1>
 
@@ -208,11 +208,46 @@
     </div>
   </section>
 
+  <!-- ── TESTIMONIOS ──────────────────────────────────────── -->
+  @if (testimonios().length > 0) {
+    <section id="testimonios" class="border-t border-border bg-background py-24 md:py-36">
+      <div class="wrap">
+        <div class="grid gap-6 md:grid-cols-12">
+          <p class="kicker md:col-span-2 md:pt-2 text-accent-deep">06 / Testimonios</p>
+          <div class="md:col-span-9 md:col-start-4">
+            <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:text-6xl">Lo que dicen quienes trabajan con nosotros.</h2>
+          </div>
+        </div>
+
+        <div class="mt-16 grid gap-x-10 gap-y-12 md:grid-cols-3">
+          @for (testimonio of testimonios(); track testimonio.id) {
+            <div class="flex flex-col border-t-2 border-foreground pt-7">
+              <p class="text-sm leading-7 text-muted-foreground">&ldquo;{{ testimonio.quote }}&rdquo;</p>
+              <div class="mt-auto pt-8">
+                @if (isStarred(testimonio.rating)) {
+                  <div class="flex items-center gap-1" [attr.aria-label]="'Valoración: ' + testimonio.rating + ' de 5'">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <svg lucideStar class="h-4 w-4" [attr.fill]="starFilled(star, testimonio.rating) ? 'currentColor' : 'none'" />
+                    }
+                  </div>
+                }
+                <p class="mt-4 text-lg font-bold tracking-tight">{{ testimonio.author }}</p>
+                @if (testimonio.role) {
+                  <p class="mt-1 text-xs text-muted-foreground">{{ testimonio.role }}</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
   <!-- ── CTA FINAL ────────────────────────────────────────── -->
   <section id="contacto" class="bg-primary px-0 text-white">
     <div class="wrap grid gap-12 py-24 md:grid-cols-12 md:items-end md:py-32">
       <div class="md:col-span-8">
-        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">06 / Hablemos</p>
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">{{ ctaKicker() }} / Hablemos</p>
         <h2 class="text-balance text-4xl font-bold leading-[1.02] tracking-[-0.02em] md:text-7xl">
           {{ ctaTitle() }}
         </h2>
