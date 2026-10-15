@@ -28,26 +28,69 @@
 }
 
 @theme inline {
+  /* Semánticos de color → generan utilidades (bg-*, text-*, border-*, …). */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-inverse: var(--surface-inverse);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-on-dark-muted: var(--on-dark-muted);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-deep: var(--accent-deep);
   --color-accent-soft: var(--accent-soft);
   --color-border: var(--border);
+  --color-ink: var(--ink);
+
+  /* Estado (contraste AA sobre su superficie). */
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  /* Escala de neutros cálidos 50→950. */
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+
   --font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-  
-  /* Motion tokens */
+
+  /* Escala tipográfica fluida (display). Se adopta por componente en las
+     fases de páginas; aquí queda centralizada y documentada. */
+  --text-display-1: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
+  --text-display-2: clamp(2.25rem, 1.5rem + 3.4vw, 4.25rem);
+  --text-display-3: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
+  --text-display-4: clamp(1.375rem, 1.2rem + 0.9vw, 1.875rem);
+  --leading-display: 1.02;
+  --leading-heading: 1.14;
+  --leading-body: 1.6;
+  --tracking-display: -0.02em;
+
+  /* Elevación (3 niveles) → utilidades shadow-elevation-1/2/3. */
+  --shadow-elevation-1: var(--elevation-1);
+  --shadow-elevation-2: var(--elevation-2);
+  --shadow-elevation-3: var(--elevation-3);
+
+  /* Motion tokens (Fase 04 migra a --motion-fast/base/slow/hero). */
   --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
   --duration-fast: 200ms;
@@ -56,75 +99,84 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   TOKENS DE MARCA
-   Identidad Ingesocc (sin cambios): #171717 / #f25623 / blanco.
-   El resto es una escala neutral cálida alrededor de esos tres:
-   el 80% de la interfaz usa neutros y fotografía; el naranja es
-   solo accent (CTA, estados, detalles), nunca fondo dominante.
+   TOKENS DE DISEÑO (semánticos)
+   Identidad Ingesocc intacta: #171717 / #f25623 / blanco.
+   El 80 % de la interfaz usa neutros cálidos y fotografía; el
+   naranja es solo acento (CTA, estados, detalles), nunca fondo.
+   Sobre fondos claros el texto naranja usa --accent-deep (AA);
+   --accent (#f25623) sobre blanco = 3.43:1, solo válido como
+   superficie/acento grande, nunca texto pequeño.
    ───────────────────────────────────────────────────────────── */
 :root {
   color-scheme: light;
 
-  /* Neutros cálidos "papel/obra": la foto y el negro mandan. */
-  --background: #f3f1ec;
-  --foreground: #171717;
-  --surface: #ffffff;
-  --primary: #171717;
-  --primary-foreground: #f6f5f1;
-
-  /* Bandas alternas y superficies de apoyo (con texto oscuro). */
-  --secondary: #e7e4dc;
-  --secondary-foreground: #171717;
-  --muted: #dedbd2;
-  --muted-foreground: #57544d;
-
-  /* Naranja de marca. Sobre fondos claros el texto pequeño usa
-     --accent-deep (AA 4.5:1); sobre fondos oscuros se usa --accent. */
+  /* ── Marca / núcleo ── */
+  --ink: #171717;
   --accent: #f25623;
   --accent-foreground: #171717;
   --accent-deep: #a53a0c;
   --accent-soft: #f9e5dc;
 
+  /* ── Superficies ── */
+  --background: #f3f1ec;         /* lienzo cálido "papel" */
+  --surface: #ffffff;            /* tarjetas/paneles */
+  --surface-raised: #ffffff;     /* flotantes (popover, menú, modal) */
+  --surface-inverse: #171717;    /* bandas invertidas */
+  --primary: #171717;
+  --primary-foreground: #f6f5f1;
+  --secondary: #e7e4dc;          /* bandas alternas */
+  --secondary-foreground: #171717;
+  --muted: #dedbd2;
+
+  /* ── Texto ── */
+  --foreground: #171717;
+  --muted-foreground: #57544d;   /* AA 7.55:1 sobre blanco */
+  --on-dark-muted: #b9b4a8;      /* AA 8.67:1 sobre ink */
+
+  /* ── Bordes ── */
   --border: #d9d5ca;
+
+  /* ── Estado ── (AA sobre su `*-soft` y sobre blanco) */
   --success: #116b32;
   --success-soft: #e7f1e9;
+  --warning: #8a4b00;
+  --warning-soft: #fdf0dc;
+  --error: #b3261e;
+  --error-soft: #fbe3e1;
+  --info: #1f4e79;
+  --info-soft: #e4eef6;
 
-  --radius: 0.125rem;
-  
-  /* Spacing scale (aligned with Tailwind) */
-  --spacing-0: 0px;
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-5: 1.25rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
-  --spacing-10: 2.5rem;
-  --spacing-12: 3rem;
-  --spacing-16: 4rem;
-  --spacing-20: 5rem;
-  --spacing-24: 6rem;
-  --spacing-32: 8rem;
-  
-  /* Type scale */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
-  --text-6xl: 3.75rem;
-  --text-7xl: 4.5rem;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* ── Neutros cálidos 50→950 ── */
+  --neutral-50: #faf9f6;
+  --neutral-100: #f3f1ec;
+  --neutral-200: #e7e4dc;
+  --neutral-300: #d9d5ca;
+  --neutral-400: #c2bdb0;
+  --neutral-500: #a8a294;
+  --neutral-600: #86837d;
+  --neutral-700: #6b675f;
+  --neutral-800: #57544d;
+  --neutral-900: #3a3833;
+  --neutral-950: #171717;
+
+  /* ── Layout ── */
+  --content-max: 88rem;
+  --gutter: 1.25rem;
+  --measure: 68ch;               /* ancho de lectura cómodo (~65–75 ch) */
+
+  /* ── Radios y elevación ── */
+  --radius: 0.125rem;            /* 2px */
+  --elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  --elevation-2: 0 4px 10px -2px rgb(0 0 0 / 0.1);
+  --elevation-3: 0 12px 24px -6px rgb(0 0 0 / 0.14);
+}
+
+/* Gutters responsive (mismos breakpoints que antes: 640px / 1024px). */
+@media (min-width: 40rem) {
+  :root { --gutter: 2rem; }
+}
+@media (min-width: 64rem) {
+  :root { --gutter: 3rem; }
 }
 
 * {
@@ -179,11 +231,20 @@ body {
     overflow-wrap: anywhere;
   }
 
+  /* Titulares sin líneas huérfanas y párrafos con cortes equilibrados
+     (mejora lectura; no fuerza saltos de línea). */
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+
   /* Enfoque visible en toda la interfaz (WCAG 2.4.7). */
   :focus-visible {
     outline: 2px solid var(--accent-deep);
     outline-offset: 2px;
-    border-radius: 2px;
+    border-radius: var(--radius);
   }
 }
 
@@ -198,18 +259,12 @@ body {
    badges y contenedores — idéntico en público y en el panel.
    ───────────────────────────────────────────────────────────── */
 @layer components {
-  /* Contenedor editorial: ancho máximo + gutter central por breakpoint. */
+  /* Contenedor editorial: ancho máximo + gutter central (tokens). */
   .wrap {
     width: 100%;
-    max-width: 88rem; /* 1408px */
+    max-width: var(--content-max); /* 1408px */
     margin-inline: auto;
-    padding-inline: 1.25rem;
-  }
-  @media (min-width: 640px) {
-    .wrap { padding-inline: 2rem; }
-  }
-  @media (min-width: 1024px) {
-    .wrap { padding-inline: 3rem; }
+    padding-inline: var(--gutter);
   }
 
   /* Kicker: micro-etiqueta de sección en mayúsculas espaciadas. */
@@ -231,7 +286,7 @@ body {
     gap: 0.5rem;
     min-height: 2.75rem;
     padding: 0 1.375rem;
-    border-radius: 2px;
+    border-radius: var(--radius);
     border: 1px solid transparent;
     font-size: 0.6875rem;
     font-weight: 700;
@@ -305,7 +360,7 @@ body {
     min-width: 0;
     min-height: 2.875rem;
     border: 1px solid var(--border);
-    border-radius: 2px;
+    border-radius: var(--radius);
     background: var(--surface);
     padding: 0.625rem 0.875rem;
     font-size: 0.9375rem;

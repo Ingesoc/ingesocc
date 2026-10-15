@@ -1,68 +1,60 @@
 # Auditoría de referencias de diseño — Ingesocc
 
-Fecha: 2026-10-13 · Rama: `feature/redesign` (rediseño ya integrado en `560f4f0`, `9614d77`)
+Fecha: 2026-10-14 · Fase 02 · Rama: `feature/redesign`
 
 Referencias objetivo: [ui.live](https://ui.live/), [prompt-motion.com](https://prompt-motion.com/),
 [itshover.com](https://www.itshover.com/).
 
+Documentos derivados: `docs/design/moodboard.md`, `docs/design/motion-language.md`,
+`docs/design/icons.md`.
+
 ## Método y límites
 
 - Referencias consultadas vía `WebFetch`.
-- **Firecrawl no está disponible** en este entorno, por lo que **no se pudo rastrear**
-  el sitio de la obra de referencia (`laholanda.ingesocc.com`). Todo lo evaluado se
-  apoya en recursos ya presentes en el repositorio (capturas en `test-results/audit/`,
-  datos reales seed/CMS) y en medición programática del DOM.
-- **El modelo no puede leer imágenes**, así que las capturas de
-  `test-results/audit/*.png` no se analizaron visualmente; la geometría se verificó
-  con Playwright (ver `docs/visual-qa-report.md`).
+- **El modelo no puede leer imágenes**: no se analizaron shots ni capturas; se extraen
+  **principios** (composición, jerarquía, estados, movimiento), no se copian piezas.
+- Licencia de `itshover` verificada vía API de GitHub: **Apache-2.0** (usable/modificable
+  con atribución).
+- No se rastreó el sitio de la obra de referencia (`laholanda.ingesocc.com`); todo se
+  apoya en activos y datos reales del repositorio/CMS.
 
 ## Qué aporta cada referencia
 
-### ui.live — galería de "design drops"
-Plataforma de descubrimiento con ranking por tendencia (semana/mes/todas). El patrón
-transversal es un **mosaico editorial de alta densidad** donde la pieza destaca por
-composición y jerarquía tipográfica, no por ornamentación.
+- **ui.live** — galería de *design drops*: mosaico editorial de alta densidad donde la
+  pieza destaca por composición y jerarquía tipográfica, no por ornamentación.
+- **prompt-motion.com** — biblioteca de motion: el movimiento se documenta y se elige
+  como un componente más (tokens), no se improvisa pieza a pieza.
+- **itshover.com** — iconos "que se mueven con intención": cada icono comunica una acción.
 
-Adaptado a Ingesocc:
+## Matriz de decisiones
 
-- Mosaico del Home (`home.component.html`) con tarjetas `overlay` sobre fotografía
-  real de obra y jerarquía tipográfica fuerte (kicker + titular + metadato).
-- Rejilla de categorías en `/proyectos` como sistema de filtrado con estado activo
-  visible (`aria-pressed`).
-- Sin cambios de contenido: se reutiliza la fotografía y los datos reales del CMS.
+| Recurso | Patrón evaluado | Elegido / Adaptado / Descartado | Página o componente | Razón de negocio/UX | Coste/riesgo técnico | Evidencia o prueba |
+|---|---|---|---|---|---|---|
+| ui.live | Mosaico editorial (una pieza protagonista + apoyo) | Elegido | Home (destacados), `/proyectos` | Prioriza la obra real y da jerarquía sin ruido | Bajo: se reutiliza la rejilla y fotos actuales | `docs/design/moodboard.md` §2/3; `docs/design/baseline/screenshots/` |
+| ui.live | Cards editoriales (imagen + título + categoría) | Elegido | `app-project-card`, `app-service-card` | Escaneabilidad del portafolio | Bajo: ya existen, se unifican hover/foco | Home, `/servicios`, `/proyectos` |
+| ui.live | Nav clara + estado activo + menú móvil usable | Elegido | `site-header` | Orientación y acceso en móvil | Bajo: ya corregido (a11y menú) | `e2e/public-flows.spec.ts` |
+| ui.live | Chips de filtro con estado activo | Adaptado | `/proyectos` | Filtrar sin ambigüedad; requiere ≥44 px (#15) | Bajo/medio: ampliar objetivo táctil | `docs/ui-audit.md` #15 |
+| ui.live | Tipografía con escala/jerarquía | Elegido | Global | Lectura corporativa | Bajo: `Archivo` ya cargada | `src/styles.css` |
+| ui.live | Dashboard / charts / chat | Descartado (en público) | — | No aporta a una constructora; evita estética B2B | Nulo | `docs/design/moodboard.md` §3 |
+| ui.live | Glassmorphism / partículas | Descartado | — | Rompe sobriedad y contraste | Nulo | `docs/design/moodboard.md` §3 |
+| prompt-motion | Revelado progresivo de fotos | Adaptado | Galería, cards destacadas | Ritmo editorial sin coste perceptivo | Medio: `Reveal` + `IntersectionObserver` (Fase 04) | `docs/design/motion-language.md` §4 |
+| prompt-motion | Aparición escalonada de grupos | Adaptado | Listas de servicios/proyectos, cifras | Ordena la lectura | Bajo: `transition-delay` por token | `docs/design/motion-language.md` §4 |
+| prompt-motion | Kinetic typography | Adaptado (mínimo) | Hero (h1) | Entrada suave del titular, sin protagonismo | Bajo/medio | `docs/design/motion-language.md` §4 |
+| prompt-motion | Parallax | Condicional (desktop) | Hero fotográfico | Profundidad muy leve; opcional | Medio: omitir en móvil/reduced-motion | `docs/design/motion-language.md` §3 |
+| prompt-motion | Transiciones entre estados | Elegido | Botones, nav, chips, menú, lightbox | Previsibilidad y feedback | Bajo: tokens de duración | `src/styles.css` tokens |
+| prompt-motion | 3D / partículas / morphing / showreel | Descartado | — | No se necesita para confiar | Nulo | `docs/design/moodboard.md` §1 |
+| prompt-motion | Animación en bucle | Descartado (salvo spinner de `loading`) | Botones con `loading` | Evita movimiento que compita con contenido | Bajo | `docs/design/motion-language.md` §4 |
+| itshover | Iconos con movimiento por acción | Adaptado | Menú, CTAs, formulario, galería | Cada icono comunica una acción | Bajo: solo CSS/SVG sobre `@lucide/angular` | `docs/design/icons.md` §6 |
+| itshover | Flecha que avanza en hover | Adaptado | CTAs "Ver proyecto" | Affordance de avance | Bajo | `docs/design/icons.md` §6 |
+| itshover | Iconos decorativos animados | Descartado | — | Movimiento sin significado distrae | Nulo | `docs/design/moodboard.md` §2 (principio 11) |
 
-### prompt-motion.com — biblioteca de motion
-Colección de piezas con sus prompts, filtradas por tipo (Product UI, Charts,
-Diagrams, Kinetic type, Shapes…). Idea central: **el movimiento se documenta y se
-elige como un componente más**, no se improvisa pieza a pieza.
+## Conclusiones
 
-Adaptado a Ingesocc (sin dependencias nuevas):
-
-- Tokens de motion en `styles.css`: `--duration-fast/normal/slow` y
-  `--ease-out-quad/cubic`.
-- Movimiento discreto y con intención: underline animado del nav, morph ☰↔✕
-  (`morph-icon.component`), zoom editorial de imagen (`.media-zoom`, `scale(1.035)`
-  a 0.7 s), transiciones de color en botones.
-- Regla obligatoria: todo se anula bajo `prefers-reduced-motion: reduce`.
-
-### itshover.com — iconos animados "motion-first"
-Librería open source de iconos SVG editables con movimiento integrado ("icons that
-move with intent"). El valor está en que **cada icono comunica una acción**.
-
-Adaptado a Ingesocc (traducido a SVG/CSS, sin portar React):
-
-- Iconos Lucide (`@lucide/angular`) + el morph icon propio para el menú.
-- El pie de las tarjetas y CTAs combinan icono + texto en mayúsculas espaciadas;
-  el detalle de proyecto usa `ArrowUpRight` como affordance de navegación.
-- Microinteracción de flecha en hover (`translate` sutil) coherente con el
-  vocabulario existente, y no iconos meramente decorativos.
-
-## Conclusiones para el sistema
-
-1. El rediseño vigente **ya fusiona** los tres aportes: mosaico editorial (ui.live),
-   motion tokenizado y discreto (prompt-motion) e iconografía con intención (itshover).
-2. No se introdujeron dependencias para replicar las referencias.
-3. Las adaptaciones se apoyan en datos y activos reales; no se inventó contenido,
-   cifras, testimonios ni capturas.
-4. Pendiente recomendado: rastreo del sitio de obra de referencia cuando haya acceso
-   de red (Firecrawl o curl) para contrastar el tono editorial con el material real.
+1. Se adopta el **mosaico editorial** (ui.live), el **movimiento tokenizado y contenido**
+   (prompt-motion) y la **iconografía con intención** (itshover), sin copiar piezas.
+- 2. **No se introducen dependencias** para replicar las referencias (`itshover` es React;
+  se recrea con SVG/CSS sobre Lucide, con atribución si aplicara).
+- 3. Las adaptaciones se apoyan en datos y activos reales; no se inventó contenido,
+  cifras, testimonios ni capturas.
+- 4. Pendiente recomendado: rastrear el sitio de obra de referencia cuando haya acceso de
+  red, para contrastar el tono editorial con material real.

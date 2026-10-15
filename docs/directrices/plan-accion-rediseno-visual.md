@@ -22,10 +22,10 @@ fecha al cerrar cada sesión.
 
 | # | Fase | Estado | Entregables principales | Fuente |
 |---|---|---|---|---|
-| 00 | Brújula (preservación y línea base) | Pendiente | `docs/design/baseline/` | A Fase A · B Fase 0 |
-| 01 | Radiografía (auditoría funcional y visual) | Pendiente | `docs/ui-audit.md` | A Paso 2 · B Fase 0 |
-| 02 | Moodboard (referencias y dirección) | Pendiente | `docs/design-reference-audit.md`, `docs/design/moodboard.md`, `docs/design/motion-language.md` | A Paso 3 · B Fase 0 |
-| 03 | Cimientos (sistema de diseño) | Pendiente | `docs/design-system.md` | A Paso 4 · B Fase 1 |
+| 00 | Brújula (preservación y línea base) | Hecho (2026-10-14) | `docs/design/baseline/` | A Fase A · B Fase 0 |
+| 01 | Radiografía (auditoría funcional y visual) | Hecho (2026-10-14) | `docs/ui-audit.md` | A Paso 2 · B Fase 0 |
+| 02 | Moodboard (referencias y dirección) | Hecho (2026-10-14) | `docs/design-reference-audit.md`, `docs/design/moodboard.md`, `docs/design/motion-language.md`, `docs/design/icons.md` | A Paso 3 · B Fase 0 |
+| 03 | Cimientos (sistema de diseño) | Hecho (2026-10-14) | `docs/design-system.md`, `docs/design/decisions.md` | A Paso 4 · B Fase 1 |
 | 04 | Cinética (movimiento e iconos) | Pendiente | `docs/design/motion-language.md`, `docs/design/icons.md`, `THIRD_PARTY.md` | A Paso 3.2/3.3 · B Fase 1 + §7 |
 | 05 | Andamios (componentes globales) | Pendiente | `docs/design-system.md` (sección componentes) | A Paso 4.4 + Fase E · B Fase 1.2 |
 | 06 | Escaparate (Home) | Pendiente | `docs/visual-qa-report.md` | A Paso 5.2 + Fase F · B §6.2–6.5 |
@@ -207,7 +207,29 @@ ejecutar scripts que puedan modificar datos reales sin revisar su alcance.
 **Origen:** [A] Fase A (sección 12) · [B] Fase 0 (sección 4).
 
 ### Handoff — Fase 00
-> (escribir aquí)
+- **Estado:** Hecho
+- **Fecha:** 2026-10-14
+- **Rama y HEAD:** feature/redesign @ 357a11c (limpio; el plan menciona feat/visual-upgrade pero la rama real es feature/redesign)
+- **Archivos creados/modificados:**
+  - `docs/design/baseline/README.md` (nuevo)
+  - `docs/design/baseline/baseline-metrics.json` (nuevo)
+  - `docs/design/baseline/screenshots/` (21 PNG: 7 rutas × 390/820/1440)
+  - `tools/baseline-shots.mjs` (nuevo, captura reproducible)
+  - `docs/directrices/plan-accion-rediseno-visual.md` (estado + este handoff)
+- **Comandos ejecutados y resultado:**
+  - `pnpm install --frozen-lockfile` → OK (up to date)
+  - `pnpm build` → OK · 689.70 kB inicial / 146.99 kB transfer
+  - `pnpm test:ci` → 164/164 SUCCESS
+  - `pnpm test:e2e` → 69 passed · 3 skipped · 1 failed (password-recovery; ver bloqueos)
+  - `pnpm test:visual` → 0 FAIL · 0 WARN
+  - `pnpm test:perf` → todos los presupuestos nivel "error" OK
+  - `node tools/baseline-shots.mjs` → 21 capturas · 0 overflow horizontal
+- **Entregables producidos:** `docs/design/baseline/` (README + metrics + screenshots)
+- **Decisiones tomadas:** usar la medición real de hoy como línea base (Accessibility 95, no el 100 histórico); aislar fallos de entorno sin corregirlos.
+- **Bloqueos / pendientes:**
+  - Supabase local (`127.0.0.1:64321`) no corriendo → fallo e2e de password-recovery + REST 400/404. Requiere levantar Supabase o apuntar a un proyecto de pruebas.
+  - Sin `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` → `/admin/*` autenticado no recorrido (3 e2e skipped; QA visual admin omitida).
+- **Siguiente fase debe saber:** Línea base en `docs/design/baseline/`; el modelo no ve imágenes (comparar con métricas y revisión humana). Hay déficit de accesibilidad (95 vs objetivo 100) y páginas muy largas en móvil (Quiénes Somos 17.195 px, Home 8.681 px @390).
 
 ---
 
@@ -278,7 +300,59 @@ aprobación salvo bloqueo real.**
 **Origen:** [A] Paso 2 (secciones 2.1–2.4) · [B] Fase 0 (sección 4).
 
 ### Handoff — Fase 01
-> (escribir aquí)
+
+**Estado:** Hecho (2026-10-14). **Entregable:** `docs/ui-audit.md` (actualizado).
+
+**Qué se hizo**
+- Se re-ejecutaron los comandos de la Fase 00 y se amplió la radiografía con
+  **mediciones programáticas del DOM** (Playwright headless) sobre las 6 rutas
+  públicas × 390/1440, más la lectura del baseline (`docs/design/baseline/`).
+- Se documentó en `docs/ui-audit.md`: título actualizado, **mapa técnico** (stack,
+  rutas, layouts, `data-access`, imágenes/Cloudinary, SEO, móvil), **inventario de
+  componentes reutilizables** (a consolidar en Fase 05), **mapa de experiencia por
+  ruta** y **diagnóstico de entornos**.
+- Tabla de hallazgos reformateada al esquema del plan
+  (`ID | Página/componente | Problema | Impacto | Prioridad P0–P3 | Solución | Verificación`)
+  con **18 hallazgos**.
+
+**Hallazgos nuevos de esta sesión (además de #1–#11 previos)**
+- #12 **P1** Lighthouse Accessibility = **95** (objetivo 100): `color-contrast` +
+  `label-content-name-mismatch` en las 4 corridas.
+- #13 **P2** Contraste: footer `text-white/40` sobre `bg-primary` = 3.83:1;
+  `/proyectos` `text-muted-foreground/70` claro = 3.34:1 (< 4.5:1).
+- #14 **P2** `aria-label` del logo no incluye el texto visible (2 por página).
+- #15 **P2** Chips de filtro de `/proyectos` = 37–39px (< 44px).
+- #16 **P2** Páginas muy largas en móvil: `/quienes-somos` 17195px, `/` 8681px @390.
+- #17 **P3** Duplicidad de tokens en `styles.css` (`--text-*`, `--spacing-*`,
+  `--shadow-*`, `--radius`) frente a Tailwind v4.
+- #18 **P1 (contenido, no código)** `/contacto` renderiza `juankos0714@gmail.com`
+  desde el **CMS remoto** (`environment.prod.ts` → `…ietjikoddwpdybarcwfk.supabase.co`),
+  no el `gerencia.ingesocc@gmail.com` verificado en el repo.
+
+**Evidencia clave**
+- `docs/ui-audit.md` (#1–#18), `.lighthouseci/*.json`, `docs/design/baseline/baseline-metrics.json`.
+- Fortalezas confirmadas: 1 `h1` por página, sin `img` sin `alt`, sin `id` duplicados,
+  sin controles sin nombre accesible, 0 overflow horizontal en 390/820/1440.
+
+**Comandos / resultados**
+```
+pnpm build            # 689.70 kB inicial / 146.99 kB transfer (dist/ingesocc-web/browser)
+node tools/serve-dist.mjs  (PORT=4175)   # sirve la build de producción para el audit DOM
+node <script Playwright temporal>        # h1/alt/ids/nombres/tap-targets por ruta×viewport
+```
+
+**Bloqueos / notas para la Fase 02**
+- **Entorno dev**: Supabase local `http://127.0.0.1:64321` no corriendo → e2e
+  `password-recovery.spec.ts:46` falla y hay REST 400/404. **No corregir la UI por esto.**
+- **Admin no auditable** sin `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` (#4–#7 quedan pendientes).
+- La build de producción lee **Supabase remoto**; contiene contenido (p. ej. #18) que no
+  está en el repo → no confundir contenido del CMS con código.
+- Los hallazgos #12–#15 deben **cerrarse en Fase 11** (control de calidad), no antes.
+- #18 requiere acción sobre **datos del CMS** (fuera del rediseño): reportar al cliente.
+
+**Siguiente (Fase 02):** moodboard escrito (UI.live), contrato de motion
+(prompt-motion) y política de iconos (itshover con licencia), con la matriz de decisiones
+de `docs/directrices/plan-accion-rediseno-visual.md` §2.1–2.4.
 
 ---
 
@@ -374,7 +448,48 @@ se evidencia que se eligió intencionalmente (no se copiaron todas las caracter�
 **Origen:** [A] Paso 3 (3.1–3.5) · [B] Fase 0 §4.5 + sección 2.
 
 ### Handoff — Fase 02
-> (escribir aquí)
+
+**Estado:** Hecho (2026-10-14).
+
+**Entregables creados/actualizados**
+- `docs/design/moodboard.md` — 12 principios concretos + matriz UI.live (patrón →
+  decisión → aplicación → límite) + qué se conserva.
+- `docs/design/motion-language.md` — estética elegida, **tokens de movimiento**
+  (duración/easing/stagger/distancia), contrato de movimiento y tabla
+  **referencia (prompt-motion) → implementación web**.
+- `docs/design/icons.md` (borrador) — política de iconos + tabla icono → movimiento → razón.
+- `docs/design-reference-audit.md` — reescrito con la **matriz del plan**
+  (`Recurso | Patrón | Elegido/Adaptado/Descartado | Página/componente | Razón | Coste/riesgo | Evidencia`).
+
+**Decisiones clave**
+- Adoptar: mosaico editorial (ui.live), motion tokenizado y contenido (prompt-motion),
+  iconos con intención (itshover). Descartar en público: dark mode, dashboards/charts,
+  glassmorphism/partículas, 3D y animaciones en bucle.
+- Movimiento: solo `transform`/`opacity`, una vez, sin bucle (salvo spinner de `loading`);
+  todo se anula con `prefers-reduced-motion`.
+- **Licencia itshover verificada: Apache-2.0** → permite uso/modificación con atribución;
+  se decide **recrear** iconos desde geometría Lucide (sin portar React), con atribución
+  en `THIRD_PARTY.md` (Fase 04) solo si se portara algún patrón.
+
+**Tokens propuestos (a implementar en Fase 03, ver `motion-language.md`)**
+- Duraciones: `--motion-duration-instant/fast/base/slow/slower` (100/160/220/360/560 ms).
+- Easings: `--motion-ease-out`, `--motion-ease-in-out`, `--motion-ease-emphasis`.
+- Soporte: `--motion-stagger` (60 ms), `--motion-distance-sm/md` (8/16 px).
+- Nota: los tokens actuales (`--duration-fast/normal/slow` = 200/300/500 ms) se migran
+  en Fase 03; el `.media-zoom` a 0.7 s se reduce a `--motion-duration-slow`.
+
+**Verificación / criterio de salida**
+- Decisiones justificadas y con límites; se evidencia elección intencional (no copia),
+  en las cuatro matrices.
+
+**Bloqueos/observaciones**
+- El modelo no lee imágenes: el moodboard es de **principios**, no de shots. Revisión
+  visual humana recomendada sobre `docs/design/baseline/screenshots/`.
+- Sin rastreo del sitio de obra (`laholanda.ingesocc.com`); no bloquea Fases 03+.
+
+**Siguiente (Fase 03 — Cimientos):** consolidar tokens en `@theme` (`src/styles.css`),
+resolver duplicados/tokens (#17), tipografía fluida, espaciado y estados. Prerrequisito:
+Fase 02 cerrada (lo está).
 
 ---
 
@@ -440,7 +555,58 @@ disabled, loading, success, error.
 **Origen:** [A] Paso 4 (4.1–4.3) · [B] Fase 1 §5.1.
 
 ### Handoff — Fase 03
-> (escribir aquí)
+
+**Estado:** Hecho (2026-10-14).
+
+**Objetivo:** centralizar y documentar el sistema de diseño como base reusable antes
+de rediseñar páginas.
+
+**Qué se hizo**
+- `src/styles.css`: reescritos los bloques `@theme inline` y `:root` a un set de
+  **tokens semánticos** documentado. Nuevos: `--ink`, `--surface-raised`,
+  `--surface-inverse`, `--on-dark-muted`, estado `--warning/-soft`, `--error/-soft`,
+  `--info/-soft`, escala `--neutral-50…950`, `--content-max`, `--gutter`, `--measure`,
+  `--elevation-1/2/3`, escala display fluida `--text-display-1…4` + `--leading-*` +
+  `--tracking-display`. Se **eliminaron** los tokens muertos `--spacing-*`, `--text-*`
+  y `--shadow-*` (hallazgo #17).
+- `@theme inline`: expuestas las utilidades nuevas (`bg-neutral-*`, `text-warning`,
+  `shadow-elevation-2`, `text-display-2`…). Se conservaron intactos los nombres
+  existentes (`bg-background`, `text-foreground`, `bg-primary`, `border-border`…):
+  **0 cambios en plantillas**.
+- `.wrap` ahora usa `--content-max` / `--gutter` (mismos valores 1.25/2/3rem);
+  `.btn`, `.field` y `:focus-visible` usan `var(--radius)`.
+- Base: `h1–h3 { text-wrap: balance }`, `p { text-wrap: pretty }`.
+- Motion: sin cambios (se migra en Fase 04); `docs/design/motion-language.md` se
+  alineó a los nombres canónicos del plan (`--motion-fast/base/slow/hero`, etc.).
+
+**Entregables**
+- `docs/design-system.md` — reescrito: tipografía fluida, y tablas de color
+  (base/superficies/marca/estado/neutros) con ratios de contraste, espaciado/layout/
+  radios/elevación, estados (§3.4), motion, componentes, accesibilidad.
+- `docs/design/decisions.md` — **nuevo**: 10 decisiones ambiguas resueltas
+  (sobriedad/accesibilidad) con evidencia.
+
+**Verificación**
+- Contraste WCAG calculado con script: `#f25623` sobre blanco **3.43:1** (solo
+  acento/superficie; nunca texto pequeño) vs `#accent-deep` **6.54:1**; estado
+  success/warning/error/info **≥ 6.5:1** sobre su `*-soft` y sobre blanco;
+  `--on-dark-muted` **8.67:1** sobre ink.
+- `pnpm build` OK (styles 65.34 kB raw / 9.57 kB transfer; initial 689.71 kB / 147.04 kB).
+- `pnpm test:ci` → **164/164 SUCCESS**.
+- `pnpm test:visual` → 0 warn · 0 FAIL (sin regresiones de layout).
+- Sin cambios de plantillas: los nombres de tokens/utilities previos se mantienen.
+
+**Riesgos / notas**
+- Los tokens nuevos (neutros, estado, display fluida, elevación) están disponibles
+  pero **aún no se aplican** en componentes/páginas: se consumen en Fases 05–10.
+- Pendientes de a11y derivados de tokens (aplicación en fase de página): footer
+  `text-white/40` → `--on-dark-muted` (#13), `aria-label` del logo (#14), chips
+  < 44 px (#15).
+- Entorno: e2e con 1 fallo por Supabase local caído y 3 skipped por falta de
+  `E2E_ADMIN_*`; ambientales, no defectos de UI.
+
+**Siguiente (Fase 04 — Cinética):** implementar tokens de movimiento canónicos,
+directiva `Reveal`, sistema de iconos animados y `THIRD_PARTY.md`.
 
 ---
 
