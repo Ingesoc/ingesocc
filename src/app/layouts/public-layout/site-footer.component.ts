@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { LucideExternalLink } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
 import { ServicesService } from '../../features/services/data-access/services.service';
+import { IconMotionDirective } from '../../shared/icons/icon-motion.directive';
 
 /** Misma navegación que el header (el pie replica las páginas públicas). */
 const NAV_ITEMS = [
@@ -19,7 +20,7 @@ const LEGAL_ITEMS = [{ label: 'Política de privacidad', link: '/contacto' }];
 @Component({
   selector: 'app-site-footer',
   standalone: true,
-  imports: [RouterLink, LucideExternalLink],
+  imports: [RouterLink, LucideExternalLink, IconMotionDirective],
   templateUrl: './site-footer.component.html',
 })
 export class SiteFooterComponent {

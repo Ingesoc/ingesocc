@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { LucideMessageCircle, LucidePhone } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
 import { CONTACT } from '../../core/site-config';
+import { IconMotionDirective } from '../../shared/icons/icon-motion.directive';
 
 /**
  * Barra de acciones fija inferior (solo móvil): WhatsApp + Llamar.
@@ -10,7 +11,7 @@ import { CONTACT } from '../../core/site-config';
 @Component({
   selector: 'app-mobile-action-bar',
   standalone: true,
-  imports: [LucideMessageCircle, LucidePhone],
+  imports: [LucideMessageCircle, LucidePhone, IconMotionDirective],
   templateUrl: './mobile-action-bar.component.html',
 })
 export class MobileActionBarComponent {

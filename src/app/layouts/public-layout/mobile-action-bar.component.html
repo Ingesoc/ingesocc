@@ -9,14 +9,16 @@
     rel="noopener"
     class="flex flex-1 items-center justify-center gap-2 bg-accent py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-primary transition-colors active:bg-accent-deep"
   >
-    <svg lucideMessageCircle class="h-4 w-4" />
+    <svg lucideMessageCircle appIconMotion="pop" class="h-4 w-4" />
+
     WhatsApp
   </a>
   <a
     [href]="'tel:' + phone()"
     class="flex flex-1 items-center justify-center gap-2 bg-primary py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors active:bg-[#221f1b]"
   >
-    <svg lucidePhone class="h-4 w-4" />
+    <svg lucidePhone appIconMotion="pop" class="h-4 w-4" />
+
     Llamar
   </a>
 </nav>

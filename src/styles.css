@@ -89,13 +89,29 @@
   --shadow-elevation-1: var(--elevation-1);
   --shadow-elevation-2: var(--elevation-2);
   --shadow-elevation-3: var(--elevation-3);
+}
 
-  /* Motion tokens (Fase 04 migra a --motion-fast/base/slow/hero). */
-  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
-  --duration-fast: 200ms;
-  --duration-normal: 300ms;
-  --duration-slow: 500ms;
+/* Los tokens de movimiento viven en `:root` (no en `@theme inline`) porque
+   se consumen con `var()` en CSS: `@theme inline` los aplicaría inline y no
+   los emitiría como variables. */
+:root {
+  --motion-fast: 150ms;
+  --motion-base: 300ms;
+  --motion-slow: 600ms;
+  --motion-hero: 900ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring-soft: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-stagger: 70ms;
+  --motion-distance: 20px;
+  --motion-scale-hover: 1.04;
+
+  /* Aliases heredados (compatibilidad con CSS previo). */
+  --duration-fast: var(--motion-fast);
+  --duration-normal: var(--motion-base);
+  --duration-slow: var(--motion-slow);
+  --ease-out-quad: var(--ease-out);
+  --ease-out-cubic: var(--ease-out);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -296,7 +312,7 @@ body {
     white-space: normal;
     text-align: center;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    transition: background-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out), transform var(--motion-fast) var(--ease-out);
   }
   .btn:disabled {
     cursor: not-allowed;
@@ -367,7 +383,7 @@ body {
     line-height: 1.5;
     color: var(--foreground);
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out);
     appearance: none;
   }
   textarea.field {
@@ -448,9 +464,126 @@ body {
     overflow: hidden;
   }
   .media-zoom img {
-    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform var(--motion-slow) var(--ease-out);
   }
   .media-zoom:hover img {
-    transform: scale(1.035);
+    transform: scale(var(--motion-scale-hover));
+  }
+}
+
+@layer components {
+  /* Motion utilities (Fase 04): reveals e icon motions mínimos. */
+  .reveal-pending {
+    opacity: 0;
+    transform: translateY(var(--motion-distance));
+    transition: opacity var(--motion-slow) var(--ease-out), transform var(--motion-slow) var(--ease-out);
+    will-change: opacity, transform;
+  }
+
+  .reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Icon motions: anima solo cuando se añada clase .is-animating. */
+  [data-icon-motion] {
+    will-change: transform;
+  }
+
+  [data-icon-motion="nudge-x"].is-animating {
+    animation: icon-nudge-x var(--motion-fast) var(--ease-out) both;
+  }
+
+  [data-icon-motion="nudge-up"].is-animating {
+    animation: icon-nudge-up var(--motion-fast) var(--ease-out) both;
+  }
+
+  [data-icon-motion="pop"].is-animating {
+    animation: icon-pop var(--motion-fast) var(--ease-out) both;
+  }
+
+  [data-icon-motion="rotate"].is-animating {
+    animation: icon-rotate var(--motion-fast) var(--ease-out) both;
+  }
+
+  [data-icon-motion="shake"].is-animating {
+    animation: icon-shake var(--motion-fast) var(--ease-out) both;
+  }
+
+  [data-icon-motion="pulse"].is-animating {
+    animation: icon-pulse var(--motion-fast) var(--ease-out) both;
+  }
+}
+
+@keyframes icon-nudge-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(calc(var(--motion-distance) / 2));
+  }
+}
+
+@keyframes icon-nudge-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(calc(var(--motion-distance) * -1));
+  }
+}
+
+@keyframes icon-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(var(--motion-scale-hover));
+  }
+}
+
+@keyframes icon-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(15deg);
+  }
+}
+
+@keyframes icon-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(calc(var(--motion-distance) / -4));
+  }
+  75% {
+    transform: translateX(calc(var(--motion-distance) / 4));
+  }
+}
+
+@keyframes icon-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.98);
+    opacity: 0.92;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.001ms !important;
+    animation-name: none !important;
+    transition-duration: 0.001ms !important;
   }
 }
