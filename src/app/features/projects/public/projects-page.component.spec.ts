@@ -112,4 +112,11 @@ describe('ProjectsPageComponent (filtro por URL)', () => {
     expect(page.visible()).toEqual([]);
     expect(page.hasMore()).toBeFalse();
   });
+
+  it('"Cargar más" actualiza el anuncio para lectores de pantalla', () => {
+    const page = createPage();
+    page.loadMore();
+    expect(page.visibleCount()).toBe(16);
+    expect(page.announcement()).toContain('2 de 2 en pantalla');
+  });
 });

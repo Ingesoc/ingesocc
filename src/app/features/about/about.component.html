@@ -40,23 +40,24 @@
   <div class="wrap">
     <div class="mb-16 grid gap-6 md:grid-cols-12">
       <p class="kicker text-accent-deep md:col-span-2">02 / Trayectoria</p>
-      <h2 class="text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Hitos que nos definen.</h2>
+      <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Hitos que nos definen.</h2>
     </div>
 
-    <ol class="grid gap-12 md:grid-cols-4 md:gap-8">
-      @for (item of timeline(); track item.key; let i = $index; let last = $last) {
-        <li class="relative border-t-2 border-foreground/20 pt-6 transition-colors duration-300 hover:border-accent">
-          <span class="absolute -top-[5px] left-0 h-2 w-2 rounded-full bg-accent"></span>
-          <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">Hito 0{{ i + 1 }}</p>
-          <p class="mt-4 text-5xl font-bold leading-none tracking-tight md:text-6xl">
-            {{ item.year }}
-          </p>
-          <h3 class="mt-4 text-lg font-bold tracking-tight">
-            {{ item.title }}
-          </h3>
-        </li>
-      }
-    </ol>
+    <div class="timeline">
+      <span class="timeline-line" appLineDraw aria-hidden="true"></span>
+      <ol class="timeline-list">
+        @for (item of timeline(); track item.key; let i = $index) {
+          <li class="timeline-item" [class.timeline-item--right]="i % 2 === 1" appReveal [revealIndex]="i">
+            <span class="timeline-dot" aria-hidden="true"></span>
+            <div class="timeline-card">
+              <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">Hito 0{{ i + 1 }}</p>
+              <p class="mt-3 text-5xl font-bold leading-none tracking-tight md:text-6xl">{{ item.year }}</p>
+              <h3 class="mt-3 text-lg font-bold tracking-tight">{{ item.title }}</h3>
+            </div>
+          </li>
+        }
+      </ol>
+    </div>
   </div>
 </section>
 
@@ -65,22 +66,31 @@
   <div class="wrap">
     <div class="mb-16 grid gap-6 md:grid-cols-12">
       <p class="kicker text-accent-deep md:col-span-2">03 / Propósito</p>
-      <h2 class="text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Lo que nos mueve.</h2>
+      <h2 class="text-balance text-4xl font-bold tracking-[-0.02em] md:col-span-8 md:text-5xl">Lo que nos mueve.</h2>
     </div>
 
-    <div class="grid gap-12 md:grid-cols-3 md:gap-0 md:divide-x md:divide-border">
-      <div class="pr-0 md:pr-12">
+    <div class="grid gap-6 md:grid-cols-3">
+      <article appReveal [revealIndex]="0" class="group panel flex flex-col gap-5 p-8">
+        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-accent-deep">
+          <svg lucideTarget appIconMotion="pop" iconTrigger="parent" aria-hidden="true" class="h-6 w-6" />
+        </span>
         <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">A · Misión</p>
-        <p class="mt-5 text-base leading-8 text-muted-foreground">{{ mision() }}</p>
-      </div>
-      <div class="md:px-12">
+        <p class="text-base leading-8 text-muted-foreground">{{ mision() }}</p>
+      </article>
+      <article appReveal [revealIndex]="1" class="group panel flex flex-col gap-5 p-8">
+        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-accent-deep">
+          <svg lucideEye appIconMotion="pop" iconTrigger="parent" aria-hidden="true" class="h-6 w-6" />
+        </span>
         <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">B · Visión</p>
-        <p class="mt-5 text-base leading-8 text-muted-foreground">{{ vision() }}</p>
-      </div>
-      <div class="md:pl-12">
+        <p class="text-base leading-8 text-muted-foreground">{{ vision() }}</p>
+      </article>
+      <article appReveal [revealIndex]="2" class="group panel flex flex-col gap-5 p-8">
+        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-accent-deep">
+          <svg lucideShieldCheck appIconMotion="pop" iconTrigger="parent" aria-hidden="true" class="h-6 w-6" />
+        </span>
         <p class="text-[11px] font-bold tracking-[0.3em] text-accent-deep">C · Valores</p>
-        <p class="mt-5 text-base leading-8 text-muted-foreground">{{ valores() }}</p>
-      </div>
+        <p class="text-base leading-8 text-muted-foreground">{{ valores() }}</p>
+      </article>
     </div>
   </div>
 </section>
@@ -181,8 +191,8 @@
 
     <div class="grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
       @for (member of team(); track member.key; let i = $index) {
-        <article class="group">
-          <div class="relative aspect-square w-full bg-secondary">
+        <article appReveal [revealIndex]="i" class="group">
+          <div class="media-zoom relative aspect-square w-full bg-secondary">
             @if (member.photo) {
             <img [src]="member.photo" [alt]="member.name" width="400" height="400" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover" />
           }
@@ -194,6 +204,23 @@
           <p class="mt-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-accent-deep">{{ member.role }}</p>
         </article>
       }
+    </div>
+  </div>
+</section>
+
+<!-- ── NARRATIVA (enlaces) ─────────────────────────────── -->
+<section class="border-t border-border bg-secondary py-16 md:py-20">
+  <div class="wrap flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-balance text-xl font-bold tracking-tight md:text-2xl">Así llevamos este respaldo a cada obra.</p>
+    <div class="flex flex-wrap gap-3">
+      <a routerLink="/proyectos" class="btn btn-solid">
+        Ver proyectos
+        <svg lucideArrowUpRight appIconMotion="nudge-x" aria-hidden="true" class="h-4 w-4" />
+      </a>
+      <a routerLink="/servicios" class="btn btn-outline">
+        Ver servicios
+        <svg lucideArrowUpRight appIconMotion="nudge-x" aria-hidden="true" class="h-4 w-4" />
+      </a>
     </div>
   </div>
 </section>
@@ -222,43 +249,9 @@
 </section>
 
 <!-- ── LIGHTBOX (operaciones) ──────────────────────────── -->
-@if (lightboxIndex() !== null && lightboxImageUrl()) {
-  <div
-    class="fixed inset-0 z-[80] flex items-center justify-center bg-primary/95 p-4 backdrop-blur-sm md:p-10"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Galería de operaciones ampliada"
-    tabindex="-1"
-    (click)="closeLightbox()"
-    (keydown.escape)="closeLightbox()"
-  >
-    <button type="button" (click)="closeLightbox()" aria-label="Cerrar galería"
-      class="absolute right-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8 md:top-8">
-      <svg lucideX class="h-5 w-5" />
-    </button>
-
-    @if (operacionesImages().length > 1) {
-      <button type="button" (click)="stepLightbox(-1); $event.stopPropagation()" aria-label="Imagen anterior"
-        class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:left-8">
-        <svg lucideChevronLeft class="h-5 w-5" />
-      </button>
-      <button type="button" (click)="stepLightbox(1); $event.stopPropagation()" aria-label="Imagen siguiente"
-        class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8">
-        <svg lucideChevronRight class="h-5 w-5" />
-      </button>
-    }
-
-    <figure
-      class="max-h-full max-w-6xl"
-      tabindex="-1"
-      (click)="$event.stopPropagation()"
-      (keydown)="$event.stopPropagation()"
-    >
-      <img [src]="lightboxImageUrl()" [alt]="lightboxImageAlt()" width="1200" height="900" decoding="async" class="max-h-[78vh] w-auto object-contain" />
-      <figcaption class="mt-4 flex items-center justify-between gap-4">
-        <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/60">{{ lightboxImageAlt() }}</span>
-        <span class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/40">{{ lightboxPosition() }}</span>
-      </figcaption>
-    </figure>
-  </div>
-}
+<app-lightbox
+  [images]="lightboxImages()"
+  [openIndex]="lightboxIndex()"
+  (lightboxClose)="closeLightbox()"
+  (indexChange)="lightboxIndex.set($event)"
+/>

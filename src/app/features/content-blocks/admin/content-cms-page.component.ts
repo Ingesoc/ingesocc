@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { LucideImageUp, LucideLoaderCircle, LucideRefreshCw } from '@lucide/angular';
+import { LucideCheck, LucideImageUp, LucideLoaderCircle, LucideRefreshCw } from '@lucide/angular';
 import { ContentBlocksService } from '../data-access/content-blocks.service';
 import {
   CONTENT_PAGES,
@@ -8,6 +8,7 @@ import {
   sectionGroupLabel,
 } from '../data-access/content-blocks.catalog';
 import { MAX_CMS_IMAGE_BYTES, validateImageFile } from '../../../core/image-utils';
+import { IconMotionDirective } from '../../../shared/icons';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import type { ContentBlockType } from '../data-access/content-block.model';
 
@@ -31,7 +32,7 @@ interface BlockView {
 @Component({
   selector: 'app-content-cms-page',
   standalone: true,
-  imports: [LucideLoaderCircle, LucideRefreshCw, LucideImageUp],
+  imports: [LucideLoaderCircle, LucideRefreshCw, LucideImageUp, LucideCheck, IconMotionDirective],
   templateUrl: './content-cms-page.component.html',
 })
 export class ContentCmsPageComponent implements OnInit {

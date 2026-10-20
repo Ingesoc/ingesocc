@@ -3,6 +3,7 @@ import { NgComponentOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LucideArrowRight } from '@lucide/angular';
 import type { LucideIcon } from '@lucide/angular';
+import { IconMotionDirective, RevealDirective } from '../../../shared/icons';
 import { serviceIconFor } from '../data-access/service-icons';
 import type { Service } from '../data-access/service.model';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
@@ -10,7 +11,7 @@ import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cl
 @Component({
   selector: 'app-service-card',
   standalone: true,
-  imports: [NgComponentOutlet, RouterLink, LucideArrowRight],
+  imports: [NgComponentOutlet, RouterLink, LucideArrowRight, IconMotionDirective, RevealDirective],
   templateUrl: './service-card.component.html',
 })
 export class ServiceCardComponent {

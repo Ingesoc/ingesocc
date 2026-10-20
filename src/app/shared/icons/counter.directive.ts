@@ -22,7 +22,7 @@ export class CounterDirective implements AfterViewInit, OnDestroy {
   private readonly renderer = inject(Renderer2);
   private af = 0;
   private prefersReduced = true;
-  private cleanupUnobserve?: () => void;
+  private observer?: IntersectionObserver;
 
   ngAfterViewInit(): void {
     if (typeof window !== 'undefined' && 'matchMedia' in window) {
@@ -30,36 +30,47 @@ export class CounterDirective implements AfterViewInit, OnDestroy {
     }
 
     const nativeEl = this.el.nativeElement;
-    const start = 0;
     const end = Math.max(0, this.appCounter());
     const duration = Math.max(300, this.counterDuration());
 
-    const setFinal = () => {
-      nativeEl.textContent = `${this.counterPrefix()}${this.format(end)}${this.counterSuffix()}`;
+    const render = (val: number) => {
+      nativeEl.textContent = `${this.counterPrefix()}${this.format(val)}${this.counterSuffix()}`;
     };
 
-    if (this.prefersReduced) {
-      setFinal();
+    // Reduced-motion (o entorno sin observer): mostrar el valor final de inmediato.
+    if (this.prefersReduced || typeof IntersectionObserver === 'undefined') {
+      render(end);
       return;
     }
 
-    const startTime = performance.now();
-    const step = (now: number) => {
-      const t = Math.min(1, (now - startTime) / duration);
-      const easeOut = 1 - Math.pow(1 - t, 3);
-      const val = Math.round(start + (end - start) * easeOut);
-      nativeEl.textContent = `${this.counterPrefix()}${this.format(val)}${this.counterSuffix()}`;
-      if (t < 1) {
-        this.af = requestAnimationFrame(step);
-      } else {
-        setFinal();
-      }
+    render(0);
+
+    const run = () => {
+      const startTime = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - startTime) / duration);
+        const easeOut = 1 - Math.pow(1 - t, 3);
+        render(Math.round(end * easeOut));
+        if (t < 1) {
+          this.af = requestAnimationFrame(step);
+        } else {
+          render(end);
+        }
+      };
+      this.af = requestAnimationFrame(step);
     };
 
-    nativeEl.textContent = `${this.counterPrefix()}${this.format(start)}${this.counterSuffix()}`;
-    this.af = requestAnimationFrame(step);
-
-    // Unobserve not necessary if no IntersectionObserver used now; but leave optional
+    // Contar solo al entrar en viewport (plan Fase 06 §6.3).
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        this.observer?.disconnect();
+        this.observer = undefined;
+        run();
+      },
+      { threshold: 0.4 },
+    );
+    this.observer.observe(nativeEl);
   }
 
   private format(n: number): string {
@@ -72,6 +83,7 @@ export class CounterDirective implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.af) cancelAnimationFrame(this.af);
-    if (this.cleanupUnobserve) this.cleanupUnobserve();
+    this.observer?.disconnect();
+    this.observer = undefined;
   }
 }

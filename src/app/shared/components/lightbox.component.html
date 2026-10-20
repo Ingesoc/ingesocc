@@ -1,0 +1,59 @@
+﻿@if (openIndex() !== null && imageUrl(current())) {
+  <div
+    #lightboxDialog
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-primary/95 p-4 backdrop-blur-sm md:p-10"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Galería ampliada"
+    tabindex="-1"
+    (click)="closeLightbox()"
+    (keydown.escape)="closeLightbox()"
+    (touchstart)="onTouchStart($event)"
+    (touchend)="onTouchEnd($event)"
+  >
+    <button type="button" (click)="closeLightbox(); stop($event)" aria-label="Cerrar galería"
+      class="absolute right-5 top-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8 md:top-8">
+      <svg lucideX class="h-5 w-5" />
+    </button>
+
+    @if (hasMultiple()) {
+      <button type="button" (click)="prev(); stop($event)" aria-label="Imagen anterior"
+        class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:left-8">
+        <svg lucideChevronLeft class="h-5 w-5" />
+      </button>
+      <button type="button" (click)="next(); stop($event)" aria-label="Imagen siguiente"
+        class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 text-white transition-colors hover:bg-accent hover:text-primary md:right-8">
+        <svg lucideChevronRight class="h-5 w-5" />
+      </button>
+    }
+
+    <figure
+      class="max-h-full max-w-6xl"
+      tabindex="-1"
+      (click)="stop($event)"
+      (keydown)="stop($event)"
+    >
+      <img [src]="imageUrl(current())" [alt]="imageAlt(current())" [attr.aria-label]="imageLabel()" width="1200" height="900" decoding="async" class="max-h-[78vh] w-auto object-contain" />
+      @if (current(); as img) {
+        <figcaption class="mt-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div class="min-w-0">
+            @if (img.category?.trim(); as cat) {
+              <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-accent">{{ cat }}</p>
+            }
+            @if (img.title?.trim(); as title) {
+              <p class="mt-1 text-base font-semibold text-white">{{ title }}</p>
+            }
+            @if (img.description?.trim(); as desc) {
+              <p class="mt-1 max-w-2xl text-sm leading-6 text-white/70">{{ desc }}</p>
+            }
+          </div>
+          <span class="shrink-0 text-[11px] font-bold uppercase tracking-[0.24em] text-white/70">{{ position(openIndex(), total()) }}</span>
+        </figcaption>
+      }
+    </figure>
+  </div>
+}
+
+
+
+

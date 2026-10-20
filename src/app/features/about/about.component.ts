@@ -1,6 +1,8 @@
-import { Component, computed, inject, signal, HostListener } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideMessageCircle, LucideShieldCheck, LucideX } from '@lucide/angular';
+import { LucideArrowUpRight, LucideEye, LucideMessageCircle, LucideShieldCheck, LucideTarget } from '@lucide/angular';
+import { LightboxComponent } from '../../shared/components/lightbox.component';
+import { IconMotionDirective, LineDrawDirective, RevealDirective } from '../../shared/icons';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
 import { CONTACT } from '../../core/site-config';
@@ -22,7 +24,18 @@ const CERT_KEYS = ['item1', 'item2', 'item3', 'item4'] as const;
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideMessageCircle, LucideShieldCheck, LucideX],
+  imports: [
+    RouterLink,
+    LucideArrowUpRight,
+    LucideEye,
+    LucideMessageCircle,
+    LucideShieldCheck,
+    LucideTarget,
+    LightboxComponent,
+    IconMotionDirective,
+    LineDrawDirective,
+    RevealDirective,
+  ],
   templateUrl: './about.component.html',
 })
 export class AboutComponent {
@@ -113,6 +126,11 @@ export class AboutComponent {
     ),
   );
 
+  /** Imágenes mapeadas al contrato del lightbox compartido (`LightboxImage`). */
+  readonly lightboxImages = computed(() =>
+    this.operacionesImages().map((image) => ({ src: image.src, alt: image.alt })),
+  );
+
   /** Índice (sobre `operacionesImages`) abierto en el lightbox; null = cerrado. */
   readonly lightboxIndex = signal<number | null>(null);
 
@@ -122,42 +140,5 @@ export class AboutComponent {
 
   closeLightbox(): void {
     this.lightboxIndex.set(null);
-  }
-
-  stepLightbox(direction: 1 | -1): void {
-    const current = this.lightboxIndex();
-    const total = this.operacionesImages().length;
-    if (current === null || total === 0) return;
-    this.lightboxIndex.set((current + direction + total) % total);
-  }
-
-  lightboxImageUrl(): string {
-    const index = this.lightboxIndex();
-    const images = this.operacionesImages();
-    return index !== null && images[index] ? images[index].src : '';
-  }
-
-  lightboxImageAlt(): string {
-    const index = this.lightboxIndex();
-    const images = this.operacionesImages();
-    return index !== null && images[index] ? images[index].alt : '';
-  }
-
-  lightboxPosition(): string {
-    const index = this.lightboxIndex();
-    const total = this.operacionesImages().length;
-    return index !== null ? `${index + 1} / ${total}` : '';
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onKeydown(event: KeyboardEvent): void {
-    if (this.lightboxIndex() === null) return;
-    if (event.key === 'Escape') {
-      this.closeLightbox();
-    } else if (event.key === 'ArrowRight') {
-      this.stepLightbox(1);
-    } else if (event.key === 'ArrowLeft') {
-      this.stepLightbox(-1);
-    }
   }
 }

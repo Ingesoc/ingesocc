@@ -13,18 +13,19 @@
   </div>
 
   @if (error()) {
-    <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
+    <p role="alert" class="alert alert-error mt-6">{{ error() }}</p>
   }
 
   @if (loading()) {
-    <div class="mt-10 grid gap-4" aria-label="Cargando mensajes">
+    <div class="mt-10 grid gap-4" role="status">
+      <span class="sr-only">Cargando mensajes…</span>
       @for (skeleton of [1, 2, 3]; track skeleton) {
         <div class="h-28 animate-pulse rounded-sm border border-border bg-surface"></div>
       }
     </div>
   } @else if (items().length === 0) {
-    <div class="mt-10 rounded-sm border border-border bg-surface px-8 py-16 text-center">
-      <p class="text-lg font-bold">No hay mensajes todavía.</p>
+    <div class="empty-state">
+      <p class="text-lg font-bold text-foreground">No hay mensajes todavía.</p>
       <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
         Los mensajes del formulario de contacto aparecerán aquí (aplica las migraciones con <span class="font-mono">supabase db push</span> para crear la tabla).
       </p>

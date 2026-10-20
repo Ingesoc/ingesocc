@@ -11,11 +11,12 @@ class HostComponent {}
 
 describe('CounterDirective', () => {
   it('muestra valor final bajo reduced-motion', () => {
-    const fixture = TestBed.configureTestingModule({ imports: [HostComponent] }).createComponent(Host);
+    const fixture = TestBed.configureTestingModule({ imports: [HostComponent] }).createComponent(HostComponent);
     fixture.detectChanges();
     const el = fixture.nativeElement.querySelector('span');
     expect(el.textContent).toContain('42');
   });
 });
+
 
 

@@ -579,11 +579,414 @@ body {
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  /* Crossfade de navegación (View Transitions), 200–300 ms. */
+  ::view-transition-old(root) {
+    animation: 220ms var(--ease-out) both vt-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation: 260ms var(--ease-out) both vt-fade-in;
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 0.001ms !important;
     animation-name: none !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+@layer components {
+  /* Estado vacío. */
+  .empty-state {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: var(--muted-foreground);
+  }
+
+  /* Skeleton genérico. */
+  .skeleton {
+    height: 1rem;
+    border-radius: 0.125rem;
+    background: var(--muted);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Chips de filtro. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 0.375rem 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    transition: background-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out);
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+  .chip-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+  /* Tono acento (filtro de categoría): relleno de marca con texto oscuro AA. */
+  .chip-accent.chip-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--primary);
+  }
+  .chip-accent:not(.chip-active):hover {
+    border-color: var(--accent);
+    color: var(--accent-deep);
+  }
+
+  /* Fila de chips: scroll horizontal con snap en móvil, wrap en escritorio. */
+  .chips-row {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+  }
+  .chips-row::-webkit-scrollbar {
+    display: none;
+  }
+  .chips-row > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 768px) {
+    .chips-row {
+      flex-wrap: wrap;
+      overflow-x: visible;
+      scroll-snap-type: none;
+      padding-bottom: 0;
+    }
+  }
+
+  /* Divider blueprint. */
+  .divider-blueprint {
+    border-top: 2px solid var(--foreground);
+  }
+  .divider-blueprint-vertical {
+    border-left: 2px solid var(--foreground);
+  }
+
+  /* Alerts. */
+  .alert {
+    border-radius: 0.125rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .alert-error {
+    border-color: color-mix(in srgb, var(--error) 40%, var(--border));
+    background: var(--error-soft);
+    color: var(--error);
+  }
+  .alert-success {
+    border-color: color-mix(in srgb, var(--success) 40%, var(--border));
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  /* Field messages. */
+  .field-error {
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent-deep);
+  }
+  .field-help {
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+
+  /* Entrada del aviso de guardado (admin, Fase 10): solo transform/opacity. */
+  .alert-enter {
+    animation: alert-enter var(--motion-fast) var(--ease-out) both;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes alert-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-enter {
+    animation: none;
+  }
+}
+
+@layer components {
+  /* Entrada del hero (Fase 06 §6.1): solo transform/opacity y CSS puro, para que
+     el titular ya exista en el DOM y sea legible aunque no se ejecute JS. */
+  .hero-reveal {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    animation: hero-rise var(--motion-hero) var(--ease-out) both;
+  }
+  .hero-reveal-1 {
+    animation-delay: 60ms;
+  }
+  .hero-reveal-2 {
+    animation-delay: 160ms;
+  }
+  .hero-reveal-3 {
+    animation-delay: 260ms;
+  }
+  .hero-reveal-4 {
+    animation-delay: 360ms;
+  }
+
+  /* Indicador de scroll (Fase 06 §6.1): bucle muy discreto solo con transform. */
+  .scroll-cue svg {
+    animation: scroll-cue 2.4s var(--ease-in-out) infinite;
+  }
+}
+
+@layer components {
+  /* Timeline vertical (Fase 08 §8.2): línea que se dibuja al hacer scroll.
+     Móvil: línea a la izquierda, una columna. Escritorio: línea al centro,
+     hitos alternados a izquierda/derecha. */
+  .timeline {
+    position: relative;
+  }
+
+  .timeline-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 6px;
+    width: 2px;
+    background: var(--border);
+    transform: translateX(-1px);
+    overflow: hidden;
+  }
+
+  /* Progreso de la línea (relleno de acento). */
+  .line-draw::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: top center;
+  }
+
+  /* Fallback (IO o sin soporte scroll-driven): oculta hasta dibujarse. */
+  .line-draw:not(.line-scroll)::after {
+    transform: scaleY(0);
+    transition: transform var(--motion-slow) var(--ease-out);
+  }
+  .line-draw.line-drawn:not(.line-scroll)::after {
+    transform: scaleY(1);
+  }
+
+  .timeline-list {
+    display: grid;
+    gap: 2.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .timeline-item {
+    position: relative;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    top: 0.375rem;
+    left: 6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: var(--accent);
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 4px var(--secondary);
+  }
+
+  .timeline-card {
+    width: 100%;
+    padding-left: 2.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .timeline-line,
+    .timeline-dot {
+      left: 50%;
+    }
+
+    .timeline-card {
+      width: 50%;
+      padding-left: 0;
+      padding-right: 2.5rem;
+      text-align: right;
+    }
+
+    .timeline-item--right .timeline-card {
+      margin-left: 50%;
+      padding-right: 0;
+      padding-left: 2.5rem;
+      text-align: left;
+    }
+  }
+}
+
+/* Dibujo guiado por scroll cuando el navegador lo soporta (sin JS). */
+@supports (animation-timeline: view()) {
+  .line-draw.line-scroll::after {
+    transform: scaleY(0);
+    animation: line-draw-grow linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+@keyframes line-draw-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-draw::after {
+    transform: scaleY(1) !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes hero-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scroll-cue {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Micro-animación del icono al interactuar con su contenedor (trigger "parent"). */
+  .group:hover [data-icon-motion="nudge-x"],
+  .group:focus-visible [data-icon-motion="nudge-x"] {
+    animation: icon-nudge-x var(--motion-fast) var(--ease-out) both;
+  }
+  .group:hover [data-icon-motion="nudge-up"],
+  .group:focus-visible [data-icon-motion="nudge-up"] {
+    animation: icon-nudge-up var(--motion-fast) var(--ease-out) both;
+  }
+  .group:hover [data-icon-motion="pop"],
+  .group:focus-visible [data-icon-motion="pop"] {
+    animation: icon-pop var(--motion-fast) var(--ease-out) both;
+  }
+  .group:hover [data-icon-motion="rotate"],
+  .group:focus-visible [data-icon-motion="rotate"] {
+    animation: icon-rotate var(--motion-fast) var(--ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .scroll-cue svg {
+    animation: none;
+  }
+}
+
+/* Barra de progreso de scroll: CSS puro, oculta si el navegador no la soporta. */
+@layer components {
+  .scroll-progress {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    background: var(--accent);
+    pointer-events: none;
+    z-index: 50;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: scroll-progress-grow linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes scroll-progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress {
+    display: none;
   }
 }

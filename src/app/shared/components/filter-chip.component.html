@@ -1,0 +1,11 @@
+<button
+  type="button"
+  class="chip"
+  [class.chip-active]="active()"
+  [class.chip-accent]="tone() === 'accent'"
+  [attr.aria-pressed]="active()"
+  [attr.aria-label]="ariaLabel() || label()"
+  (click)="clicked.emit()"
+>
+  {{ label() }}
+</button>

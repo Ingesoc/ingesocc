@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { ContactComponent } from './contact.component';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from './data-access/contact-messages.service';
@@ -135,5 +136,101 @@ describe('ContactComponent (formulario → lead)', () => {
       timeline: '3 a 6 meses',
       website: '',
     });
+  });
+});
+
+/**
+ * Fase 09: el formulario expone estados accesibles (aria-invalid,
+ * aria-describedby, foco al primer error, región aria-live) sin cambiar la
+ * validación ni el guardado.
+ */
+describe('ContactComponent (Fase 09: accesibilidad del formulario)', () => {
+  function blocks(): ContentBlocksService {
+    return {
+      text: (page: string, key: string, fallback = '') =>
+        page === 'contact' ? ((REAL_CONTACT as Record<string, string>)[key] ?? fallback) : fallback,
+    } as unknown as ContentBlocksService;
+  }
+
+  function setup(insert = jasmine.createSpy('insert').and.resolveTo()) {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: ContentBlocksService, useValue: blocks() },
+        { provide: SupabaseService, useValue: {} },
+        { provide: CloudinaryService, useValue: {} },
+        { provide: ContactMessagesService, useValue: { insert } },
+      ],
+    });
+    const fixture = TestBed.createComponent(ContactComponent);
+    document.body.appendChild(fixture.nativeElement);
+    fixture.detectChanges();
+    return { fixture, insert };
+  }
+
+  afterEach(() => {
+    document.querySelectorAll('app-contact').forEach((el) => el.remove());
+  });
+
+  it('enfoca el primer campo inválido y marca aria-invalid/aria-describedby', async () => {
+    const { fixture } = setup();
+    const html = fixture.nativeElement as HTMLElement;
+
+    await fixture.componentInstance.onSubmit();
+    fixture.detectChanges();
+
+    const name = html.querySelector<HTMLInputElement>('#name')!;
+    expect(name.getAttribute('aria-required')).toBe('true');
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+    expect(name.getAttribute('aria-describedby')).toBe('name-error');
+    expect(html.querySelector('#name-error')?.textContent).toContain('nombre');
+    expect(document.activeElement).toBe(name);
+  });
+
+  it('solo marca name, email y message como obligatorios', () => {
+    const { fixture } = setup();
+    const required = fixture.componentInstance.requiredFields;
+
+    expect(required.has('name')).toBeTrue();
+    expect(required.has('email')).toBeTrue();
+    expect(required.has('message')).toBeTrue();
+    expect(required.has('phone')).toBeFalse();
+    expect(required.has('subject')).toBeFalse();
+  });
+
+  it('anuncia el envío en la región aria-live', () => {
+    const { fixture } = setup();
+    const component = fixture.componentInstance;
+
+    expect(component.liveStatus()).toBe('');
+    component.submitting.set(true);
+    expect(component.liveStatus()).toBe('Enviando su mensaje…');
+  });
+
+  it('un fallo de envío es recuperable y se anuncia con role="alert"', async () => {
+    const insert = jasmine.createSpy('insert').and.rejectWith(new Error('boom'));
+    const { fixture } = setup(insert);
+    const html = fixture.nativeElement as HTMLElement;
+    const component = fixture.componentInstance;
+
+    component.form.setValue({
+      name: 'Cliente Prueba',
+      email: 'cliente@test.com',
+      phone: '',
+      subject: '',
+      message: 'Mensaje de prueba suficientemente largo.',
+      projectType: '',
+      budgetRange: '',
+      timeline: '',
+      website: '',
+    });
+
+    await component.onSubmit();
+    fixture.detectChanges();
+
+    expect(component.submitting()).toBeFalse();
+    expect(component.submitted()).toBeFalse();
+    expect(component.submitError()).toContain('No se pudo enviar');
+    expect(html.querySelector('[role="alert"]')?.textContent).toContain('No se pudo enviar');
   });
 });

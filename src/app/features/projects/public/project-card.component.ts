@@ -2,13 +2,14 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight } from '@lucide/angular';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
+import { IconMotionDirective } from '../../../shared/icons';
 import type { Project } from '../data-access/project.model';
 import { projectCoverUrl } from '../data-access/project.model';
 
 @Component({
   selector: 'app-project-card',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight],
+  imports: [RouterLink, LucideArrowUpRight, IconMotionDirective],
   templateUrl: './project-card.component.html',
   // El host del componente es el verdadero grid item en el mosaico de Home:
   // las clases de layout (p. ej. md:col-span-7) deben vivir aquí, no en el <a> interno.
@@ -30,4 +31,7 @@ export class ProjectCardComponent {
   readonly coverUrl = computed(() =>
     withCloudinaryTransform(projectCoverUrl(this.project()), CLOUDINARY_TRANSFORMS.cover),
   );
+
+  /** Nombre de transición compartida card → detalle (`View Transitions`, por slug). */
+  readonly transitionName = computed(() => `project-cover-${this.project().slug}`);
 }

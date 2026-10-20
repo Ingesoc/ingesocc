@@ -13,19 +13,24 @@
     </button>
   </div>
 
+  @if (justSaved()) {
+    <p role="status" class="alert alert-success alert-enter mt-6">Servicio guardado correctamente.</p>
+  }
+
   @if (error()) {
-    <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
+    <p role="alert" class="alert alert-error mt-6">{{ error() }}</p>
   }
 
   @if (loading()) {
-    <div class="mt-10 grid gap-3" aria-label="Cargando servicios">
+    <div class="mt-10 grid gap-3" role="status">
+      <span class="sr-only">Cargando servicios…</span>
       @for (skeleton of [1, 2, 3]; track skeleton) {
         <div class="h-20 animate-pulse rounded-sm border border-border bg-surface"></div>
       }
     </div>
   } @else if (!error() && adminServices().length === 0) {
-    <div class="mt-10 rounded-sm border border-border bg-surface px-8 py-14 text-center">
-      <p class="text-lg font-bold">Todavía no hay servicios.</p>
+    <div class="empty-state">
+      <p class="text-lg font-bold text-foreground">Todavía no hay servicios.</p>
       <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
         Crea el primero con el botón "Nuevo servicio". Si es la primera vez, asegúrate de haber aplicado
         las migraciones (<span class="font-mono">supabase db push</span>) y la semilla (<span class="font-mono">supabase/seed.sql</span>).
@@ -57,8 +62,12 @@
             </div>
           </div>
 
-          <p class="text-sm text-muted-foreground md:col-span-1 md:text-center">{{ service.sortOrder }}</p>
+          <div class="flex items-baseline justify-between gap-3 md:col-span-1 md:block md:text-center">
+            <span class="text-[10px] font-bold uppercase tracking-[0.18em] md:hidden">Orden</span>
+            <span class="text-sm">{{ service.sortOrder }}</span>
+          </div>
           <div class="md:col-span-2 md:text-center">
+            <span class="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground md:hidden">Estado</span>
             @if (service.status === 'published') {
               <span class="badge badge-ok">Publicado</span>
             } @else {
@@ -68,10 +77,10 @@
 
           <div class="flex items-center gap-1 md:col-span-3 md:justify-end">
             <a [routerLink]="['/admin/servicios', service.id]" class="btn btn-outline btn-sm border-border text-muted-foreground hover:border-accent">
-              <svg lucidePencil class="h-3.5 w-3.5" /> Editar
+              <svg lucidePencil aria-hidden="true" class="h-3.5 w-3.5" /> Editar
             </a>
             <button type="button" (click)="onDelete(service)" class="btn btn-outline btn-sm border-border text-muted-foreground hover:border-accent-deep hover:bg-accent-soft hover:text-accent-deep">
-              <svg lucideTrash2 class="h-3.5 w-3.5" /> Eliminar
+              <svg lucideTrash2 appIconMotion="shake" aria-hidden="true" class="h-3.5 w-3.5" /> Eliminar
             </button>
           </div>
         </div>

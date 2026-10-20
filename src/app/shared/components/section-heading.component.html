@@ -1,0 +1,15 @@
+<div [id]="id()" [class.text-center]="align() === 'center'" [class.mx-auto]="align() === 'center'">
+  @if (eyebrow()) {
+    <p class="kicker mb-4 text-accent-deep" [class.mx-auto]="align() === 'center'">{{ eyebrow() }}</p>
+  }
+  @if (title()) {
+    <h2 class="text-balance text-3xl font-bold leading-tight tracking-[-0.02em] md:text-5xl" [class.mx-auto]="align() === 'center'">
+      {{ title() }}
+    </h2>
+  }
+  @if (description()) {
+    <p class="mt-4 text-base leading-7 text-muted-foreground" [class.max-w-prose]="align() === 'center'" [class.mx-auto]="align() === 'center'">
+      {{ description() }}
+    </p>
+  }
+</div>

@@ -1,5 +1,5 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { TestimonialsService } from '../data-access/testimonials.service';
 import { TestimonialFormComponent } from './testimonial-form.component';
@@ -75,6 +75,17 @@ describe('TestimonialFormComponent (nuevo)', () => {
     await component.onSave();
 
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it('tras guardar exitosamente navega al listado con ?guardado=1', async () => {
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const component = fixture.componentInstance;
+
+    component.form.controls.author.setValue('Alcaldía de Armenia');
+    component.form.controls.quote.setValue('Cumplimiento total del cronograma.');
+    await component.onSave();
+
+    expect(navigate).toHaveBeenCalledWith(['/admin/testimonios'], { queryParams: { guardado: '1' } });
   });
 });
 

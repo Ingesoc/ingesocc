@@ -47,7 +47,7 @@
               class="field"
             />
             @if (form.controls.email.touched && form.controls.email.invalid) {
-              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese un email válido.</p>
+              <p class="field-error">Ingrese un email válido.</p>
             }
           </div>
           <div>
@@ -60,17 +60,15 @@
               class="field"
             />
             @if (form.controls.password.touched && form.controls.password.invalid) {
-              <p class="mt-1.5 text-xs font-medium text-accent-deep">La contraseña debe tener al menos 6 caracteres.</p>
+              <p class="field-error">La contraseña debe tener al menos 6 caracteres.</p>
             }
           </div>
 
           @if (error()) {
             <p
               role="alert"
-              class="rounded-sm border px-4 py-3 text-xs leading-5"
-              [class]="noAdmin()
-                ? 'border-accent/40 bg-surface text-foreground'
-                : 'border-accent/40 bg-accent-soft text-accent-deep'"
+              class="alert"
+              [class.alert-error]="!noAdmin()"
             >
               {{ error() }}
             </p>

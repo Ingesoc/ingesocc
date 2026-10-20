@@ -12,10 +12,11 @@ class HostComponent {}
 describe('RevealDirective', () => {
   it('crea la directiva y respeta reduced-motion', () => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const fixture = TestBed.configureTestingModule({ imports: [HostComponent] }).createComponent(Host);
+    const fixture = TestBed.configureTestingModule({ imports: [HostComponent] }).createComponent(HostComponent);
     fixture.detectChanges();
     expect(mq).toBeDefined();
   });
 });
+
 
 

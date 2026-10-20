@@ -47,8 +47,8 @@
 
   <!-- Error de conexión con Supabase (el admin nunca muestra seed como dato real) -->
   @if (loadError()) {
-    <div role="alert" class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3">
-      <p class="text-sm font-semibold text-accent-deep">{{ loadError() }}</p>
+    <div role="alert" class="alert alert-error mt-6">
+      <p class="text-sm font-semibold">{{ loadError() }}</p>
       <p class="mt-1 text-xs leading-5 text-muted-foreground">
         Revisa tu conexión e inténtalo de nuevo con el botón "Actualizar". Lo que ves abajo son textos de ejemplo, no el contenido real del sitio.
       </p>
@@ -73,7 +73,8 @@
 
   <!-- Carga -->
   @if (loading()) {
-    <div class="mt-8 grid gap-4">
+    <div class="mt-8 grid gap-4" role="status">
+      <span class="sr-only">Cargando bloques de contenido…</span>
       @for (skeleton of [1, 2, 3]; track skeleton) {
         <div class="panel animate-pulse p-7">
           <div class="h-3 w-40 rounded bg-muted"></div>
@@ -83,9 +84,11 @@
     </div>
   } @else if (groups().length === 0) {
     <!-- Vacío -->
-    <div class="panel mt-8 p-10 text-center">
-      <p class="text-sm font-semibold">No hay bloques de contenido para esta página.</p>
-      <p class="mt-2 text-xs text-muted-foreground">Cuando existan filas en la tabla content_blocks aparecerán aquí.</p>
+    <div class="empty-state">
+      <p class="text-lg font-bold text-foreground">No hay bloques de contenido para esta página.</p>
+      <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+        Cuando existan filas en la tabla content_blocks aparecerán aquí.
+      </p>
     </div>
   } @else {
     <!-- Grupos de bloques de la página activa -->
@@ -98,7 +101,7 @@
             <div class="mt-6 border-t border-border pt-6 first:border-t-0 first:pt-0">
               <div class="flex flex-wrap items-baseline justify-between gap-2">
                 <label class="field-label" for="block-{{ view.page }}-{{ view.sectionKey }}">{{ view.label }}</label>
-                <span class="font-mono text-[10px] text-muted-foreground/70">{{ view.page }}.{{ view.sectionKey }}</span>
+                <span class="font-mono text-[10px] text-muted-foreground">{{ view.page }}.{{ view.sectionKey }}</span>
               </div>
               @if (view.description) {
                 <p class="mt-1 text-xs leading-5 text-muted-foreground">{{ view.description }}</p>
@@ -168,12 +171,12 @@
 
               <!-- Estados por bloque: error / guardado -->
               @if (view.error) {
-                <p role="alert" class="mt-3 rounded-sm border border-accent/40 bg-accent-soft px-3 py-2 text-xs leading-5 text-accent-deep">
+                <p role="alert" class="alert alert-error mt-3">
                   {{ view.error }}
                 </p>
               }
               @if (view.saved) {
-                <p class="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-success">Guardado correctamente</p>
+                <p role="status" class="alert alert-success alert-enter mt-3">Guardado correctamente</p>
               }
 
               @if (view.type !== 'image') {
@@ -191,6 +194,7 @@
                       <svg lucideLoaderCircle class="h-4 w-4 animate-spin" />
                       Guardando…
                     } @else {
+                      <svg lucideCheck appIconMotion="pop" aria-hidden="true" class="h-4 w-4" />
                       Guardar cambios
                     }
                   </button>

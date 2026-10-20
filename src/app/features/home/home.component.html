@@ -5,22 +5,22 @@
     <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/55 to-primary/30"></div>
 
     <div class="wrap relative pb-14 pt-40 md:pb-20">
-      <div class="flex flex-wrap items-center gap-x-8 gap-y-3 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">
+      <div class="hero-reveal hero-reveal-1 flex flex-wrap items-center gap-x-8 gap-y-3 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">
         <span>Arquitectura</span><span class="h-1 w-1 rounded-full bg-accent/60"></span><span>Ingeniería</span><span class="h-1 w-1 rounded-full bg-accent/60"></span><span>Construcción</span>
       </div>
 
-      <h1 class="mt-7 max-w-5xl text-balance [overflow-wrap:anywhere] text-[2.7rem] font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl md:text-7xl xl:text-[5.75rem]">
+      <h1 class="hero-reveal hero-reveal-2 mt-7 max-w-5xl text-balance [overflow-wrap:anywhere] text-[2.7rem] font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl md:text-7xl xl:text-[5.75rem]">
         {{ heroTitle() }}
       </h1>
 
       <div class="mt-12 grid gap-10 border-t border-white/15 pt-8 md:grid-cols-12 md:items-end">
         <div class="md:col-span-7">
-          <p class="max-w-md text-sm leading-6 text-white/70 md:text-base md:leading-7">
+          <p class="hero-reveal hero-reveal-3 max-w-md text-sm leading-6 text-white/70 md:text-base md:leading-7">
             {{ heroSubtitle() }}
           </p>
         </div>
-        <div class="flex flex-wrap items-center justify-between gap-6 md:col-span-5 md:justify-end">
-          <a href="#stats" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-white/50 transition-colors hover:text-white">
+        <div class="hero-reveal hero-reveal-4 flex flex-wrap items-center justify-between gap-6 md:col-span-5 md:justify-end">
+          <a href="#stats" class="scroll-cue flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-white/50 transition-colors hover:text-white">
             Descubrir <svg lucideChevronDown class="h-4 w-4" />
           </a>
           <div class="flex flex-wrap items-center gap-3">
@@ -46,21 +46,21 @@
         <p class="text-sm leading-6 text-muted-foreground">Trayectoria verificable en obra propia y para terceros.</p>
       </div>
       <div class="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0 md:col-span-8">
-        <div class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
-          <p class="text-6xl font-bold tracking-tight md:text-7xl">
-            {{ years() }}<span class="text-accent">+</span>
+        <div appReveal [revealIndex]="0" class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <p class="text-6xl font-bold tabular-nums tracking-tight md:text-7xl">
+            <span [appCounter]="years()">0</span><span class="text-accent">+</span>
           </p>
           <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Años de experiencia</p>
         </div>
-        <div class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
-          <p class="text-6xl font-bold tracking-tight md:text-7xl">
-            {{ projectsExecuted() }}<span class="text-accent">+</span>
+        <div appReveal [revealIndex]="1" class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <p class="text-6xl font-bold tabular-nums tracking-tight md:text-7xl">
+            <span [appCounter]="projectsExecuted()">0</span><span class="text-accent">+</span>
           </p>
           <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Proyectos ejecutados</p>
         </div>
-        <div class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
-          <p class="text-6xl font-bold tracking-tight md:text-7xl">
-            {{ sectorsServed() }}<span class="text-accent">+</span>
+        <div appReveal [revealIndex]="2" class="py-6 sm:px-8 sm:first:pl-0 sm:last:pr-0">
+          <p class="text-6xl font-bold tabular-nums tracking-tight md:text-7xl">
+            <span [appCounter]="sectorsServed()">0</span><span class="text-accent">+</span>
           </p>
           <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Sectores atendidos</p>
         </div>
@@ -84,7 +84,7 @@
 
       <div class="grid auto-rows-[260px] grid-cols-1 gap-4 md:auto-rows-[300px] md:grid-cols-12">
         @for (project of featuredProjects(); track project.slug; let i = $index) {
-          <app-project-card [project]="project" [className]="masonryClass(i, featuredProjects().length)" />
+          <app-project-card appReveal [revealIndex]="i % 6" [project]="project" [className]="masonryClass(i, featuredProjects().length)" />
         }
       </div>
 
@@ -113,7 +113,7 @@
             <span class="col-span-8 text-2xl font-bold tracking-tight transition-transform duration-300 group-hover:translate-x-1 md:col-span-8 md:text-4xl">{{ service.name }}</span>
             <span class="col-span-2 flex justify-end md:col-span-3">
               <span class="flex h-10 w-10 items-center justify-center rounded-full border border-border transition-all duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-primary">
-                <svg lucideArrowUpRight class="h-4 w-4" />
+                <svg lucideArrowUpRight appIconMotion="nudge-x" class="h-4 w-4" />
               </span>
             </span>
           </a>

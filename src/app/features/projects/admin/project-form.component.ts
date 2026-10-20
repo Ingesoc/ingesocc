@@ -14,6 +14,7 @@ import {
   MAX_IMAGE_EDGE_PX,
   validateImageFile,
 } from '../../../core/image-utils';
+import { IconMotionDirective } from '../../../shared/icons';
 
 /**
  * Imagen del formulario: pendiente de subir o ya persistida. Los campos de
@@ -55,7 +56,7 @@ function keyFigureGroup(label = '', value = ''): FormGroup {
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LucideCheck, LucideChevronLeft, LucideUpload, LucideTrash2, LucideStar],
+  imports: [ReactiveFormsModule, RouterLink, LucideCheck, LucideChevronLeft, LucideUpload, LucideTrash2, LucideStar, IconMotionDirective],
   templateUrl: './project-form.component.html',
 })
 export class ProjectFormComponent implements OnInit, OnDestroy {
@@ -375,7 +376,7 @@ export class ProjectFormComponent implements OnInit, OnDestroy {
       }
 
       await this.projects.refreshAll();
-      await this.router.navigate(['/admin/proyectos']);
+      await this.router.navigate(['/admin/proyectos'], { queryParams: { guardado: '1' } });
     } catch (err) {
       // Compensación: el RPC es transaccional (DB quedó consistente), pero los
       // archivos subidos en el paso 1 sí quedaron en Cloudinary → borrarlos.

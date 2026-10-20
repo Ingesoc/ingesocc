@@ -1,42 +1,44 @@
 <footer class="bg-primary text-white">
+  <!-- Línea superior blueprint (Fase 08/09): remata el cierre de página. -->
+  <div class="h-0.5 w-full bg-accent" aria-hidden="true"></div>
   <div class="wrap pb-10 pt-16 md:pt-20">
     <div class="grid gap-12 lg:grid-cols-12">
       <!-- Marca + redes -->
       <div class="lg:col-span-4">
-        <a routerLink="/" class="flex items-center gap-3" aria-label="Ingesocc S.A.S. — Inicio">
+        <a routerLink="/" class="flex items-center gap-3" aria-label="Ingesocc S.A.S. - Inicio">
           <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/20">
             <img src="/logo/logo.png" alt="" width="44" height="44" class="h-full w-full object-cover" />
           </span>
           <span class="flex flex-col leading-none">
             <span class="text-base font-bold uppercase tracking-[0.18em]">Ingesocc S.A.S.</span>
-            <span class="mt-1 text-[9px] font-semibold uppercase tracking-[0.34em] text-white/50">Ingeniería · Construcción</span>
+            <span class="mt-1 text-[9px] font-semibold uppercase tracking-[0.34em] text-on-dark-muted">Ingeniería · Construcción</span>
           </span>
         </a>
-        <p class="mt-6 max-w-sm text-sm leading-6 text-white/55">
+        <p class="mt-6 max-w-sm text-sm leading-6 text-on-dark-muted">
           Arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.
         </p>
         <div class="mt-8 flex flex-wrap items-center gap-3">
           <a [href]="linkedin()" target="_blank" rel="noopener" aria-label="LinkedIn de Ingesocc"
             class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
             LinkedIn
-            <svg lucideExternalLink appIconMotion="nudge-x" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
           </a>
           <a [href]="instagram()" target="_blank" rel="noopener" aria-label="Instagram de Ingesocc"
             class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
             Instagram
-            <svg lucideExternalLink appIconMotion="nudge-x" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
           </a>
           <a [href]="facebook()" target="_blank" rel="noopener" aria-label="Facebook de Ingesocc"
             class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
             Facebook
-            <svg lucideExternalLink appIconMotion="nudge-x" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
           </a>
         </div>
       </div>
 
       <!-- Navegación -->
       <nav class="lg:col-span-2" aria-label="Navegación del pie de página">
-        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Navegación</p>
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-on-dark-muted">Navegación</p>
         <ul class="grid gap-3">
           @for (item of navItems; track item.link) {
             <li>
@@ -51,7 +53,7 @@
 
       <!-- Servicios -->
       <nav class="lg:col-span-3" aria-label="Servicios del pie de página">
-        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Servicios</p>
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-on-dark-muted">Servicios</p>
         <ul class="grid gap-3">
           @for (item of serviceLinks(); track item.label) {
             <li>
@@ -66,18 +68,18 @@
 
       <!-- Contacto -->
       <div class="lg:col-span-3">
-        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Contacto</p>
+        <p class="mb-6 text-[11px] font-bold uppercase tracking-[0.25em] text-on-dark-muted">Contacto</p>
         <ul class="grid gap-3">
           <li class="flex min-w-0 items-baseline gap-3 border-b border-white/10 pb-3">
-            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Email</span>
+            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-on-dark-muted">Email</span>
             <a [href]="'mailto:' + email()" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ email() }}</a>
           </li>
           <li class="flex min-w-0 items-baseline gap-3 border-b border-white/10 pb-3">
-            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Teléfono</span>
+            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-on-dark-muted">Teléfono</span>
             <a [href]="'tel:' + phone()" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ phone() }}</a>
           </li>
           <li class="flex min-w-0 items-baseline gap-3">
-            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Ubicación</span>
+            <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-on-dark-muted">Ubicación</span>
             <span class="min-w-0 break-words text-sm leading-6 text-white/75">{{ address() }}</span>
           </li>
         </ul>
@@ -86,14 +88,19 @@
   </div>
 
   <div class="border-t border-white/10">
-    <div class="wrap flex flex-col items-center justify-between gap-3 py-6 text-[11px] uppercase tracking-[0.2em] text-white/40 md:flex-row">
+    <div class="wrap flex flex-col items-center justify-between gap-4 py-6 text-[11px] uppercase tracking-[0.2em] text-on-dark-muted md:flex-row">
       <p>© {{ year }} Ingesocc S.A.S. · Todos los derechos reservados</p>
       <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         @for (item of legalItems; track item.link) {
-          <a [routerLink]="item.link" class="text-white/50 transition-colors hover:text-accent">{{ item.label }}</a>
+          <a [routerLink]="item.link" class="text-on-dark-muted transition-colors hover:text-accent">{{ item.label }}</a>
         }
         <p class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent"></span> Ingeniería · Arquitectura · Construcción</p>
       </div>
+      <button type="button" (click)="scrollToTop()" aria-label="Volver arriba"
+        class="group inline-flex items-center gap-2 rounded-sm text-on-dark-muted transition-colors hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
+        Volver arriba
+        <svg lucideArrowUp appIconMotion="nudge-up" aria-hidden="true" class="h-3.5 w-3.5" />
+      </button>
     </div>
   </div>
 </footer>

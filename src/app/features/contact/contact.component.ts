@@ -2,7 +2,16 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
-import { LucideExternalLink, LucideMail, LucideMapPin, LucideMessageCircle, LucidePhone } from '@lucide/angular';
+import {
+  LucideCheck,
+  LucideExternalLink,
+  LucideMail,
+  LucideMapPin,
+  LucideMessageCircle,
+  LucidePhone,
+  LucideSend,
+} from '@lucide/angular';
+import { IconMotionDirective } from '../../shared/icons';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from './data-access/contact-messages.service';
 
@@ -18,7 +27,18 @@ function telLink(phone: string): string | null {
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LucideMail, LucidePhone, LucideMapPin, LucideMessageCircle, LucideExternalLink],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    LucideCheck,
+    LucideMail,
+    LucidePhone,
+    LucideMapPin,
+    LucideMessageCircle,
+    LucideExternalLink,
+    LucideSend,
+    IconMotionDirective,
+  ],
   templateUrl: './contact.component.html',
 })
 export class ContactComponent {
@@ -96,13 +116,31 @@ export class ContactComponent {
     return 'Revisa este campo.';
   }
 
+  /** Campos obligatorios (para `aria-required` en la plantilla). */
+  readonly requiredFields = new Set(['name', 'email', 'message']);
+
+  /** Orden visual del formulario (para enfocar el primer error). */
+  private static readonly FIELD_ORDER = ['name', 'email', 'phone', 'subject', 'message'] as const;
+
+  /** Enfoca el primer campo inválido (accesibilidad: foco al primer error). */
+  private focusFirstError(): void {
+    const first = ContactComponent.FIELD_ORDER.find((key) => this.form.controls[key].invalid);
+    if (first && typeof document !== 'undefined') {
+      document.getElementById(first)?.focus();
+    }
+  }
+
   readonly submitted = signal(false);
   readonly submitting = signal(false);
   readonly submitError = signal('');
 
+  /** Texto para la región `aria-live` (solo estados que no tienen su propio rol). */
+  readonly liveStatus = computed(() => (this.submitting() ? 'Enviando su mensaje…' : ''));
+
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.focusFirstError();
       return;
     }
 

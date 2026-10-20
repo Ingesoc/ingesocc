@@ -46,8 +46,8 @@
 
   <!-- Banner de módulos con carga fallida (el admin nunca muestra seed como dato real) -->
   @if (failedModules().length > 0 && !loading()) {
-    <div role="alert" class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3">
-      <p class="text-sm font-semibold text-accent-deep">
+    <div role="alert" class="alert alert-error mt-6">
+      <p class="text-sm font-semibold">
         No se pudo conectar con Supabase para: {{ failedModules().join(', ') }}.
       </p>
       <p class="mt-1 text-xs leading-5 text-muted-foreground">

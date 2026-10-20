@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LucideChevronDown } from '@lucide/angular';
 import { slugify } from '../../../core/slugify';
+import { FilterChipComponent } from '../../../shared/components';
+import { RevealDirective } from '../../../shared/icons';
 import { ProjectCardComponent } from './project-card.component';
 import { ProjectsService } from '../data-access/projects.service';
 import { projectLocation } from '../data-access/project.model';
@@ -12,7 +14,7 @@ const PAGE_SIZE = 8;
 @Component({
   selector: 'app-projects-page',
   standalone: true,
-  imports: [ProjectCardComponent, LucideChevronDown],
+  imports: [ProjectCardComponent, FilterChipComponent, RevealDirective, LucideChevronDown],
   templateUrl: './projects-page.component.html',
 })
 export class ProjectsPageComponent {
@@ -58,6 +60,9 @@ export class ProjectsPageComponent {
 
   readonly visibleCount = signal(PAGE_SIZE);
 
+  /** Anuncio para lectores de pantalla tras "Cargar más" (aria-live polite). */
+  readonly announcement = signal('');
+
   readonly filtered = computed(() => {
     const categorySlug = this.activeSlug();
     const locationSlug = this.activeLocationSlug();
@@ -95,6 +100,7 @@ export class ProjectsPageComponent {
     });
     this.activeSlug.set(slug);
     this.visibleCount.set(PAGE_SIZE);
+    this.announcement.set('');
   }
 
   setLocation(location: string): void {
@@ -106,10 +112,16 @@ export class ProjectsPageComponent {
     });
     this.activeLocationSlug.set(slug);
     this.visibleCount.set(PAGE_SIZE);
+    this.announcement.set('');
   }
 
   loadMore(): void {
+    const before = this.visible().length;
     this.visibleCount.update((count) => count + PAGE_SIZE);
+    const shown = this.visible().length;
+    this.announcement.set(
+      `Se mostraron ${shown - before} proyectos más. ${shown} de ${this.filtered().length} en pantalla.`,
+    );
   }
 
   private initialSlugFromUrl(): string {

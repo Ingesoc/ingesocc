@@ -9,11 +9,12 @@
   </p>
 
   @if (error()) {
-    <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ error() }}</p>
+    <p role="alert" class="alert alert-error mt-6">{{ error() }}</p>
   }
 
   @if (loading()) {
-    <div class="mt-10 grid gap-3" aria-label="Cargando proyecto">
+    <div class="mt-10 grid gap-3" role="status">
+      <span class="sr-only">Cargando proyecto…</span>
       @for (skeleton of [1, 2, 3]; track skeleton) {
         <div class="h-32 animate-pulse rounded-sm border border-border bg-surface"></div>
       }
@@ -35,7 +36,7 @@
             <label for="title" class="field-label">Título *</label>
             <input id="title" type="text" formControlName="title" class="field" />
             @if (form.controls.title.touched && form.controls.title.invalid) {
-              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese un título (mínimo 3 caracteres).</p>
+              <p class="field-error">Ingrese un título (mínimo 3 caracteres).</p>
             }
           </div>
 
@@ -61,7 +62,7 @@
             <label for="description" class="field-label">Descripción *</label>
             <textarea id="description" rows="5" formControlName="description" class="field"></textarea>
             @if (form.controls.description.touched && form.controls.description.invalid) {
-              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese una descripción (mínimo 10 caracteres).</p>
+              <p class="field-error">Ingrese una descripción (mínimo 10 caracteres).</p>
             }
           </div>
 
@@ -92,7 +93,7 @@
               Micrositio público del proyecto (p. ej. La Holanda). Si se llena, el detalle muestra "Conocer + nombre del proyecto" hacia ese enlace en vez del botón de cotización. Debe iniciar con https://.
             </p>
             @if (form.controls.externalUrl.touched && form.controls.externalUrl.invalid) {
-              <p class="mt-1.5 text-xs font-medium text-accent-deep">Ingrese una URL válida que inicie con https://.</p>
+              <p class="field-error">Ingrese una URL válida que inicie con https://.</p>
             }
           </div>
 
@@ -142,7 +143,7 @@
         </div>
 
         <label class="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-dashed border-border bg-background px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep">
-          <svg lucideUpload class="h-4 w-4" /> Subir imágenes
+          <svg lucideUpload appIconMotion="nudge-up" aria-hidden="true" class="h-4 w-4" /> Subir imágenes
           <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple class="hidden" [disabled]="busy()" (change)="onFilesSelected($event)" />
         </label>
         <p class="mt-3 text-xs text-muted-foreground">
@@ -162,7 +163,7 @@
                     </button>
                     <button type="button" (click)="removeImage(slot)" title="Quitar" [disabled]="busy()"
                       class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/70 text-white/70 hover:bg-accent hover:text-primary">
-                      <svg lucideTrash2 class="h-4 w-4" />
+                      <svg lucideTrash2 appIconMotion="shake" aria-hidden="true" class="h-4 w-4" />
                     </button>
                   </div>
                   @if (slot.isCover) {
@@ -264,7 +265,7 @@
                   </div>
                   <button type="button" (click)="removeKeyFigure($index)" title="Quitar cifra" [disabled]="busy()"
                     class="flex h-10 w-10 items-center justify-center rounded-sm border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-deep">
-                    <svg lucideTrash2 class="h-4 w-4" />
+                    <svg lucideTrash2 appIconMotion="shake" aria-hidden="true" class="h-4 w-4" />
                   </button>
                 </div>
               }
@@ -277,7 +278,7 @@
       <div class="flex flex-wrap items-center gap-4 pb-4">
         <button type="submit" [disabled]="busy()" class="btn btn-solid">
           {{ submitLabel() }}
-          <svg lucideCheck class="h-4 w-4" />
+          <svg lucideCheck appIconMotion="pop" aria-hidden="true" class="h-4 w-4" />
         </button>
         <a routerLink="/admin/proyectos" [class.pointer-events-none]="busy()" [attr.aria-disabled]="busy()" class="btn btn-outline border-border text-muted-foreground hover:border-accent">Cancelar</a>
       </div>

@@ -171,7 +171,7 @@ async function auditPage(page, { path, file, ready }, viewport) {
 
   // Chip de filtro activo de /proyectos (relleno naranja + texto oscuro).
   if (path === '/proyectos') {
-    const chip = page.locator('section.px-5 button.rounded-full', { hasText: 'Edificaciones' }).first();
+    const chip = page.locator('section.px-5 button.chip', { hasText: 'Edificaciones' }).first();
     if (await chip.count()) {
       await chip.click();
       await page.waitForTimeout(300);
@@ -196,7 +196,7 @@ async function auditPage(page, { path, file, ready }, viewport) {
       await page.waitForTimeout(400);
       const errs = await page.evaluate(() => {
         const out = [];
-        for (const el of Array.from(document.querySelectorAll('form p.text-accent-deep'))) {
+        for (const el of Array.from(document.querySelectorAll('form p.field-error, form p.text-accent-deep'))) {
           const m = getComputedStyle(el).color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
           if (m) out.push(`#${m.slice(1).map((v) => (+v).toString(16).padStart(2, '0')).join('')}`);
         }

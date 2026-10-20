@@ -32,12 +32,12 @@
             rel="noopener noreferrer"
             class="btn btn-accent w-full"
           >
-            <svg lucideMessageCircle class="h-4 w-4" /> WhatsApp
+            <svg lucideMessageCircle aria-hidden="true" class="h-4 w-4" /> WhatsApp
           </a>
         }
         @if (phoneHref(); as href) {
           <a [href]="href" class="btn btn-solid w-full">
-            <svg lucidePhone class="h-4 w-4" /> Llamar
+            <svg lucidePhone aria-hidden="true" class="h-4 w-4" /> Llamar
           </a>
         }
       </div>
@@ -45,7 +45,7 @@
       <div class="mt-12 grid gap-0">
         <div class="flex items-start gap-5 border-t border-border py-7">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
-            <svg lucideMail class="h-4 w-4" />
+            <svg lucideMail appIconMotion="pop" aria-hidden="true" class="h-4 w-4" />
           </span>
           <div class="min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Escríbanos</p>
@@ -54,7 +54,7 @@
         </div>
         <div class="flex items-start gap-5 border-t border-border py-7">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
-            <svg lucidePhone class="h-4 w-4" />
+            <svg lucidePhone appIconMotion="pop" aria-hidden="true" class="h-4 w-4" />
           </span>
           <div class="min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Llámenos</p>
@@ -66,9 +66,9 @@
           </div>
         </div>
         @if (whatsappUrl()) {
-          <div class="flex items-start gap-5 border-t border-border py-7">
+          <div class="group flex items-start gap-5 border-t border-border py-7">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
-              <svg lucideMessageCircle class="h-4 w-4" />
+              <svg lucideMessageCircle appIconMotion="pop" aria-hidden="true" class="h-4 w-4" />
             </span>
             <div class="min-w-0">
               <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">WhatsApp</p>
@@ -79,14 +79,14 @@
                 class="mt-1.5 inline-flex items-center gap-1.5 [overflow-wrap:anywhere] text-base font-medium transition-colors hover:text-accent-deep"
               >
                 Escríbanos por WhatsApp
-                <svg lucideExternalLink class="h-3.5 w-3.5 opacity-60" />
+                <svg lucideExternalLink aria-hidden="true" class="h-3.5 w-3.5 opacity-60" />
               </a>
             </div>
           </div>
         }
-        <div class="flex items-start gap-5 border-t border-b border-border py-7">
+        <div class="group flex items-start gap-5 border-t border-b border-border py-7">
           <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-accent-deep">
-            <svg lucideMapPin class="h-4 w-4" />
+            <svg lucideMapPin appIconMotion="pop" aria-hidden="true" class="h-4 w-4" />
           </span>
           <div class="min-w-0">
             <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Encuéntrenos</p>
@@ -111,9 +111,9 @@
     <!-- Formulario -->
     <div class="min-w-0 md:col-span-6 md:col-start-7">
       @if (submitted()) {
-        <div class="panel p-10 md:p-12">
+        <div class="panel p-10 md:p-12" role="status" aria-live="polite">
           <span class="flex h-12 w-12 items-center justify-center rounded-full bg-success-soft text-success">
-            <svg lucideMail class="h-5 w-5" />
+            <svg lucideCheck appIconMotion="pop" aria-hidden="true" class="h-5 w-5" />
           </span>
           <p class="mt-6 text-2xl font-bold tracking-tight">¡Gracias por escribirnos!</p>
           <p class="mt-3 text-base leading-7 text-muted-foreground">
@@ -126,11 +126,13 @@
           <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Formulario de contacto</p>
           <p class="mt-2 text-lg font-bold tracking-tight">Envíenos su mensaje</p>
 
+          <p class="sr-only" role="status" aria-live="polite">{{ liveStatus() }}</p>
+
           @if (submitError()) {
-            <p class="mt-6 rounded-sm border border-accent/40 bg-accent-soft px-4 py-3 text-xs leading-5 text-accent-deep">{{ submitError() }}</p>
+            <p role="alert" class="alert alert-error mt-6">{{ submitError() }}</p>
           }
 
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-8 grid gap-6" novalidate>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-8 grid gap-6" novalidate [attr.aria-busy]="submitting()">
             <!-- Honeypot anti-spam: oculto para humanos (no required); los bots lo rellenan y la DB lo marca como spam. -->
             <div class="sr-only" aria-hidden="true">
               <label for="website">Déjenos este campo vacío</label>
@@ -139,32 +141,42 @@
             <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
               <div>
                 <label for="name" class="field-label">Nombre *</label>
-                <input id="name" type="text" formControlName="name" autocomplete="name" class="field" />
+                <input id="name" type="text" formControlName="name" autocomplete="name" class="field"
+                  [attr.aria-required]="requiredFields.has('name') ? 'true' : null"
+                  [attr.aria-invalid]="fieldError('name') ? 'true' : null"
+                  [attr.aria-describedby]="fieldError('name') ? 'name-error' : null" />
                 @if (fieldError('name')) {
-                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('name') }}</p>
+                  <p id="name-error" class="field-error">{{ fieldError('name') }}</p>
                 }
               </div>
               <div>
                 <label for="email" class="field-label">Email *</label>
-                <input id="email" type="email" formControlName="email" autocomplete="email" class="field" />
+                <input id="email" type="email" formControlName="email" autocomplete="email" class="field"
+                  [attr.aria-required]="requiredFields.has('email') ? 'true' : null"
+                  [attr.aria-invalid]="fieldError('email') ? 'true' : null"
+                  [attr.aria-describedby]="fieldError('email') ? 'email-error' : null" />
                 @if (fieldError('email')) {
-                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('email') }}</p>
+                  <p id="email-error" class="field-error">{{ fieldError('email') }}</p>
                 }
               </div>
             </div>
             <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
               <div>
                 <label for="phone" class="field-label">Teléfono</label>
-                <input id="phone" type="tel" formControlName="phone" autocomplete="tel" class="field" />
+                <input id="phone" type="tel" formControlName="phone" autocomplete="tel" class="field"
+                  [attr.aria-invalid]="fieldError('phone') ? 'true' : null"
+                  [attr.aria-describedby]="fieldError('phone') ? 'phone-error' : null" />
                 @if (fieldError('phone')) {
-                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('phone') }}</p>
+                  <p id="phone-error" class="field-error">{{ fieldError('phone') }}</p>
                 }
               </div>
               <div>
                 <label for="subject" class="field-label">Asunto</label>
-                <input id="subject" type="text" formControlName="subject" class="field" />
+                <input id="subject" type="text" formControlName="subject" class="field"
+                  [attr.aria-invalid]="fieldError('subject') ? 'true' : null"
+                  [attr.aria-describedby]="fieldError('subject') ? 'subject-error' : null" />
                 @if (fieldError('subject')) {
-                  <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('subject') }}</p>
+                  <p id="subject-error" class="field-error">{{ fieldError('subject') }}</p>
                 }
               </div>
             </div>
@@ -199,21 +211,24 @@
             </div>
             <div>
               <label for="message" class="field-label">Mensaje *</label>
-              <textarea id="message" rows="5" formControlName="message" class="field"></textarea>
+              <textarea id="message" rows="5" formControlName="message" class="field"
+                [attr.aria-required]="requiredFields.has('message') ? 'true' : null"
+                [attr.aria-invalid]="fieldError('message') ? 'true' : null"
+                [attr.aria-describedby]="fieldError('message') ? 'message-error' : null"></textarea>
               @if (fieldError('message')) {
-                <p class="mt-1.5 text-xs font-medium text-accent-deep">{{ fieldError('message') }}</p>
+                <p id="message-error" class="field-error">{{ fieldError('message') }}</p>
               }
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
               <p class="text-xs leading-5 text-muted-foreground">{{ privacyNote() }}</p>
-              <button type="submit" [disabled]="submitting()" class="btn btn-solid">
+              <button type="submit" [disabled]="submitting()" [attr.aria-busy]="submitting()" class="btn btn-solid">
                 @if (submitting()) {
                   Enviando…
                 } @else {
                   Enviar mensaje
                 }
-                <svg lucideMail class="h-4 w-4" />
+                <svg lucideSend appIconMotion="nudge-x" aria-hidden="true" class="h-4 w-4" />
               </button>
             </div>
           </form>

@@ -6,6 +6,7 @@ import { ProjectsService } from '../projects/data-access/projects.service';
 import { ServicesService } from '../services/data-access/services.service';
 import { TestimonialsService } from '../testimonials/data-access/testimonials.service';
 import { ProjectCardComponent } from '../projects/public/project-card.component';
+import { CounterDirective, IconMotionDirective, RevealDirective } from '../../shared/icons';
 import { OPERACIONES } from '../about/operaciones.data';
 import { CONTACT } from '../../core/site-config';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
@@ -49,7 +50,7 @@ const BLOCK_B = ['md:col-span-4 md:row-span-2', 'md:col-span-4 md:row-span-2', '
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, LucideStar, ProjectCardComponent],
+  imports: [RouterLink, LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, LucideStar, ProjectCardComponent, CounterDirective, IconMotionDirective, RevealDirective],
   templateUrl: './home.component.html',
 })
 export class HomeComponent {

@@ -3,8 +3,9 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { LucideChevronLeft } from '@lucide/angular';
+import { LucideCheck, LucideChevronLeft } from '@lucide/angular';
 import { TestimonialsService } from '../data-access/testimonials.service';
+import { IconMotionDirective } from '../../../shared/icons';
 import type { TestimonialInput } from '../data-access/testimonial.model';
 
 /** Opciones de la valoración editorial (1–5 estrellas; null = sin mostrar). */
@@ -13,7 +14,7 @@ const RATING_OPTIONS = [null, 1, 2, 3, 4, 5] as const;
 @Component({
   selector: 'app-testimonial-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LucideChevronLeft],
+  imports: [ReactiveFormsModule, RouterLink, LucideCheck, LucideChevronLeft, IconMotionDirective],
   templateUrl: './testimonial-form.component.html',
 })
 export class TestimonialFormComponent implements OnInit {
@@ -100,7 +101,7 @@ export class TestimonialFormComponent implements OnInit {
       }
 
       await this.testimonials.refreshAll();
-      await this.router.navigate(['/admin/testimonios']);
+      await this.router.navigate(['/admin/testimonios'], { queryParams: { guardado: '1' } });
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Error al guardar el testimonio.');
     } finally {

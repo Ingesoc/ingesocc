@@ -1,12 +1,15 @@
-import { Component, ElementRef, computed, effect, HostListener, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin, LucideX } from '@lucide/angular';
+import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin } from '@lucide/angular';
 import { SeoService } from '../../../core/seo.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
+import { LightboxComponent, type LightboxImage } from '../../../shared/components';
+import { CounterDirective, IconMotionDirective, RevealDirective } from '../../../shared/icons';
 import { ProjectsService } from '../data-access/projects.service';
+import { ProjectCardComponent } from './project-card.component';
 import {
   projectCoverUrl,
   projectImageAlt,
@@ -31,7 +34,19 @@ const GALLERY_SPANS = [
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [RouterLink, LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin, LucideX],
+  imports: [
+    RouterLink,
+    LucideArrowUpRight,
+    LucideChevronLeft,
+    LucideChevronRight,
+    LucideExternalLink,
+    LucideMapPin,
+    LightboxComponent,
+    CounterDirective,
+    IconMotionDirective,
+    RevealDirective,
+    ProjectCardComponent,
+  ],
   templateUrl: './project-detail.component.html',
 })
 export class ProjectDetailComponent {
@@ -65,6 +80,12 @@ export class ProjectDetailComponent {
     const project = this.project();
     if (!project) return null;
     return project.images.find((image) => image.isCover) ?? project.images[0] ?? null;
+  });
+
+  /** Nombre de transición compartida card → detalle (`View Transitions`, por slug). */
+  readonly transitionName = computed(() => {
+    const project = this.project();
+    return project ? `project-cover-${project.slug}` : '';
   });
 
   /** URL de galería optimizada para el tamaño de celda. */
@@ -134,92 +155,71 @@ export class ProjectDetailComponent {
     return where ? `${project.description} Ubicación: ${where}.` : project.description;
   });
 
-  /** Imagen abierta en el lightbox (null = cerrado). */
-  readonly lightboxImage = computed<ProjectImage | null>(() => {
-    const index = this.lightboxIndex();
-    const images = this.galleryImages();
-    return index !== null ? (images[index] ?? null) : null;
-  });
+  /** Imágenes de la galería en el formato del componente compartido de lightbox. */
+  readonly lightboxImages = computed<LightboxImage[]>(() =>
+    this.galleryImages().map((image) => ({
+      url: this.galleryUrl(image),
+      alt: this.imageAlt(image),
+      title: image.title ?? undefined,
+      description: image.description ?? undefined,
+      category: image.category ?? undefined,
+    })),
+  );
 
   /** Índice de la imagen abierta en el lightbox (null = cerrado). */
   readonly lightboxIndex = signal<number | null>(null);
 
-  /** Diálogo del lightbox: recibe el foco al abrir (gestión de foco accesible). */
-  private readonly lightboxDialog = viewChild<ElementRef<HTMLElement>>('lightboxDialog');
+  // ── Navegación entre proyectos y relacionados (sobre los publicados) ──
+  private readonly publishedList = computed(() => this.projects.published());
 
-  /** Elemento que tenía el foco antes de abrir el lightbox: se restaura al cerrar. */
-  private lastFocused: HTMLElement | null = null;
+  private readonly currentIndex = computed(() => {
+    const slug = this.slug();
+    return slug ? this.publishedList().findIndex((item) => item.slug === slug) : -1;
+  });
+
+  readonly previousProject = computed(() => {
+    const index = this.currentIndex();
+    return index > 0 ? this.publishedList()[index - 1] : null;
+  });
+
+  readonly nextProject = computed(() => {
+    const list = this.publishedList();
+    const index = this.currentIndex();
+    return index >= 0 && index < list.length - 1 ? list[index + 1] : null;
+  });
+
+  /** Hasta 3 proyectos publicados que comparten alguna categoría con el actual. */
+  readonly relatedProjects = computed(() => {
+    const project = this.project();
+    if (!project) return [];
+    const categories = new Set(project.categories);
+    return this.publishedList()
+      .filter(
+        (item) =>
+          item.slug !== project.slug && item.categories.some((category) => categories.has(category)),
+      )
+      .slice(0, 3);
+  });
 
   gallerySpan(index: number): string {
     return GALLERY_SPANS[index % GALLERY_SPANS.length];
   }
 
   openLightbox(index: number): void {
-    this.lastFocused = typeof document !== 'undefined' ? (document.activeElement as HTMLElement) : null;
     this.lightboxIndex.set(index);
   }
 
   closeLightbox(): void {
     this.lightboxIndex.set(null);
-    this.lastFocused?.focus();
-    this.lastFocused = null;
-  }
-
-  /** URL de la imagen actualmente abierta en el lightbox ('' si cerrado). */
-  lightboxImageUrl(): string {
-    const image = this.lightboxImage();
-    return image ? this.galleryUrl(image) : '';
-  }
-
-  /** Posición "2 / 5" para el pie del lightbox. */
-  lightboxPosition(): string {
-    const index = this.lightboxIndex();
-    const total = this.galleryImages().length;
-    return index !== null ? `${index + 1} / ${total}` : '';
-  }
-
-  /** Navegación circular dentro de la galería. */
-  stepLightbox(direction: 1 | -1): void {
-    const current = this.lightboxIndex();
-    const total = this.galleryImages().length;
-    if (current === null || total === 0) return;
-    this.lightboxIndex.set((current + direction + total) % total);
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onKeydown(event: KeyboardEvent): void {
-    if (this.lightboxIndex() === null) return;
-    if (event.key === 'Escape') {
-      this.closeLightbox();
-    } else if (event.key === 'ArrowRight') {
-      this.stepLightbox(1);
-    } else if (event.key === 'ArrowLeft') {
-      this.stepLightbox(-1);
-    }
   }
 
   constructor() {
-    // SEO dinámico por proyecto: título, descripción e imagen social propios.
+    // SEO dinámico por proyecto: título, descripción e imagen social propias.
     effect(() => {
       const project = this.project();
       if (project) {
         this.seo.set(project.title, this.seoDescription().slice(0, 160), undefined, this.coverUrl());
       }
-    });
-
-    // Lightbox: bloquea el scroll del fondo y mueve el foco al diálogo al abrir.
-    effect((onCleanup) => {
-      const open = this.lightboxIndex() !== null;
-      const dialog = this.lightboxDialog();
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = open ? 'hidden' : '';
-      }
-      if (open && dialog) {
-        dialog.nativeElement.focus({ preventScroll: true });
-      }
-      onCleanup(() => {
-        if (typeof document !== 'undefined') document.body.style.overflow = '';
-      });
     });
   }
 }

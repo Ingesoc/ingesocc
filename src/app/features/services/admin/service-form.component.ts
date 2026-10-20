@@ -5,13 +5,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import imageCompression from 'browser-image-compression';
 import { NgComponentOutlet } from '@angular/common';
-import { LucideChevronLeft, LucidePlus, LucideTrash2, LucideUpload } from '@lucide/angular';
+import { LucideCheck, LucideChevronLeft, LucidePlus, LucideTrash2, LucideUpload } from '@lucide/angular';
 import type { LucideIcon } from '@lucide/angular';
 import { ServicesService } from '../data-access/services.service';
 import { SERVICE_ICON_NAMES, serviceIconFor } from '../data-access/service-icons';
 import type { ServiceFaqItem, ServiceInput } from '../data-access/service.model';
 import { slugify } from '../../../core/slugify';
 import { MAX_IMAGE_BYTES, validateImageFile } from '../../../core/image-utils';
+import { IconMotionDirective } from '../../../shared/icons';
 
 /** Grupo del editor de FAQ (una pregunta con su respuesta). */
 function faqFormGroup(q = '', a = '') {
@@ -24,7 +25,7 @@ function faqFormGroup(q = '', a = '') {
 @Component({
   selector: 'app-service-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, NgComponentOutlet, LucideChevronLeft, LucidePlus, LucideUpload, LucideTrash2],
+  imports: [ReactiveFormsModule, RouterLink, NgComponentOutlet, LucideCheck, LucideChevronLeft, LucidePlus, LucideUpload, LucideTrash2, IconMotionDirective],
   templateUrl: './service-form.component.html',
 })
 export class ServiceFormComponent implements OnInit, OnDestroy {
@@ -244,7 +245,7 @@ export class ServiceFormComponent implements OnInit, OnDestroy {
       }
 
       await this.services.refreshAll();
-      await this.router.navigate(['/admin/servicios']);
+      await this.router.navigate(['/admin/servicios'], { queryParams: { guardado: '1' } });
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Error al guardar el servicio.');
     } finally {

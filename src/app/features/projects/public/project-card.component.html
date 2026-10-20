@@ -5,7 +5,7 @@
     class="group relative block h-full min-w-0 overflow-hidden bg-primary text-white"
   >
     @if (coverUrl()) {
-      <img [src]="coverUrl()" [alt]="project().title" width="960" height="720" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+      <img [src]="coverUrl()" [alt]="project().title" width="960" height="720" loading="lazy" decoding="async" [style.view-transition-name]="transitionName()" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
     } @else {
       <div class="absolute inset-0 bg-secondary"></div>
     }
@@ -27,7 +27,7 @@
           }
         </p>
         <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 text-white/80 transition-all duration-300 group-hover:border-accent group-hover:bg-accent group-hover:text-primary">
-          <svg lucideArrowUpRight class="h-4 w-4" />
+          <svg lucideArrowUpRight appIconMotion="nudge-up" iconTrigger="parent" class="h-4 w-4" />
         </span>
       </div>
     </div>
@@ -40,7 +40,7 @@
   >
     <div class="media-zoom aspect-[4/3] w-full bg-secondary">
       @if (coverUrl()) {
-        <img [src]="coverUrl()" [alt]="project().title" width="960" height="720" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+        <img [src]="coverUrl()" [alt]="project().title" width="960" height="720" loading="lazy" decoding="async" [style.view-transition-name]="transitionName()" class="h-full w-full object-cover" />
       } @else {
         <div class="flex h-full w-full items-center justify-center bg-secondary"></div>
       }
@@ -58,7 +58,7 @@
         </p>
         <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-foreground transition-colors group-hover:text-accent-deep">
           Ver proyecto
-          <svg lucideArrowUpRight class="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          <svg lucideArrowUpRight appIconMotion="nudge-up" iconTrigger="parent" class="h-3.5 w-3.5" />
         </span>
       </div>
     </div>

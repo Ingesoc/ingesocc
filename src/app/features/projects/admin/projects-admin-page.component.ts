@@ -1,23 +1,29 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LucidePencil, LucidePlus, LucideStar, LucideTrash2 } from '@lucide/angular';
 import { ProjectsService } from '../data-access/projects.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
+import { IconMotionDirective } from '../../../shared/icons';
 import type { AdminProject } from '../data-access/project.model';
 
 @Component({
   selector: 'app-projects-admin-page',
   standalone: true,
-  imports: [RouterLink, LucidePlus, LucidePencil, LucideTrash2, LucideStar],
+  imports: [RouterLink, LucidePlus, LucidePencil, LucideTrash2, LucideStar, IconMotionDirective],
   templateUrl: './projects-admin-page.component.html',
 })
-export class ProjectsAdminPageComponent implements OnInit {
+export class ProjectsAdminPageComponent implements OnInit, OnDestroy {
   private readonly projects = inject(ProjectsService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly adminProjects = this.projects.adminProjects;
   readonly loading = signal(true);
   readonly error = signal('');
+  /** true tras volver de un guardado exitoso (aviso efímero con `?guardado=1`). */
+  readonly justSaved = signal(false);
+
+  private savedTimer: ReturnType<typeof setTimeout> | undefined;
 
   readonly categoriesById = computed(() => {
     const map = new Map<string, string>();
@@ -28,6 +34,7 @@ export class ProjectsAdminPageComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    this.showSavedNotice();
     try {
       await this.projects.loadAll();
       await this.projects.loadCategories();
@@ -62,5 +69,21 @@ export class ProjectsAdminPageComponent implements OnInit {
 
   onNewProject(): void {
     this.router.navigate(['/admin/proyectos/nuevo']);
+  }
+
+  /** Aviso efímero de guardado: llega como `?guardado=1` desde el formulario. */
+  private showSavedNotice(): void {
+    if (this.route.snapshot.queryParamMap.get('guardado') !== '1') {
+      return;
+    }
+    this.justSaved.set(true);
+    this.savedTimer = setTimeout(() => {
+      this.justSaved.set(false);
+      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    }, 6000);
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.savedTimer);
   }
 }

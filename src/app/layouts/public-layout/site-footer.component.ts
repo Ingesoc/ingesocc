@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideExternalLink } from '@lucide/angular';
+import { LucideArrowUp, LucideExternalLink } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
 import { ServicesService } from '../../features/services/data-access/services.service';
 import { IconMotionDirective } from '../../shared/icons/icon-motion.directive';
@@ -20,7 +20,7 @@ const LEGAL_ITEMS = [{ label: 'Política de privacidad', link: '/contacto' }];
 @Component({
   selector: 'app-site-footer',
   standalone: true,
-  imports: [RouterLink, LucideExternalLink, IconMotionDirective],
+  imports: [RouterLink, LucideArrowUp, LucideExternalLink, IconMotionDirective],
   templateUrl: './site-footer.component.html',
 })
 export class SiteFooterComponent {
@@ -49,4 +49,13 @@ export class SiteFooterComponent {
   readonly address = computed(() => this.blocks.text('contact', 'address', ''));
 
   readonly year = new Date().getFullYear();
+
+  /** Botón "volver arriba": respeta `prefers-reduced-motion` (salto directo). */
+  scrollToTop(): void {
+    if (typeof window === 'undefined') return;
+    const reduced =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  }
 }

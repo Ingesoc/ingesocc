@@ -3,9 +3,9 @@ import { Component, input } from '@angular/core';
 type SkeletonVariant = 'text' | 'block' | 'circle';
 
 /**
- * Placeholder de carga reutilizable (design system, Phase 2).
- * Presentacional y sin lÃ³gica: combina el `animate-pulse` de Tailwind con
- * las formas base del sitio. Ver `GuÃ­a de Estilo Visual`.
+ * Placeholder de carga reutilizable (design system).
+ * Presentacional y sin lógica: combina `animate-pulse` de Tailwind con las
+ * formas base del sitio. Se documenta en `docs/design-system.md`.
  */
 @Component({
   selector: 'app-skeleton',
@@ -30,8 +30,8 @@ type SkeletonVariant = 'text' | 'block' | 'circle';
 })
 export class AppSkeletonComponent {
   readonly variant = input<SkeletonVariant>('block');
-  /** NÃºmero de lÃ­neas cuando `variant` es 'text'. */
+  /** Número de líneas cuando `variant` es 'text'. */
   readonly lines = input(3);
-  /** Clases utilitarias de tamaÃ±o/forma (p. ej. 'h-48 w-full'). */
+  /** Clases utilitarias de tamaño/forma (p. ej. 'h-48 w-full'). */
   readonly sizeClass = input('h-48 w-full');
 }
