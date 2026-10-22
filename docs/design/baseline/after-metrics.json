@@ -1,0 +1,353 @@
+{
+  "generatedAt": "2026-10-20T01:52:42.589Z",
+  "viewports": [
+    "390",
+    "820",
+    "1440"
+  ],
+  "pages": [
+    {
+      "tag": "home@390",
+      "path": "/",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 8720,
+      "overflowX": false,
+      "title": "Inicio · Ingesocc S.A.S.",
+      "h1": "Construimos espacios que trascienden."
+    },
+    {
+      "tag": "quienes-somos@390",
+      "path": "/quienes-somos",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 17801,
+      "overflowX": false,
+      "title": "Quiénes Somos · Ingesocc S.A.S.",
+      "h1": "Quiénes Somos"
+    },
+    {
+      "tag": "servicios@390",
+      "path": "/servicios",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 5401,
+      "overflowX": false,
+      "title": "Servicios · Ingesocc S.A.S.",
+      "h1": "Servicios"
+    },
+    {
+      "tag": "proyectos@390",
+      "path": "/proyectos",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 5612,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "proyecto-detalle@390",
+      "path": "/proyectos/casa-ladera",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 4895,
+      "overflowX": false,
+      "title": "Casa Ladera · Ingesocc S.A.S.",
+      "h1": "Casa Ladera"
+    },
+    {
+      "tag": "contacto@390",
+      "path": "/contacto",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 4055,
+      "overflowX": false,
+      "title": "Contacto · Ingesocc S.A.S.",
+      "h1": "Contacto"
+    },
+    {
+      "tag": "admin-login@390",
+      "path": "/admin/login",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "title": "Ingesocc S.A.S. — Construcción, Ingeniería y Arquitectura",
+      "h1": "Bienvenido de nuevo"
+    },
+    {
+      "tag": "home@820",
+      "path": "/",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 8049,
+      "overflowX": false,
+      "title": "Inicio · Ingesocc S.A.S.",
+      "h1": "Construimos espacios que trascienden."
+    },
+    {
+      "tag": "quienes-somos@820",
+      "path": "/quienes-somos",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 11440,
+      "overflowX": false,
+      "title": "Quiénes Somos · Ingesocc S.A.S.",
+      "h1": "Quiénes Somos"
+    },
+    {
+      "tag": "servicios@820",
+      "path": "/servicios",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 4286,
+      "overflowX": false,
+      "title": "Servicios · Ingesocc S.A.S.",
+      "h1": "Servicios"
+    },
+    {
+      "tag": "proyectos@820",
+      "path": "/proyectos",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 4030,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "proyecto-detalle@820",
+      "path": "/proyectos/casa-ladera",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 4480,
+      "overflowX": false,
+      "title": "Casa Ladera · Ingesocc S.A.S.",
+      "h1": "Casa Ladera"
+    },
+    {
+      "tag": "contacto@820",
+      "path": "/contacto",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 2948,
+      "overflowX": false,
+      "title": "Contacto · Ingesocc S.A.S.",
+      "h1": "Contacto"
+    },
+    {
+      "tag": "admin-login@820",
+      "path": "/admin/login",
+      "viewport": "820",
+      "scrollWidth": 820,
+      "clientWidth": 820,
+      "scrollHeight": 1180,
+      "overflowX": false,
+      "title": "Ingesocc S.A.S. — Construcción, Ingeniería y Arquitectura",
+      "h1": "Bienvenido de nuevo"
+    },
+    {
+      "tag": "home@1440",
+      "path": "/",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 6483,
+      "overflowX": false,
+      "title": "Inicio · Ingesocc S.A.S.",
+      "h1": "Construimos espacios que trascienden."
+    },
+    {
+      "tag": "quienes-somos@1440",
+      "path": "/quienes-somos",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 9938,
+      "overflowX": false,
+      "title": "Quiénes Somos · Ingesocc S.A.S.",
+      "h1": "Quiénes Somos"
+    },
+    {
+      "tag": "servicios@1440",
+      "path": "/servicios",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 3797,
+      "overflowX": false,
+      "title": "Servicios · Ingesocc S.A.S.",
+      "h1": "Servicios"
+    },
+    {
+      "tag": "proyectos@1440",
+      "path": "/proyectos",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 2842,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "proyecto-detalle@1440",
+      "path": "/proyectos/casa-ladera",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 3581,
+      "overflowX": false,
+      "title": "Casa Ladera · Ingesocc S.A.S.",
+      "h1": "Casa Ladera"
+    },
+    {
+      "tag": "contacto@1440",
+      "path": "/contacto",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 2116,
+      "overflowX": false,
+      "title": "Contacto · Ingesocc S.A.S.",
+      "h1": "Contacto"
+    },
+    {
+      "tag": "admin-login@1440",
+      "path": "/admin/login",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "title": "Ingesocc S.A.S. — Construcción, Ingeniería y Arquitectura",
+      "h1": "Bienvenido de nuevo"
+    }
+  ],
+  "states": [
+    {
+      "tag": "estado-filtro-activo@390",
+      "path": "/proyectos",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 3756,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "estado-formulario-invalido@390",
+      "path": "/contacto",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 4127,
+      "overflowX": false,
+      "title": "Contacto · Ingesocc S.A.S.",
+      "h1": "Contacto"
+    },
+    {
+      "tag": "estado-imagen-ausente@390",
+      "path": "/proyectos/casa-ladera",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 4895,
+      "overflowX": false,
+      "title": "Casa Ladera · Ingesocc S.A.S.",
+      "h1": "Casa Ladera"
+    },
+    {
+      "tag": "estado-error-red@390",
+      "path": "/proyectos",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 5612,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "estado-reduced-motion@390",
+      "path": "/",
+      "viewport": "390",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 8720,
+      "overflowX": false,
+      "title": "Inicio · Ingesocc S.A.S.",
+      "h1": "Construimos espacios que trascienden."
+    },
+    {
+      "tag": "estado-filtro-activo@1440",
+      "path": "/proyectos",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 2232,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "estado-formulario-invalido@1440",
+      "path": "/contacto",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 2116,
+      "overflowX": false,
+      "title": "Contacto · Ingesocc S.A.S.",
+      "h1": "Contacto"
+    },
+    {
+      "tag": "estado-imagen-ausente@1440",
+      "path": "/proyectos/casa-ladera",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 3581,
+      "overflowX": false,
+      "title": "Casa Ladera · Ingesocc S.A.S.",
+      "h1": "Casa Ladera"
+    },
+    {
+      "tag": "estado-error-red@1440",
+      "path": "/proyectos",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 2842,
+      "overflowX": false,
+      "title": "Proyectos · Ingesocc S.A.S.",
+      "h1": "Proyectos"
+    },
+    {
+      "tag": "estado-reduced-motion@1440",
+      "path": "/",
+      "viewport": "1440",
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 6483,
+      "overflowX": false,
+      "title": "Inicio · Ingesocc S.A.S.",
+      "h1": "Construimos espacios que trascienden."
+    }
+  ]
+}

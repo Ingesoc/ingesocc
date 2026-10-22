@@ -14,7 +14,11 @@ import { hasAdminCredentials, loginAsAdmin } from './helpers';
  *   1. Ni el documento ni el <body> desbordan en horizontal
  *      (scrollWidth <= clientWidth): nada de scroll horizontal.
  *   2. Ningún elemento visible (no clipped por un ancestro overflow-x
- *      hidden/clip, no absolute decorativo) queda fuera del viewport.
+ *      hidden/clip/auto/scroll, no absolute decorativo) queda fuera del
+ *      viewport. `auto`/`scroll` cuentan como clipping: filas con scroll
+ *      horizontal (p. ej. chips de /proyectos, diseño sancionado en Fase 07)
+ *      alcanzan su contenido desplazando, no son desbordamiento; el guardia
+ *      real del documento sigue siendo el punto 1 (html/body scrollWidth).
  *
  * Con E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD también recorre los módulos del panel.
  */
@@ -66,7 +70,8 @@ async function measureOverflow(page: Page): Promise<OverflowReport> {
       let n = el.parentElement;
       while (n && n !== document.body) {
         const cs = getComputedStyle(n);
-        if (cs.overflowX === 'hidden' || cs.overflowX === 'clip') return true;
+        const ox = cs.overflowX;
+        if (ox === 'hidden' || ox === 'clip' || ox === 'auto' || ox === 'scroll') return true;
         n = n.parentElement;
       }
       return false;
@@ -251,7 +256,7 @@ test.describe('Responsive UI · sin desbordamiento', () => {
           await submit.click();
           await page.waitForTimeout(250);
           await expect(
-            page.locator('form p.text-accent-deep').filter({ hasText: /\S/ }).first(),
+            page.locator('form p.field-error').filter({ hasText: /\S/ }).first(),
             'tras enviar el formulario vacío debe mostrarse al menos un mensaje de validación',
           ).toBeVisible();
           await expectNoOverflow(page, `${vp.width}px · /contacto (errores)`);

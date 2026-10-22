@@ -1,6 +1,6 @@
 # Informe de QA visual — Ingesocc
 
-Fecha: 2026-10-13 · Rama: `feature/redesign`
+Fecha: 2026-10-13 · Última actualización: 2026-10-19 (Fase 12) · Rama: `feature/redesign`
 
 Verificación **programática** (medición de DOM + suites automatizadas). El modelo no
 puede leer imágenes, por lo que las capturas en `test-results/audit/*.png` no se
@@ -11,9 +11,9 @@ evaluaron visualmente; se sustituyó por métricas de geometría reproducibles.
 | Comando | Resultado |
 |---|---|
 | `pnpm lint` | ✅ limpio (0 errores) |
-| `pnpm test:ci` (Karma/Chrome Headless) | ✅ 200/200 SUCCESS (2026-10-18) |
-| `pnpm test:e2e` (Playwright, Chrome) | ✅ **70 passed · 3 skipped** |
-| `pnpm build` | ✅ OK — 729.46 kB inicial (153.86 kB transfer) · 2026-10-18 |
+| `pnpm test:ci` (Karma/Chrome Headless) | ✅ 200/200 SUCCESS (2026-10-19) |
+| `pnpm test:e2e` (Playwright, Chrome) | **69 passed · 3 skipped · 1 failed** (2026-10-19; el fallo es ambiental — ver Fase 12) |
+| `pnpm build` | ✅ OK — 729.33 kB inicial (153.87 kB transfer) · 2026-10-19 |
 
 Los 3 `skipped` son los flujos CRUD de admin (proyectos, servicios, bandeja de
 contacto) que requieren `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD`.
@@ -194,12 +194,7 @@ Verificado programáticamente (Playwright, script temporal, 20/20 PASS):
 Validación y guardado en `contact_messages`/RLS intactos (D-19); transversales en CSS puro con
 degradación elegante (D-20).
 
-## ## Fase 11 — Control de Calidad · 2026-10-18
-
-- **Build:** pnpm build OK. pnpm lint 0 errores. pnpm test:ci **200/200 SUCCESS**. pnpm test:visual 0 warn/0 FAIL. pnpm test:perf cumple presupuestos de nivel *error*; Desktop Home Perf **0.87** (WARN < 0.90 objetivo), Proyectos **0.89**, A11y **1.00** en todas las corridas; Mobile Perf **0.62–0.64**, A11y **1.00**.
-- **Hallazgos corregidos en Fase 11:** #12 (em-dash en aria-label de marca), #13/#15 (contrastes 	ext-white/40→	ext-white/70 y 	ext-muted-foreground/70→	ext-muted-foreground), chips ≥44×44. Lighthouse Accessibility = **100** en / y /proyectos.
-
-Fase 10 — Bastidores (Admin sobrio) · 2026-10-18
+## Fase 10 — Bastidores (Admin sobrio) · 2026-10-18
 
 Verificado con specs + runtime sobre el build de producción (script temporal
 `tools/_phase10-verify.mjs`, 10/10 PASS, borrado tras la ejecución). El panel
@@ -224,3 +219,40 @@ es de código (specs + lint + build).
 `node tools/visual-qa.mjs` = 0 warn · 0 FAIL (selector de errores de contacto actualizado a
 `.field-error` en la herramienta). Contraste preservado: `.field-error`/`.alert-error` usan el
 token `--accent-deep` ya auditado; no se modificaron botones, campos ni espaciado global (D-21).
+
+## Fase 11 — Control de Calidad · 2026-10-18
+
+- **Build:** pnpm build OK. pnpm lint 0 errores. pnpm test:ci **200/200 SUCCESS**. pnpm test:visual 0 warn/0 FAIL. pnpm test:perf cumple presupuestos de nivel *error*; Desktop Home Perf **0.87** (WARN < 0.90 objetivo), Proyectos **0.89**, A11y **1.00** en todas las corridas; Mobile Perf **0.62–0.64**, A11y **1.00**.
+- **Hallazgos corregidos en Fase 11:** #12 (em-dash en aria-label de marca), #13/#15 (contrastes `text-white/40`→`text-white/70` y `text-muted-foreground/70`→`text-muted-foreground`), chips ≥44×44. Lighthouse Accessibility = **100** en / y /proyectos.
+
+## Fase 12 — Entrega · 2026-10-19
+
+Batería completa sobre el código final (detalles en `docs/reporte-final-rediseno.md`):
+
+| Comando | Resultado |
+|---|---|
+| `pnpm build` | ✅ OK — 729.33 kB inicial / 153.87 kB transfer |
+| `pnpm lint` | ✅ 0 errores |
+| `pnpm test:ci` | ✅ 200/200 SUCCESS |
+| `pnpm test:e2e` | 69 passed · 3 skipped · 1 failed (el fallo es ambiental, ver abajo) |
+| `node tools/visual-qa.mjs` | ✅ 0 warn · 0 FAIL |
+| `node tools/lighthouse-ci.mjs` | ✅ presupuestos de nivel *error* OK; A11y **100** en las 4 corridas; Desktop Home Perf **87** (WARN ≥80), Proyectos **89**; Mobile **62/64**; `script` 868.9 kB (WARN ≤976.6 kB) |
+| Escaneo de secretos (`git diff 357a11c..HEAD`) | ✅ 0 hallazgos (JWT, `service_role`, claves privadas, contraseñas) |
+
+### Regresión e2e detectada y corregida (25 fallos → 1 ambiental)
+
+1. **Bug real — chips de ubicación a ≥768 px con zoom de texto 150 %** (`html +30px`): `.chips-row` en modo wrap no dejaba encoger el chip; una ubicación larga desbordaba el documento. Corregido en `styles.css` (`.chips-row > * { flex: 0 1 auto; max-width: 100%; }` en el media query ≥768 px).
+2. **Check obsoleto — `isClipped`** no contemplaba ancestros con `overflow-x: auto/scroll` (filas con scroll horizontal, diseño sancionado en Fase 07): 16 falsos positivos con chips "fuera del viewport". Actualizado en `responsive-overflow.spec.ts` (el guardia documental html/body se mantiene intacto).
+3. **Selector obsoleto — errores de contacto**: el spec buscaba `form p.text-accent-deep`; la Fase 10 migró a `.field-error`. Selector actualizado (7 fallos).
+4. **Localizador obsoleto — fila de filtros**: `div.flex.flex-wrap` ya no existe (clases responsive `md:flex-wrap`) → `getByRole('group', { name: 'Filtrar por categoría' })` (1 fallo).
+5. **Ambiental — `password-recovery`**: Supabase local (`127.0.0.1:64321`) caído; la solicitud real falla y la vista muestra el estado de error en vez de la confirmación genérica. Con Supabase vivo el suite queda en 70 passed.
+
+### Capturas "antes/después" (mismo método que la Fase 00)
+
+- 21 capturas en `docs/design/baseline/screenshots-after/` (7 páginas × 390/820/1440, navegación directa) + `after-metrics.json` espejo de `baseline-metrics.json`.
+- 10 estados extra (390 y 1440): filtro activo, formulario inválido, imagen ausente simulada (abort de imágenes), error de red simulado (abort de REST) y `prefers-reduced-motion`.
+- **0 overflow horizontal** en las 21 páginas y los 10 estados. Sin cambios de `h1` ni de `overflowX` vs. baseline.
+- Alturas: `/quienes-somos` +606…+813 px y `/proyectos/casa-ladera` +725…+1598 px (narrativa y galería ampliadas por diseño); `/proyectos@390` −154 px.
+- Estados verificados: el filtro activo reduce 8 → 4 cards y escribe `?categoria=`; el formulario inválido muestra `.field-error`; con imágenes y con REST abortadas la página se renderiza completa vía seed; `reduced-motion` pinta sin animación.
+
+El modelo no puede leer imágenes: la comparación es métrica (geometría/overflow); las capturas quedan como evidencia para revisión humana.

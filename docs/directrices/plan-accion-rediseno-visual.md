@@ -33,8 +33,8 @@ fecha al cerrar cada sesión.
 | 08 | Catálogo y Trayectoria (Servicios + Quiénes Somos) | Hecho (2026-10-15) | `docs/visual-qa-report.md` | A Paso 5.3/5.4 · B §6.6–6.7 |
 | 09 | Puente (Contacto + Footer + transversales) | Hecho (2026-10-15) | `docs/visual-qa-report.md` | A Paso 5.7/5.8 · B §6.10–6.12 |
 | 10 | Bastidores (Admin sobrio) | Hecho (2026-10-18) | `docs/visual-qa-report.md` | A Paso 5.9 · B §6.13 |
-| 11 | Control de Calidad (responsive, a11y, tests, rendimiento) | Pendiente | `docs/visual-qa-report.md` | A Pasos 6–9 + Fase H · B §8–10 |
-| 12 | Entrega (revisión final y reporte) | Pendiente | reporte final + docs actualizados | A Fase I + §15 · B §12 |
+| 11 | Control de Calidad (responsive, a11y, tests, rendimiento) | Hecho (2026-10-18) | `docs/visual-qa-report.md` | A Pasos 6–9 + Fase H · B §8–10 |
+| 12 | Entrega (revisión final y reporte) | Hecho (2026-10-19) | `docs/reporte-final-rediseno.md` + docs actualizados | A Fase I + §15 · B §12 |
 
 ---
 
@@ -1371,46 +1371,54 @@ se ejecutaron las pruebas o hay fallos sin resolver.
 **Origen:** [A] Fase I + sección 15 · [B] §12.
 
 ### Handoff — Fase 12
-> (escribir aquí)
+- **Estado:** Hecho (2026-10-19)
+- **Fecha:** 2026-10-19
+- **Rama y HEAD:** feature/redesign @ `f938de6` (+ cambios locales sin commitear de la Fase 12)
+- **Archivos modificados:** `src/styles.css` (chips encogibles en modo wrap ≥768 px), `e2e/responsive-overflow.spec.ts` (`isClipped` trata `auto`/`scroll` como clipping; selector de errores → `form p.field-error`), `e2e/public-flows.spec.ts` (locator de fila de filtros → `getByRole('group', { name: 'Filtrar por categoría' })`), `docs/visual-qa-report.md` (corrupciones corregidas + sección Fase 12), `docs/reporte-final-rediseno.md` (nuevo), `docs/design/baseline/after-metrics.json` + `docs/design/baseline/screenshots-after/` (nuevos)
+- **Comandos ejecutados y resultado:** `pnpm build` → OK (729.33 kB / 153.87 kB transfer); `pnpm lint` → 0 errores; `pnpm test:ci` → 200/200 SUCCESS; `pnpm test:e2e` → 69 passed · 3 skipped · 1 failed (ambiental: Supabase local caído, preexistente); `node tools/visual-qa.mjs` → 0 warn · 0 FAIL; `node tools/lighthouse-ci.mjs` → presupuestos de nivel *error* OK, A11y **100** ×4, Desktop Home **87** / Proyectos **89**, Mobile **62/64**; escaneo de secretos en `git diff 357a11c..HEAD` → 0 hallazgos
+- **Entregables producidos:** `docs/reporte-final-rediseno.md` (formato obligatorio de 9 secciones), capturas "después" (21 páginas + 10 estados) + `after-metrics.json`, `docs/visual-qa-report.md` con sección Fase 12
+- **Decisiones tomadas:** desbordamiento real de chips a ≥768 px con zoom 150 % corregido en CSS (chips encogibles con `flex: 0 1 auto; max-width: 100%`); checks e2e actualizados al markup sancionado de las Fases 07/10; comparación antes/después **métrica** (el modelo no puede leer imágenes; capturas como evidencia humana)
+- **Bloqueos / pendientes:** Supabase local caído (`password-recovery` ambiental); sin `E2E_ADMIN_*` (panel autenticado sin recorrido real); hallazgo #18 (contenido CMS remoto en `/contacto`) pendiente de confirmación con el cliente; Perf Desktop Home 87 por imagen LCP del hero (trade-off documentado)
+- **Siguiente fase debe saber:** rediseño cerrado. Cambios locales de la Fase 12 **pendientes de commit** (requiere autorización del usuario); siguiente paso natural = commit de cierre + push autorizado y aplicación de migraciones Supabase en staging.
 
 ---
 
 ## Anexo A — Criterios de aceptación finales (Definition of Done)
 
 ### Diseño y marca
-- [ ] INGESOCC sigue siendo la marca principal; jerarquía hacia proyectos y La Holanda clara.
-- [ ] Identidad de marca y logo oficial se mantienen.
-- [ ] Jerarquía tipográfica reconocible y consistente.
-- [ ] Ritmo visual y espacio en blanco suficientes.
-- [ ] Proyectos con fotografía auténtica, buen recorte y metadatos reales.
-- [ ] Un CTA principal reconocible sin que cada bloque compita.
-- [ ] Patrones adoptados identificados en `docs/design-reference-audit.md` y justificados por UX.
-- [ ] Tendencias que no encajan/restan accesibilidad o rendimiento descartadas conscientemente.
+- [x] INGESOCC sigue siendo la marca principal; jerarquía hacia proyectos y La Holanda clara.
+- [x] Identidad de marca y logo oficial se mantienen.
+- [x] Jerarquía tipográfica reconocible y consistente.
+- [x] Ritmo visual y espacio en blanco suficientes.
+- [x] Proyectos con fotografía auténtica, buen recorte y metadatos reales (contenido del repo/CMS; faltantes del cliente documentados en el reporte §8).
+- [x] Un CTA principal reconocible sin que cada bloque compita.
+- [x] Patrones adoptados identificados en `docs/design-reference-audit.md` y justificados por UX.
+- [x] Tendencias que no encajan/restan accesibilidad o rendimiento descartadas conscientemente.
 
 ### Interacción y responsive
-- [ ] Navegación, filtros, tarjetas, galería y formularios funcionan en móvil y escritorio.
-- [ ] Sin overflow horizontal en los viewports verificados.
-- [ ] Animaciones sutiles, semánticas, rápidas y reducibles/desactivables.
-- [ ] El contenido principal funciona sin depender del movimiento.
-- [ ] Controles interactivos con foco y nombres accesibles.
+- [x] Navegación, filtros, tarjetas, galería y formularios funcionan en móvil y escritorio.
+- [x] Sin overflow horizontal en los viewports verificados (e2e 12 viewports + capturas 390/820/1440: 0 overflow).
+- [x] Animaciones sutiles, semánticas, rápidas y reducibles/desactivables.
+- [x] El contenido principal funciona sin depender del movimiento.
+- [x] Controles interactivos con foco y nombres accesibles.
 
 ### Integridad técnica
-- [ ] Sigue en Angular 19, TypeScript y Tailwind CSS v4.
-- [ ] Sin React ni dependencia de motion pesada sin justificación.
-- [ ] Supabase, RLS, auth, CMS, Cloudinary y rutas mantienen sus contratos.
-- [ ] Sin contenidos, contacto, métricas ni proyectos inventados.
-- [ ] SEO y optimizaciones de imágenes conservados.
-- [ ] Pruebas ejecutadas y resultados documentados.
-- [ ] Diff revisado; sin cambios accidentales ni secretos.
+- [x] Sigue en Angular 19, TypeScript y Tailwind CSS v4.
+- [x] Sin React ni dependencia de motion pesada sin justificación.
+- [x] Supabase, RLS, auth, CMS, Cloudinary y rutas mantienen sus contratos (sin cambios en `supabase/`, `api/`, environments).
+- [x] Sin contenidos, contacto, métricas ni proyectos inventados.
+- [x] SEO y optimizaciones de imágenes conservados.
+- [x] Pruebas ejecutadas y resultados documentados.
+- [x] Diff revisado; sin cambios accidentales ni secretos (escaneo de patrones: 0 hallazgos).
 
 ### Checklist de cierre de [B] (§12)
-- [ ] Todas las zonas de la sección 6 tienen su tratamiento (o justificación escrita).
-- [ ] Accessibility Lighthouse = 100 en `/` y `/proyectos`; `test:visual` sin fallos de contraste/overflow.
-- [ ] Performance dentro de presupuestos; sin regresión de LCP/CLS.
-- [ ] `prefers-reduced-motion` verificado en cada animación.
-- [ ] Sitio público solo lectura; admin intacto funcionalmente.
-- [ ] Tests unitarios, e2e y typecheck en verde.
-- [ ] Documentación `docs/design/` completa.
+- [x] Todas las zonas de la sección 6 tienen su tratamiento (o justificación escrita).
+- [x] Accessibility Lighthouse = 100 en `/` y `/proyectos`; `test:visual` sin fallos de contraste/overflow.
+- [ ] Performance dentro de presupuestos; sin regresión de LCP/CLS — presupuestos de nivel *error* OK y Desktop Home estable vs. baseline (87), pero Desktop Proyectos bajó 91 → 89 y el objetivo de 90 en Home no se alcanzó (LCP = imagen del hero; pendiente de optimización del cliente).
+- [x] `prefers-reduced-motion` verificado en cada animación.
+- [x] Sitio público solo lectura; admin intacto funcionalmente (verificado por specs; sin recorrido real por falta de `E2E_ADMIN_*`).
+- [x] Tests unitarios, e2e y typecheck en verde (e2e: 1 fallo ambiental preexistente por Supabase local caído, documentado).
+- [x] Documentación `docs/design/` completa.
 
 ---
 

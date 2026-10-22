@@ -195,10 +195,8 @@ test.describe('Sitio público', () => {
 
     // Volver a "Todos" elimina el query param. Hay dos filas de filtros
     // (Categoría y Ubicación) y ambas tienen un botón "Todos": se acota al
-    // botón de la fila Categoría (strict-mode).
-    const categoryRow = page.locator('div.flex.flex-wrap', {
-      has: page.getByText('Categoría', { exact: true }),
-    });
+    // grupo con aria-label de la fila Categoría (strict-mode).
+    const categoryRow = page.getByRole('group', { name: 'Filtrar por categoría' });
     const categoryTodos = categoryRow.getByRole('button', { name: 'Todos', exact: true });
     await categoryTodos.click();
     await expect(page).toHaveURL(/\/proyectos$/);

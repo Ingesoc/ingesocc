@@ -688,6 +688,12 @@ body {
       scroll-snap-type: none;
       padding-bottom: 0;
     }
+    /* Modo wrap: el chip se encoge y el texto salta de línea si supera la
+       fila (p. ej. ubicaciones largas con zoom de texto 150%). */
+    .chips-row > * {
+      flex: 0 1 auto;
+      max-width: 100%;
+    }
   }
 
   /* Divider blueprint. */
