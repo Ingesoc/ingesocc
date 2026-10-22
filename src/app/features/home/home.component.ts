@@ -9,7 +9,7 @@ import { ProjectCardComponent } from '../projects/public/project-card.component'
 import { CounterDirective, IconMotionDirective, RevealDirective } from '../../shared/icons';
 import { OPERACIONES } from '../about/operaciones.data';
 import { CONTACT } from '../../core/site-config';
-import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
+import { CLOUDINARY_TRANSFORMS, responsiveImageSrcSet, withCloudinaryTransform } from '../../core/cloudinary-urls';
 
 /** Cómo trabajamos (Fase 2). Copy [PENDIENTE: validar con el cliente]. */
 const PROCESS_STEPS = [
@@ -68,6 +68,8 @@ export class HomeComponent {
       CLOUDINARY_TRANSFORMS.hero,
     ),
   );
+
+
 
   readonly years = computed(() => this.blocks.number('home', 'stats.years_experience', 15));
   readonly projectsExecuted = computed(() => this.blocks.number('home', 'stats.projects_executed', 120));

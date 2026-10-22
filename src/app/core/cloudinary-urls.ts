@@ -99,3 +99,46 @@ export function withCloudinaryTransform(
 
   return `${base}${transform}/${tail}`;
 }
+
+/** true si la URL pertenece al CDN de imágenes de Unsplash (seeds). */
+function isUnsplashUrl(value: string): boolean {
+  try {
+    return new URL(value).hostname === 'images.unsplash.com';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Construye el atributo `srcset` con variantes de ancho para CDNs que aceptan
+ * redimensionado por URL (Cloudinary y Unsplash).
+ *
+ * El navegador elige la variante según `sizes`, evitando descargar una portada
+ * de 1400 px para una tarjeta de 400 px. Las URLs legacy de Supabase Storage y
+ * las rutas relativas devuelven `''` (se usa el `src` original).
+ */
+export function responsiveImageSrcSet(
+  value: string | null | undefined,
+  widths: readonly number[],
+): string {
+  const url = value ?? '';
+  if (!url || widths.length === 0) return '';
+
+  if (isCloudinaryUrl(url)) {
+    return widths
+      .map((width) => `${withCloudinaryTransform(url, `c_fill,g_auto,w_${width},q_auto,f_auto`)} ${width}w`)
+      .join(', ');
+  }
+
+  if (isUnsplashUrl(url)) {
+    return widths
+      .map((width) => {
+        const variant = new URL(url);
+        variant.searchParams.set('w', String(width));
+        return `${variant.toString()} ${width}w`;
+      })
+      .join(', ');
+  }
+
+  return '';
+}

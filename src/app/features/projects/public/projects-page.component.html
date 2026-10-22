@@ -51,7 +51,7 @@
 
     <div class="grid grid-cols-1 gap-x-6 gap-y-14 md:grid-cols-2 lg:grid-cols-3">
       @for (project of visible(); track project.slug; let i = $index) {
-        <app-project-card appReveal [revealIndex]="i % 8" [project]="project" variant="panel" />
+        <app-project-card appReveal [revealIndex]="i % 8" [project]="project" variant="panel" [priority]="i < 3" />
       }
     </div>
 

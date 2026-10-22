@@ -3,6 +3,7 @@ import {
   cloudinaryPublicIdFromUrl,
   isAbsoluteUrl,
   isCloudinaryUrl,
+  responsiveImageSrcSet,
   withCloudinaryTransform,
 } from './cloudinary-urls';
 
@@ -107,6 +108,30 @@ describe('cloudinary-urls', () => {
     it('es idempotente: aplicar dos veces da la misma URL', () => {
       const once = withCloudinaryTransform(CLOUD_URL, CLOUDINARY_TRANSFORMS.gallery);
       expect(withCloudinaryTransform(once, CLOUDINARY_TRANSFORMS.gallery)).toBe(once);
+    });
+  });
+
+  describe('responsiveImageSrcSet', () => {
+    it('genera srcset para URLs de Cloudinary', () => {
+      const srcset = responsiveImageSrcSet(CLOUD_URL, [640, 960, 1600]);
+      expect(srcset).toContain('w_640');
+      expect(srcset).toContain('w_960');
+      expect(srcset).toContain('w_1600');
+      expect(srcset).toContain(' 640w');
+      expect(srcset).toContain(' 1600w');
+    });
+
+    it('genera srcset para URLs de Unsplash ajustando w', () => {
+      const srcset = responsiveImageSrcSet('https://images.unsplash.com/photo-x?auto=format&fit=crop&q=80', [800, 1200]);
+      expect(srcset).toContain('w=800');
+      expect(srcset).toContain('w=1200');
+      expect(srcset).toContain(' 800w');
+    });
+
+    it('devuelve cadena vacía para URLs no soportadas o listas vacías', () => {
+      expect(responsiveImageSrcSet('https://proyecto.supabase.co/storage/v1/object/public/a.jpg', [800])).toBe('');
+      expect(responsiveImageSrcSet(null, [800])).toBe('');
+      expect(responsiveImageSrcSet(CLOUD_URL, [])).toBe('');
     });
   });
 });

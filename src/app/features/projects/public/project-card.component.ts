@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight } from '@lucide/angular';
-import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
+import { CLOUDINARY_TRANSFORMS, responsiveImageSrcSet, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import { IconMotionDirective } from '../../../shared/icons';
 import type { Project } from '../data-access/project.model';
 import { projectCoverUrl } from '../data-access/project.model';
@@ -31,6 +31,13 @@ export class ProjectCardComponent {
   readonly coverUrl = computed(() =>
     withCloudinaryTransform(projectCoverUrl(this.project()), CLOUDINARY_TRANSFORMS.cover),
   );
+
+  readonly coverSrcSet = computed(() =>
+    responsiveImageSrcSet(projectCoverUrl(this.project()), [640, 960, 1200]),
+  );
+
+  /** Indica si esta tarjeta debe priorizarse (LCP candidato). */
+  readonly priority = input(false);
 
   /** Nombre de transición compartida card → detalle (`View Transitions`, por slug). */
   readonly transitionName = computed(() => `project-cover-${this.project().slug}`);

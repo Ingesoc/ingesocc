@@ -1414,7 +1414,7 @@ se ejecutaron las pruebas o hay fallos sin resolver.
 ### Checklist de cierre de [B] (§12)
 - [x] Todas las zonas de la sección 6 tienen su tratamiento (o justificación escrita).
 - [x] Accessibility Lighthouse = 100 en `/` y `/proyectos`; `test:visual` sin fallos de contraste/overflow.
-- [ ] Performance dentro de presupuestos; sin regresión de LCP/CLS — presupuestos de nivel *error* OK y Desktop Home estable vs. baseline (87), pero Desktop Proyectos bajó 91 → 89 y el objetivo de 90 en Home no se alcanzó (LCP = imagen del hero; pendiente de optimización del cliente).
+- [ ] Performance dentro de presupuestos; sin regresión de LCP/CLS — presupuestos de nivel *error* OK; tras optimizaciones parciales Desktop Home 80 / Proyectos 85 (WARN). Objetivo 90 no alcanzado por LCP del hero (fotografía real); pendiente de optimización del cliente.
 - [x] `prefers-reduced-motion` verificado en cada animación.
 - [x] Sitio público solo lectura; admin intacto funcionalmente (verificado por specs; sin recorrido real por falta de `E2E_ADMIN_*`).
 - [x] Tests unitarios, e2e y typecheck en verde (e2e: 1 fallo ambiental preexistente por Supabase local caído, documentado).
