@@ -236,7 +236,7 @@ Batería completa sobre el código final (detalles en `docs/reporte-final-redise
 | `pnpm test:ci` | ✅ 200/200 SUCCESS |
 | `pnpm test:e2e` | 69 passed · 3 skipped · 1 failed (el fallo es ambiental, ver abajo) |
 | `node tools/visual-qa.mjs` | ✅ 0 warn · 0 FAIL |
-| `node tools/lighthouse-ci.mjs` | ✅ presupuestos de nivel *error* OK; A11y **100** en las 4 corridas; Desktop Home Perf **80** (WARN), Proyectos **85** (WARN); Mobile **62/62**; `script` 869.7 kB (WARN ≤976.6 kB) — `srcset`/priorización añadidos (hero revertido por regresión) |
+| `node tools/lighthouse-ci.mjs` | ✅ presupuestos de nivel *error* OK; A11y **100** en las 4 corridas; Desktop Home Perf **82** (WARN), Proyectos **89** (WARN); Mobile **62/63**; `script` 870.1 kB (WARN ≤976.6 kB) — `srcset`/priorización + preload hero |
 | Escaneo de secretos (`git diff 357a11c..HEAD`) | ✅ 0 hallazgos (JWT, `service_role`, claves privadas, contraseñas) |
 
 ### Regresión e2e detectada y corregida (25 fallos → 1 ambiental)

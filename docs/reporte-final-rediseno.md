@@ -126,7 +126,7 @@ rastreo del sitio de La Holanda (Firecrawl no disponible).
 | Best practices / SEO | 96 / 100 | 96 / 100 |
 | Bundle inicial | 689.70 kB / 146.99 kB transfer | 729.33 kB / 153.87 kB transfer |
 
-Presupuestos de nivel *error* cumplidos; `script` transfer 869.7 kB en WARN (≤976.6 kB). Se añadieron `srcset`/priorización en tarjetas, preconnects a CDNs y `responsiveImageSrcSet`; `srcset` en el hero fue revertido tras regresión.
+Presupuestos de nivel *error* cumplidos; `script` transfer 870.1 kB en WARN (≤976.6 kB). Se añadieron `srcset`/priorización en tarjetas, preconnects a CDNs, `responsiveImageSrcSet` y preload del hero. LCP sigue limitado por la imagen real externa.
 El LCP del Home es la imagen del hero (fotografía real de obra): es la causa del Perf
 Desktop < 90 y se documenta como **trade-off consciente** de diseño; optimizarla (formato,
 preloads, tamaño) queda como pendiente del cliente.

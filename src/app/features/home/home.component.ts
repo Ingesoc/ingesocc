@@ -1,4 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LucideArrowUpRight, LucideChevronDown, LucideMessageCircle, LucideStar } from '@lucide/angular';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
@@ -9,7 +10,7 @@ import { ProjectCardComponent } from '../projects/public/project-card.component'
 import { CounterDirective, IconMotionDirective, RevealDirective } from '../../shared/icons';
 import { OPERACIONES } from '../about/operaciones.data';
 import { CONTACT } from '../../core/site-config';
-import { CLOUDINARY_TRANSFORMS, responsiveImageSrcSet, withCloudinaryTransform } from '../../core/cloudinary-urls';
+import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
 
 /** Cómo trabajamos (Fase 2). Copy [PENDIENTE: validar con el cliente]. */
 const PROCESS_STEPS = [
@@ -58,6 +59,7 @@ export class HomeComponent {
   private readonly projects = inject(ProjectsService);
   private readonly services = inject(ServicesService);
   private readonly testimonials = inject(TestimonialsService);
+  private readonly document = inject(DOCUMENT);
 
   readonly heroTitle = computed(() => this.blocks.text('home', 'hero.title', 'Construimos espacios que trascienden.'));
   readonly heroSubtitle = computed(() => this.blocks.text('home', 'hero.subtitle', ''));
@@ -68,6 +70,23 @@ export class HomeComponent {
       CLOUDINARY_TRANSFORMS.hero,
     ),
   );
+
+  constructor() {
+    effect(() => {
+      const url = this.heroBackground();
+      if (!url) return;
+      const id = 'preload-hero-home';
+      if (this.document.getElementById(id)) return;
+      const link = this.document.createElement('link');
+      link.id = id;
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = url;
+      link.setAttribute('fetchpriority', 'high');
+      link.setAttribute('imagesizes', '100vw');
+      this.document.head.appendChild(link);
+    });
+  }
 
 
 
