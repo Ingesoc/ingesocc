@@ -11,6 +11,7 @@ import { CounterDirective, IconMotionDirective, RevealDirective } from '../../sh
 import { OPERACIONES } from '../about/operaciones.data';
 import { CONTACT } from '../../core/site-config';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
+import { safeHref } from '../../core/url-utils';
 
 /** Cómo trabajamos (Fase 2). Copy [PENDIENTE: validar con el cliente]. */
 const PROCESS_STEPS = [
@@ -118,7 +119,9 @@ export class HomeComponent {
   readonly ctaLabel = computed(() => this.blocks.text('global', 'cta_label', 'Solicitar Cotización'));
 
   /** CTA de WhatsApp del CTA final (contact.whatsapp; fallo: dato real verificado). */
-  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp));
+  readonly whatsappUrl = computed(
+    () => safeHref(this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp)) ?? CONTACT.whatsapp,
+  );
 
   /** Solo `featured = true`, ordenados por sort_order (plan 1.2.2). */
   readonly featuredProjects = this.projects.featured;

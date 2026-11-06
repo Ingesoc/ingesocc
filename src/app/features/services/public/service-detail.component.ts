@@ -8,6 +8,7 @@ import type { LucideIcon } from '@lucide/angular';
 import { SeoService } from '../../../core/seo.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
 import { CONTACT } from '../../../core/site-config';
+import { safeHref } from '../../../core/url-utils';
 import { ContentBlocksService } from '../../content-blocks/data-access/content-blocks.service';
 import { ServicesService } from '../data-access/services.service';
 import { serviceIconFor } from '../data-access/service-icons';
@@ -93,7 +94,9 @@ export class ServiceDetailComponent {
   readonly relatedProjects = computed(() => this.projects.published().slice(0, 3));
 
   /** WhatsApp del CTA final (contact.whatsapp; fallo: dato real verificado). */
-  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp));
+  readonly whatsappUrl = computed(
+    () => safeHref(this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp)) ?? CONTACT.whatsapp,
+  );
 
   constructor() {
     // SEO dinámico por servicio: título y descripción propios.

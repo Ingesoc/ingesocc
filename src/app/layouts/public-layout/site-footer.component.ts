@@ -4,6 +4,7 @@ import { LucideArrowUp, LucideExternalLink } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
 import { ServicesService } from '../../features/services/data-access/services.service';
 import { IconMotionDirective } from '../../shared/icons/icon-motion.directive';
+import { safeHref, toMailtoHref, toTelHref } from '../../core/url-utils';
 
 /** Misma navegación que el header (el pie replica las páginas públicas). */
 const NAV_ITEMS = [
@@ -39,14 +40,36 @@ export class SiteFooterComponent {
   );
 
   /** Redes reales de la empresa, editables desde content_blocks (plan 1.1). */
-  readonly linkedin = computed(() => this.blocks.text('global', 'social_linkedin', '#'));
-  readonly facebook = computed(() => this.blocks.text('global', 'social_facebook', '#'));
-  readonly instagram = computed(() => this.blocks.text('global', 'social_instagram', '#'));
+  readonly socialLinks = computed(() => {
+    const links = [
+      {
+        label: 'LinkedIn',
+        ariaLabel: 'LinkedIn de Ingesocc',
+        href: safeHref(this.blocks.text('global', 'social_linkedin', '')),
+      },
+      {
+        label: 'Instagram',
+        ariaLabel: 'Instagram de Ingesocc',
+        href: safeHref(this.blocks.text('global', 'social_instagram', '')),
+      },
+      {
+        label: 'Facebook',
+        ariaLabel: 'Facebook de Ingesocc',
+        href: safeHref(this.blocks.text('global', 'social_facebook', '')),
+      },
+    ];
+
+    return links.filter(
+      (link): link is { label: string; ariaLabel: string; href: string } => link.href !== null,
+    );
+  });
 
   /** Datos de contacto (mismos bloques que la página /contacto). */
   readonly email = computed(() => this.blocks.text('contact', 'email', ''));
   readonly phone = computed(() => this.blocks.text('contact', 'phone', ''));
   readonly address = computed(() => this.blocks.text('contact', 'address', ''));
+  readonly emailHref = computed(() => toMailtoHref(this.email()));
+  readonly phoneHref = computed(() => toTelHref(this.phone()));
 
   readonly year = new Date().getFullYear();
 

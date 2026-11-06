@@ -12,17 +12,9 @@ import {
   LucideSend,
 } from '@lucide/angular';
 import { IconMotionDirective } from '../../shared/icons';
+import { safeHref, toMailtoHref, toTelHref } from '../../core/url-utils';
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { ContactMessagesService } from './data-access/contact-messages.service';
-
-/**
- * Normaliza un teléfono a enlace tel: (deja dígitos y "+" inicial; espacios y
- * signos de puntuación fuera). Sin valor devuelve null para ocultar el enlace.
- */
-function telLink(phone: string): string | null {
-  const digits = phone.replace(/[^+\d]/g, '');
-  return digits ? `tel:${digits}` : null;
-}
 
 @Component({
   selector: 'app-contact',
@@ -49,11 +41,12 @@ export class ContactComponent {
   readonly title = computed(() => this.blocks.text('contact', 'title', 'Contacto'));
   readonly subtitle = computed(() => this.blocks.text('contact', 'subtitle', ''));
   readonly phone = computed(() => this.blocks.text('contact', 'phone'));
-  readonly phoneHref = computed(() => telLink(this.phone()));
+  readonly phoneHref = computed(() => toTelHref(this.phone()));
   readonly email = computed(() => this.blocks.text('contact', 'email'));
+  readonly emailHref = computed(() => toMailtoHref(this.email()));
   readonly address = computed(() => this.blocks.text('contact', 'address'));
-  /** URL wa.me del CMS (p. ej. https://wa.me/573127370811); '' = sin CTA. */
-  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp'));
+  /** URL wa.me del CMS (p. ej. https://wa.me/573127370811); null = sin CTA. */
+  readonly whatsappUrl = computed(() => safeHref(this.blocks.text('contact', 'whatsapp')));
   readonly privacyNote = computed(() => this.blocks.text('contact', 'privacy_note'));
 
   /**

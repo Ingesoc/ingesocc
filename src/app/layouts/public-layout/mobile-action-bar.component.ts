@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { LucideMessageCircle, LucidePhone } from '@lucide/angular';
 import { ContentBlocksService } from '../../features/content-blocks/data-access/content-blocks.service';
 import { CONTACT } from '../../core/site-config';
+import { safeHref, toTelHref } from '../../core/url-utils';
 import { IconMotionDirective } from '../../shared/icons/icon-motion.directive';
 
 /**
@@ -17,6 +18,10 @@ import { IconMotionDirective } from '../../shared/icons/icon-motion.directive';
 export class MobileActionBarComponent {
   private readonly blocks = inject(ContentBlocksService);
 
-  readonly whatsapp = computed(() => this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp));
-  readonly phone = computed(() => this.blocks.text('contact', 'phone', CONTACT.phone));
+  readonly whatsapp = computed(
+    () => safeHref(this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp)) ?? CONTACT.whatsapp,
+  );
+  readonly phoneLink = computed(
+    () => toTelHref(this.blocks.text('contact', 'phone', CONTACT.phone)) ?? toTelHref(CONTACT.phone),
+  );
 }

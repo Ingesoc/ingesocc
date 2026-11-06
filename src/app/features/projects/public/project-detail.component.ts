@@ -6,6 +6,7 @@ import { map } from 'rxjs';
 import { LucideArrowUpRight, LucideChevronLeft, LucideChevronRight, LucideExternalLink, LucideMapPin } from '@lucide/angular';
 import { SeoService } from '../../../core/seo.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../../core/cloudinary-urls';
+import { safeHref } from '../../../core/url-utils';
 import { LightboxComponent, type LightboxImage } from '../../../shared/components';
 import { CounterDirective, IconMotionDirective, RevealDirective } from '../../../shared/icons';
 import { ProjectsService } from '../data-access/projects.service';
@@ -58,6 +59,9 @@ export class ProjectDetailComponent {
   private readonly slug = toSignal(this.route.paramMap.pipe(map((params) => params.get('slug'))));
 
   readonly project = computed(() => this.projects.bySlug(this.slug() ?? ''));
+
+  /** Enlace externo del proyecto, solo si usa un esquema permitido. */
+  readonly externalUrl = computed(() => safeHref(this.project()?.externalUrl));
 
   /** Hero a sangre: ancho de viewport, no el de las cards. */
   readonly coverUrl = computed(() =>

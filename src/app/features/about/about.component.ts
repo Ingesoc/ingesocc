@@ -6,6 +6,7 @@ import { IconMotionDirective, LineDrawDirective, RevealDirective } from '../../s
 import { ContentBlocksService } from '../content-blocks/data-access/content-blocks.service';
 import { CLOUDINARY_TRANSFORMS, withCloudinaryTransform } from '../../core/cloudinary-urls';
 import { CONTACT } from '../../core/site-config';
+import { safeHref } from '../../core/url-utils';
 import { OPERACIONES } from './operaciones.data';
 
 /** Slots fijos del timeline (plan 1.4): el admin edita el contenido, no la estructura. */
@@ -63,7 +64,9 @@ export class AboutComponent {
   );
 
   /** WhatsApp del CTA final (contact.whatsapp; fallo: dato real verificado). */
-  readonly whatsappUrl = computed(() => this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp));
+  readonly whatsappUrl = computed(
+    () => safeHref(this.blocks.text('contact', 'whatsapp', CONTACT.whatsapp)) ?? CONTACT.whatsapp,
+  );
 
   readonly team = computed(() =>
     TEAM_KEYS.map((key) => ({
@@ -86,7 +89,7 @@ export class AboutComponent {
       key,
       title: this.blocks.text('about', `certificaciones.${key}.title`).trim(),
       issuer: this.blocks.text('about', `certificaciones.${key}.issuer`).trim(),
-      link: this.blocks.text('about', `certificaciones.${key}.link`).trim(),
+      link: safeHref(this.blocks.text('about', `certificaciones.${key}.link`)),
       logo: withCloudinaryTransform(
         this.blocks.image('about', `certificaciones.${key}.logo`),
         CLOUDINARY_TRANSFORMS.thumbnail,

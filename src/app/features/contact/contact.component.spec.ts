@@ -60,9 +60,14 @@ describe('ContactComponent (datos corporativos reales)', () => {
     expect(component.whatsappUrl()).toBe(REAL_CONTACT.whatsapp);
   });
 
-  it('sin bloque de WhatsApp el CTA queda vacío (la plantilla lo oculta)', () => {
+  it('sin bloque de WhatsApp el CTA queda oculto', () => {
     const component = setup({ phone: REAL_CONTACT.phone, email: REAL_CONTACT.email });
-    expect(component.whatsappUrl()).toBe('');
+    expect(component.whatsappUrl()).toBeNull();
+  });
+
+  it('descarta un WhatsApp con esquema peligroso', () => {
+    const component = setup({ whatsapp: 'javascript:alert(1)' });
+    expect(component.whatsappUrl()).toBeNull();
   });
 
   it('los placeholders de ejemplo ya no existen en el seed estático', async () => {

@@ -18,21 +18,13 @@
           Arquitectura, ingeniería y construcción con propósito. Obras de infraestructura, industria y salud en Colombia.
         </p>
         <div class="mt-8 flex flex-wrap items-center gap-3">
-          <a [href]="linkedin()" target="_blank" rel="noopener" aria-label="LinkedIn de Ingesocc"
-            class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
-            LinkedIn
-            <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
-          </a>
-          <a [href]="instagram()" target="_blank" rel="noopener" aria-label="Instagram de Ingesocc"
-            class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
-            Instagram
-            <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
-          </a>
-          <a [href]="facebook()" target="_blank" rel="noopener" aria-label="Facebook de Ingesocc"
-            class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
-            Facebook
-            <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
-          </a>
+          @for (link of socialLinks(); track link.label) {
+            <a [href]="link.href" target="_blank" rel="noopener" [attr.aria-label]="link.ariaLabel"
+              class="group inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 transition-colors duration-200 hover:text-accent">
+              {{ link.label }}
+              <svg lucideExternalLink appIconMotion="nudge-x" aria-hidden="true" class="h-3.5 w-3.5 opacity-60 transition-opacity group-hover:opacity-100" />
+            </a>
+          }
         </div>
       </div>
 
@@ -72,11 +64,19 @@
         <ul class="grid gap-3">
           <li class="flex min-w-0 items-baseline gap-3 border-b border-white/10 pb-3">
             <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-on-dark-muted">Email</span>
-            <a [href]="'mailto:' + email()" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ email() }}</a>
+            @if (emailHref(); as href) {
+              <a [href]="href" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ email() }}</a>
+            } @else {
+              <span class="min-w-0 break-words text-sm text-white/75">{{ email() }}</span>
+            }
           </li>
           <li class="flex min-w-0 items-baseline gap-3 border-b border-white/10 pb-3">
             <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-on-dark-muted">Teléfono</span>
-            <a [href]="'tel:' + phone()" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ phone() }}</a>
+            @if (phoneHref(); as href) {
+              <a [href]="href" class="min-w-0 break-words text-sm text-white/75 transition-colors hover:text-accent">{{ phone() }}</a>
+            } @else {
+              <span class="min-w-0 break-words text-sm text-white/75">{{ phone() }}</span>
+            }
           </li>
           <li class="flex min-w-0 items-baseline gap-3">
             <span class="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-on-dark-muted">Ubicación</span>

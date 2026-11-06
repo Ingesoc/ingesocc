@@ -11,8 +11,11 @@
 --      services y content_blocks.
 --   E-G) CRUD de projects, services y content_blocks: anon y user bloqueados,
 --        admin con CRUD completo.
---   H) Storage (storage.objects): lectura pública para anon/user/admin;
---      insert/update/delete solo admin.
+--   H) Storage (storage.objects): lectura acotada por bucket/estado para
+--      anon/user (proyectos y servicios publicados); admin con lectura total;
+--      insert/update/delete solo admin. content-images no se lista.
+--   I) project_images: anon/user solo ven imágenes de proyectos publicados.
+--   J) Rate limit de contact_messages: email normalizado y tope por ventana.
 --
 -- Dónde correr: SQL Editor de Supabase, de arriba a abajo, en un proyecto de
 -- PRUEBAS/STAGING. El script crea 2 usuarios de prueba + 1 mensaje + fixtures
@@ -45,6 +48,13 @@ create table if not exists public._rls_test_results (
 truncate public._rls_test_results;
 -- Los DO blocks de los escenarios corren impersonando anon/authenticated:
 grant select, insert on public._rls_test_results to anon, authenticated;
+
+-- Contadores del rate limit de contact_messages (migración 20260919000002):
+-- se reinician para que el script sea idempotente entre corridas seguidas.
+delete from public.contact_rate_limits
+where bucket_key in ('contact:global',
+                     'contact:email:rls-check@example.test',
+                     'contact:email:rls-rate@example.test');
 
 -- 0.1 Usuarios de prueba en auth.users (dispara el trigger on_auth_user_created,
 --     que crea su fila en profiles con role 'user').
@@ -160,20 +170,29 @@ begin
 end;
 $$;
 
--- 0.5 Fixtures de la matriz (projects/services/content_blocks/storage).
---      Primero se limpia cualquier resto de un run anterior que haya quedado a
---      medias (slugs/pages/names con prefijo 'rls-check'), y luego se insertan
---      con IDs fijos para poder borrarlos al final:
+-- 0.5 Fixtures de la matriz (projects/services/content_blocks/project_images/
+--      storage). Primero se limpia cualquier resto de un run anterior que haya
+--      quedado a medias, y luego se insertan con IDs fijos para poder borrarlos
+--      al final:
 --        proyectos: 30000000-...-0001 publicado, 30000000-...-0002 draft
 --        servicios: 40000000-...-0001 publicado, 40000000-...-0002 draft
 --        content:   50000000-...-0001 (page 'rls-check')
---        storage:   'rls-checks/fixture.png' en project-images
+--        imágenes:  60000000-...-0001 (proyecto publicado), ...0002 (draft)
+--        storage:   rutas <project_id>/cover.png y services/<service_id>/...;
+--                   'rls-checks/fixture.png' queda solo para probar escritura.
 delete from public.projects where slug like 'rls-check-%';
 delete from public.services where slug like 'rls-check-%';
 delete from public.content_blocks where page = 'rls-check';
 delete from storage.objects
-where bucket_id in ('project-images', 'service-images', 'content-images')
-  and name like 'rls-checks/%';
+where (bucket_id in ('project-images', 'service-images', 'content-images')
+       and name like 'rls-checks/%')
+   or (bucket_id = 'project-images'
+       and name in ('30000000-0000-4000-8000-000000000001/cover.png',
+                    '30000000-0000-4000-8000-000000000002/secret.png'))
+   or (bucket_id = 'service-images'
+       and name in ('services/40000000-0000-4000-8000-000000000001/cover.png',
+                    'services/40000000-0000-4000-8000-000000000002/secret.png'))
+   or (bucket_id = 'content-images' and name = 'content/fixture.png');
 
 insert into public.projects (id, title, slug, description, status)
 values
@@ -196,8 +215,24 @@ values ('50000000-0000-4000-8000-000000000001', 'rls-check', 'matrix.value',
         'text', 'Contenido temporal de la matriz RLS; se elimina al final.')
 on conflict (page, section_key) do nothing;
 
+insert into public.project_images (id, project_id, storage_path, is_cover, sort_order)
+values
+  ('60000000-0000-4000-8000-000000000001',
+   '30000000-0000-4000-8000-000000000001',
+   '30000000-0000-4000-8000-000000000001/cover.png', true, 0),
+  ('60000000-0000-4000-8000-000000000002',
+   '30000000-0000-4000-8000-000000000002',
+   '30000000-0000-4000-8000-000000000002/secret.png', true, 0)
+on conflict (id) do nothing;
+
 insert into storage.objects (bucket_id, name, owner, metadata)
-values ('project-images', 'rls-checks/fixture.png', null, '{}'::jsonb)
+values
+  ('project-images', '30000000-0000-4000-8000-000000000001/cover.png', null, '{}'::jsonb),
+  ('project-images', '30000000-0000-4000-8000-000000000002/secret.png', null, '{}'::jsonb),
+  ('service-images', 'services/40000000-0000-4000-8000-000000000001/cover.png', null, '{}'::jsonb),
+  ('service-images', 'services/40000000-0000-4000-8000-000000000002/secret.png', null, '{}'::jsonb),
+  ('content-images', 'content/fixture.png', null, '{}'::jsonb),
+  ('project-images', 'rls-checks/fixture.png', null, '{}'::jsonb)
 on conflict do nothing;
 
 -- ----------------------------------------------------------------------------
@@ -379,6 +414,12 @@ begin;
     'select * from public.projects where slug = ''rls-check-published''', 1);
   select public._rls_check_select('D2',
     'select * from public.projects where slug = ''rls-check-draft''', 0);
+  select public._rls_check_select('D14',
+    'select * from public.project_images
+     where project_id = ''30000000-0000-4000-8000-000000000001''', 1);
+  select public._rls_check_select('D15',
+    'select * from public.project_images
+     where project_id = ''30000000-0000-4000-8000-000000000002''', 0);
   select public._rls_check_select('D5',
     'select * from public.services where slug = ''rls-check-published''', 1);
   select public._rls_check_select('D6',
@@ -397,6 +438,9 @@ begin;
     'select * from public.projects where slug = ''rls-check-published''', 1);
   select public._rls_check_select('D4',
     'select * from public.projects where slug = ''rls-check-draft''', 0);
+  select public._rls_check_select('D16',
+    'select * from public.project_images
+     where project_id = ''30000000-0000-4000-8000-000000000002''', 0);
   select public._rls_check_select('D7',
     'select * from public.services where slug = ''rls-check-published''', 1);
   select public._rls_check_select('D8',
@@ -414,6 +458,9 @@ begin;
   -- El admin ve hasta los drafts (policy for all + using is_admin()).
   select public._rls_check_select('D11',
     'select * from public.projects where slug = ''rls-check-draft''', 1);
+  select public._rls_check_select('D17',
+    'select * from public.project_images
+     where project_id = ''30000000-0000-4000-8000-000000000002''', 1);
   select public._rls_check_select('D12',
     'select * from public.services where slug = ''rls-check-draft''', 1);
   select public._rls_check_select('D13',
@@ -585,7 +632,23 @@ begin;
 
   select public._rls_check_select('H1',
     'select * from storage.objects
-     where bucket_id = ''project-images'' and name = ''rls-checks/fixture.png''', 1);
+     where bucket_id = ''project-images''
+       and name = ''30000000-0000-4000-8000-000000000001/cover.png''', 1);
+  select public._rls_check_select('H14',
+    'select * from storage.objects
+     where bucket_id = ''project-images''
+       and name = ''30000000-0000-4000-8000-000000000002/secret.png''', 0);
+  select public._rls_check_select('H15',
+    'select * from storage.objects
+     where bucket_id = ''content-images'' and name = ''content/fixture.png''', 0);
+  select public._rls_check_select('H16',
+    'select * from storage.objects
+     where bucket_id = ''service-images''
+       and name = ''services/40000000-0000-4000-8000-000000000001/cover.png''', 1);
+  select public._rls_check_select('H17',
+    'select * from storage.objects
+     where bucket_id = ''service-images''
+       and name = ''services/40000000-0000-4000-8000-000000000002/secret.png''', 0);
   select public._rls_check_blocked('H4',
     'insert into storage.objects (bucket_id, name, owner, metadata)
      values (''project-images'', ''rls-checks/anon.png'', null, ''{}''::jsonb)');
@@ -605,7 +668,8 @@ begin;
 
   select public._rls_check_select('H2',
     'select * from storage.objects
-     where bucket_id = ''project-images'' and name = ''rls-checks/fixture.png''', 1);
+     where bucket_id = ''project-images''
+       and name = ''30000000-0000-4000-8000-000000000001/cover.png''', 1);
   select public._rls_check_blocked('H5',
     'insert into storage.objects (bucket_id, name, owner, metadata)
      values (''project-images'', ''rls-checks/user.png'', null, ''{}''::jsonb)');
@@ -625,7 +689,8 @@ begin;
 
   select public._rls_check_select('H3',
     'select * from storage.objects
-     where bucket_id = ''project-images'' and name = ''rls-checks/fixture.png''', 1);
+     where bucket_id = ''project-images''
+       and name = ''30000000-0000-4000-8000-000000000001/cover.png''', 1);
   select public._rls_check_exact('H6',
     'insert into storage.objects (bucket_id, name, owner, metadata)
      values (''project-images'', ''rls-checks/admin-insert.png'', null, ''{}''::jsonb)', 1);
@@ -645,7 +710,39 @@ from storage.objects
 where bucket_id = 'project-images' and name = 'rls-checks/fixture.png';
 
 -- ----------------------------------------------------------------------------
--- 9. Resumen y limpieza
+-- 9. J) Rate limit de contact_messages (ING-SEC-02)
+--      El guard normaliza el correo (trim + minúsculas) y permite máximo 3
+--      inserts por ventana. El cuarto debe devolver null (trigger) y no crear
+--      fila. Se ejecuta como postgres (dueño), fuera de RLS.
+-- ----------------------------------------------------------------------------
+insert into public.contact_messages (name, email, message) values
+  ('RLS Rate 1', 'RLS-Rate@Example.Test',
+   'Mensaje temporal de rate limit; se elimina al final del script.'),
+  ('RLS Rate 2', 'rls-rate@example.test',
+   'Mensaje temporal de rate limit; se elimina al final del script.'),
+  ('RLS Rate 3', '  rls-rate@example.test  ',
+   'Mensaje temporal de rate limit; se elimina al final del script.'),
+  ('RLS Rate 4 (bloqueado)', 'rls-rate@example.test',
+   'Este cuarto mensaje debe ser descartado por el guard de rate limit.');
+
+insert into public._rls_test_results
+select 'J1',
+       case when count(*) = 3 then 'PASS' else 'FAIL' end,
+       'mensajes guardados para el correo de prueba: ' || count(*)
+from public.contact_messages
+where email = 'rls-rate@example.test';
+
+insert into public._rls_test_results
+select 'J2',
+       case when count(*) = count(*) filter (where email = lower(btrim(email)))
+            then 'PASS' else 'FAIL' end,
+       'correos normalizados: ' ||
+       count(*) filter (where email = lower(btrim(email))) || '/' || count(*)
+from public.contact_messages
+where email = 'rls-rate@example.test';
+
+-- ----------------------------------------------------------------------------
+-- 10. Resumen y limpieza
 -- ----------------------------------------------------------------------------
 select * from public._rls_test_results order by check_id;
 
@@ -656,7 +753,11 @@ delete from auth.users
 where id in ('10000000-0000-4000-8000-000000000001',
              '10000000-0000-4000-8000-000000000002');
 delete from public.contact_messages
-where id = '20000000-0000-4000-8000-000000000001';
+where id = '20000000-0000-4000-8000-000000000001'
+   or email = 'rls-rate@example.test';
+delete from public.contact_rate_limits
+where bucket_key in ('contact:email:rls-check@example.test',
+                     'contact:email:rls-rate@example.test');
 delete from public.projects
 where id in ('30000000-0000-4000-8000-000000000001',
              '30000000-0000-4000-8000-000000000002')
@@ -667,8 +768,15 @@ where id in ('40000000-0000-4000-8000-000000000001',
    or slug like 'rls-check-%';
 delete from public.content_blocks where page = 'rls-check';
 delete from storage.objects
-where bucket_id in ('project-images', 'service-images', 'content-images')
-  and name like 'rls-checks/%';
+where (bucket_id in ('project-images', 'service-images', 'content-images')
+       and name like 'rls-checks/%')
+   or (bucket_id = 'project-images'
+       and name in ('30000000-0000-4000-8000-000000000001/cover.png',
+                    '30000000-0000-4000-8000-000000000002/secret.png'))
+   or (bucket_id = 'service-images'
+       and name in ('services/40000000-0000-4000-8000-000000000001/cover.png',
+                    'services/40000000-0000-4000-8000-000000000002/secret.png'))
+   or (bucket_id = 'content-images' and name = 'content/fixture.png');
 drop function if exists public._rls_check_select(text, text, int);
 drop function if exists public._rls_check_blocked(text, text);
 drop function if exists public._rls_check_exact(text, text, int);

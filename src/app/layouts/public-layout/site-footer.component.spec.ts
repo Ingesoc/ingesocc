@@ -16,7 +16,10 @@ describe('SiteFooterComponent (Fase 09: cierre de página)', () => {
         provideRouter([]),
         {
           provide: ContentBlocksService,
-          useValue: { text: (_page: string, _key: string, fallback = '') => fallback },
+          useValue: {
+            text: (_page: string, key: string, fallback = '') =>
+              key.startsWith('social_') ? `https://example.com/${key}` : fallback,
+          },
         },
         { provide: ServicesService, useValue: { published: signal([]) } },
       ],
