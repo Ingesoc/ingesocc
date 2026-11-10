@@ -28,9 +28,15 @@ const LA_HOLANDA_LOCATION = 'Vía Quimbaya - Alcalá, Vereda Jazmín, Quimbaya, 
  * Catálogo de proyectos (tabla `projects` del plan, sección 3.2).
  *
  * Al iniciar intenta cargar desde Supabase (RLS ya filtra `status =
- * 'published'` para anónimos). Si la tabla no existe todavía o está vacía,
- * mantiene el seed estático de ejemplo (plan 1.7 — ilustrativo, el portafolio
- * real se carga vía el CRUD del admin en Fase 4).
+ * 'published'` para anónimos). Matriz de comportamiento de `load()`:
+ *  - error de consulta (tabla inexistente, sin credenciales, red): conserva el
+ *    seed estático de ejemplo y marca `loadState = true` (el sitio sigue
+ *    disponible, pero el panel sabe que lo mostrado no viene de la DB);
+ *  - tabla existente pero vacía: muestra la realidad (`[]`), NO el seed, para
+ *    no presentar proyectos ilustrativos como si estuvieran publicados;
+ *  - carga correcta: reemplaza el seed con las filas de la DB.
+ * El seed es ilustrativo (plan 1.7); el portafolio real se carga vía el CRUD
+ * del admin (Fase 4).
  */
 const SEED_PROJECTS: Project[] = [
   {

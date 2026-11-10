@@ -27,6 +27,7 @@ export class SiteHeaderComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
+  private readonly mobileMenu = viewChild<ElementRef<HTMLElement>>('mobileMenu');
 
   readonly navItems = NAV_ITEMS;
   readonly menuOpen = signal(false);
@@ -60,6 +61,14 @@ export class SiteHeaderComponent {
         document.body.style.overflow = '';
       });
     });
+
+    // Al abrir, lleva el foco al primer enlace del menú (el `viewChild` se
+    // resuelve después del render; el efecto se reevalúa cuando aparece).
+    effect(() => {
+      if (!this.menuOpen()) return;
+      const menu = this.mobileMenu()?.nativeElement;
+      menu?.querySelector<HTMLElement>('a[href], button:not([disabled])')?.focus();
+    });
   }
 
   @HostListener('window:scroll', [])
@@ -77,6 +86,46 @@ export class SiteHeaderComponent {
     if (!this.menuOpen()) return;
     this.menuOpen.set(false);
     this.menuButton()?.nativeElement.focus();
+  }
+
+  @HostListener('document:keydown.tab', ['$event'])
+  private onDocumentTab(event: KeyboardEvent): void {
+    this.onMenuKeydown(event);
+  }
+
+  /**
+   * Mantiene el foco dentro del menú móvil mientras está abierto (WCAG 2.4.3).
+   * El ciclo incluye el botón de cierre, que vive en la barra superior.
+   */
+  onMenuKeydown(event: KeyboardEvent): void {
+    if (!this.menuOpen() || event.key !== 'Tab') return;
+    const menu = this.mobileMenu()?.nativeElement;
+    if (!menu) return;
+
+    const items = [
+      this.menuButton()?.nativeElement,
+      ...Array.from(
+        menu.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ),
+    ].filter((el): el is HTMLElement => el !== undefined && el.getClientRects().length > 0);
+
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    const outside = !active || (!menu.contains(active) && active !== first);
+
+    if (event.shiftKey) {
+      if (outside || active === first) {
+        event.preventDefault();
+        last.focus();
+      }
+    } else if (outside || active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   toggleMenu(): void {

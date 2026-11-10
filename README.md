@@ -14,7 +14,10 @@ manuales de uso ([[Guías de Uso]] y [[Casos de Uso]]).
 
 Abrir en Obsidian: *Open folder as vault* → `docs/obsidian/` → empezar por
 `Inicio.md` (el mapa del vault). Los docs `docs/cambios-auditoria-final.md` y
-`docs/test-plan-audit.md` siguen siendo la fuente cronológica de la auditoría.
+`docs/test-plan-audit.md` siguen siendo la fuente cronológica de la auditoría;
+los cambios de rendimiento + responsive de noviembre 2026 están en
+`docs/cambios-auditorias-2026-11.md` y el diagnóstico visual en
+`docs/visual-audit/`.
 
 ## Stack
 
@@ -91,7 +94,7 @@ pnpm test:ci    # tests unitarios en una sola pasada (headless)
 pnpm test:api   # tests de las funciones de Cloudinary (node:test)
 pnpm typecheck:api # typecheck de api/ sin emitir
 pnpm test:e2e   # tests E2E (Playwright, flujos públicos)
-pnpm test:perf  # auditoría Lighthouse con presupuestos (/ y /proyectos)
+pnpm test:perf  # auditoría Lighthouse con presupuestos (todas las rutas de PAGES)
 pnpm test:visual # QA visual: accent-deep + contraste + overflow + screenshots
 ```
 
@@ -124,14 +127,28 @@ pnpm test:visual # QA visual: accent-deep + contraste + overflow + screenshots
 
 ## Auditoría Lighthouse (presupuestos de rendimiento)
 
-`pnpm test:perf` hace el build, sirve `dist/` localmente y audita `/` y
-`/proyectos` con Lighthouse en **dos modos** contra los presupuestos de
-`tools/lighthouse-ci.mjs`: **escritorio** simulado (1440×900, 10 Mbps, CPU 1×)
-con Performance ≥ 0.80 (error, exit 1) y ≥ 0.90 (aviso); y **móvil** real
-(412×823, 1.6 Mbps, CPU 4×) con Performance ≥ 0.50 (error) y ≥ 0.60 (aviso).
-En ambos modos se vigilan además los bytes transferidos (documento/script/total)
-y las categorías de accesibilidad/buenas prácticas/SEO. Los reportes JSON
-quedan en `.lighthouseci/` (ignorado por git).
+`pnpm test:perf` hace el build, sirve `dist/` localmente y audita con Lighthouse
+en **dos modos** las rutas declaradas en `PAGES` (`tools/lighthouse-ci.mjs`):
+`/`, `/quienes-somos`, `/servicios`, `/servicios/proyectos-de-infraestructura`,
+`/proyectos`, `/proyectos/la-holanda`, `/contacto` y `/admin/login`. Las rutas
+dinámicas usan slugs estables del seed para que los resultados sean comparables
+entre corridas.
+
+Presupuestos: **escritorio** simulado (1440×900, 10 Mbps, CPU 1×) con
+Performance ≥ 0.80 (error, exit 1) y ≥ 0.90 (aviso); **móvil** real
+(412×823, 1.6 Mbps, CPU 4×) con Performance ≥ 0.55 (error) y ≥ 0.65 (aviso).
+El umbral móvil se midió antes de fijarlo: 8 rutas × 2 corridas dieron 60-66
+con varianza de 3-5 puntos, por eso el error queda en 0.55 (subir a 0.70 exige
+optimizar primero).
+En ambos modos se vigilan además los bytes transferidos: documento, **script
+propio** (≤ 1 MB error) y **script de terceros** (≤ 900 KB error, con techo
+propio para detectar dependencias inesperadas) y total. El JS propio se mide por
+origen para que un embed deliberado como Google Maps (~500 KB en contacto y
+detalle de proyecto) no se confunda con una regresión del bundle. Las categorías
+de accesibilidad/buenas prácticas/SEO ahora **fallan el pipeline por debajo de
+0.85** y avisan por debajo de 0.90; en `/admin/login` se omite SEO porque la
+página lleva `noindex` a propósito. Los reportes JSON quedan en `.lighthouseci/`
+(ignorado por git).
 
 ```bash
 pnpm test:perf             # escritorio + móvil (exit 0 si se cumplen los presupuestos de nivel "error")
@@ -139,16 +156,24 @@ node tools/lighthouse-ci.mjs desktop   # solo un modo (sin rebuild)
 node tools/lighthouse-ci.mjs mobile
 ```
 
-Estado actual (2026-09): **Desktop ~95-97 · Mobile ~65-66** en ambas páginas,
-**Accessibility 100** en las 4 corridas (el texto naranja sobre fondos claros
+Estado actual (2026-09): **Desktop ~95-97 · Mobile ~65-66** en las páginas
+medidas, **Accessibility 100** en las corridas (el texto naranja sobre fondos claros
 usa `text-accent-deep`, un rust de la misma familia con contraste AA). La auditoría
 ya destapó y sirvió para corregir: logo de 1 MB → 80 KB (256 px, 2× retina en
 su uso mayor), LCP del hero (imagen sin `fetchpriority` y pedida a `w=2200`),
 CLS del hero (el fondo se renderizaba en flujo normal por un conflicto
 `relative`/`absolute` en `EditableImage`), imágenes bajo el fold sin `lazy`, y
 el SDK de Supabase (~220 KB) que bloqueaba el primer pintado — ahora se importa
-con `import()` diferido y no forma parte del bundle inicial. Para llegar más
-allá haría falta SSR/prerender (recomendación documentada, no migrada).
+con `import()` diferido y no forma parte del bundle inicial. Las rutas públicas
+distintas de Home se cargan con `loadComponent` (chunks por página) para no
+incluir todo el sitio en el JS inicial. Para llegar más allá haría falta
+SSR/prerender.
+
+**Decisión SSR/prerender (2026-11):** no se migra en esta fase. Primero se
+ejecutan las optimizaciones de P1 (lazy routes, presupuestos más estrictos) y se
+comparan las mismas rutas/red en staging; solo si la experiencia móvil sigue por
+debajo del objetivo se evaluará prerender de páginas públicas estables, midiendo
+antes la compatibilidad con Supabase Auth y las rutas protegidas.
 
 ## QA visual (paleta y contrastes en el navegador)
 

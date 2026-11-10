@@ -207,6 +207,42 @@ describe('ProjectsService', () => {
     expect(service.featured().length).toBe(0);
   });
 
+  it('marca loadState y conserva el seed ante un error de conexión', async () => {
+    // Error genérico (red caída / Supabase inaccesible), no solo tabla ausente.
+    results['projects'] = { error: { message: 'TypeError: fetch failed' } };
+    results['categories'] = { error: { message: 'TypeError: fetch failed' } };
+
+    const service = setup();
+    expect(service.loadState()).toBe(false);
+
+    const ok = await service.load();
+
+    expect(ok).toBe(false);
+    expect(service.loadState()).toBe(true);
+    // El sitio público sigue mostrando el seed mientras la DB no responde.
+    expect(service.published().length).toBe(11);
+    expect(console.warn).toHaveBeenCalled();
+  });
+
+  it('limpia loadState cuando una carga posterior tiene éxito', async () => {
+    results['projects'] = { error: { message: 'fetch failed' } };
+    const service = setup();
+    await service.load();
+    expect(service.loadState()).toBe(true);
+
+    results['projects'] = {
+      data: [
+        { id: 'p1', title: 'Ok', slug: 'ok', description: 'x', price_min_wages: null, status: 'published', featured: false, sort_order: 1 },
+      ],
+    };
+    results['categories'] = { data: [] };
+
+    await service.load();
+
+    expect(service.loadState()).toBe(false);
+    expect(service.published().map((p) => p.slug)).toEqual(['ok']);
+  });
+
   it('loadCategories usa las filas de la tabla categories y expone sus nombres', async () => {
     results['projects'] = { data: [] };
     results['categories'] = {

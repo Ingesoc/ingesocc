@@ -41,7 +41,7 @@
     <button
       #menuButton
       type="button"
-      class="flex h-11 w-11 items-center justify-center rounded-sm border border-white/30 text-white transition-colors hover:border-accent hover:bg-accent hover:text-primary lg:hidden"
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-white/30 text-white transition-colors hover:border-accent hover:bg-accent hover:text-primary lg:hidden"
       (click)="toggleMenu()"
       [attr.aria-expanded]="menuOpen()"
       aria-controls="mobile-menu"
@@ -53,8 +53,13 @@
 
   <!-- Menú móvil: pantalla completa -->
   @if (menuOpen()) {
-    <nav id="mobile-menu" class="fixed inset-0 z-0 flex flex-col bg-primary lg:hidden" aria-label="Menú móvil">
-      <div class="wrap flex flex-1 flex-col justify-center gap-1 py-24">
+    <nav
+      #mobileMenu
+      id="mobile-menu"
+      class="fixed inset-0 z-0 flex flex-col overflow-y-auto overscroll-contain bg-primary lg:hidden"
+      aria-label="Menú móvil"
+    >
+      <div class="wrap flex flex-col gap-1 pt-24 pb-8 sm:pt-28">
         @for (item of navItems; track item.link; let i = $index) {
           <a
             [routerLink]="item.link"
@@ -67,7 +72,7 @@
           </a>
         }
       </div>
-      <div class="wrap pb-12">
+      <div class="wrap mt-auto pb-12 pt-6">
         <a routerLink="/contacto" (click)="toggleMenu()" class="btn btn-accent w-full">
           {{ ctaLabel() }}
           <svg lucideArrowUpRight class="h-4 w-4" />

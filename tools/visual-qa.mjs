@@ -49,17 +49,25 @@ function toHex([r, g, b]) {
 }
 
 const VIEWPORTS = [
+  { width: 320, height: 568, label: 'small' },
+  { width: 360, height: 800, label: 'phone-s' },
+  { width: 390, height: 844, label: 'phone' },
+  { width: 430, height: 932, label: 'phone-l' },
+  { width: 768, height: 1024, label: 'tablet' },
+  { width: 1024, height: 768, label: 'landscape' },
+  { width: 1280, height: 800, label: 'laptop' },
   { width: 1440, height: 900, label: 'desktop' },
-  { width: 390, height: 844, label: 'mobile' },
 ];
 
 const PAGES = [
   { path: '/', ready: 'section#inicio', file: 'home' },
   { path: '/quienes-somos', ready: 'main section h1', file: 'about' },
   { path: '/servicios', ready: 'main h1', file: 'servicios' },
+  { path: '/servicios/proyectos-de-infraestructura', ready: 'main h1', file: 'servicio-detalle' },
   { path: '/proyectos', ready: 'main h1', file: 'proyectos' },
   { path: '/proyectos/casa-ladera', ready: 'main h1', file: 'proyecto-detalle' },
   { path: '/contacto', ready: 'main form', file: 'contacto' },
+  { path: '/no-encontrada', ready: 'main h1', file: 'no-encontrada' },
   { path: '/admin/login', ready: 'form', file: 'admin-login' },
 ];
 
@@ -162,12 +170,164 @@ async function runCoreChecks(page, tag) {
   return results;
 }
 
+/**
+ * Comprobaciones de layout responsive (sin overflow de página):
+ * un solo <main>, barra inferior cubierta por su spacer, chips que no superan
+ * su fila, grids del formulario que no invaden el padding del panel y hero
+ * contenido en 320×568.
+ */
+async function runLayoutChecks(page, tag) {
+  const issues = await page.evaluate(() => {
+    const out = [];
+    const vw = document.documentElement.clientWidth;
+    const vh = window.innerHeight;
+    if (document.documentElement.scrollWidth > vw + 1) out.push('overflow horizontal');
+
+    const mains = document.querySelectorAll('main').length;
+    if (mains !== 1) out.push(`${mains} <main> (esperado 1)`);
+
+    const bar = document.querySelector('nav[aria-label="Acciones rápidas"]');
+    if (bar && getComputedStyle(bar).display !== 'none') {
+      const spacer = bar.closest('app-mobile-action-bar')?.previousElementSibling;
+      const barHeight = bar.getBoundingClientRect().height;
+      const spacerHeight = spacer?.getBoundingClientRect().height ?? 0;
+      if (spacerHeight < barHeight - 1) {
+        out.push(`barra ${barHeight.toFixed(1)}px > spacer ${spacerHeight.toFixed(1)}px`);
+      }
+    }
+
+    for (const row of document.querySelectorAll('.chips-row')) {
+      const rowWidth = row.clientWidth;
+      for (const child of row.children) {
+        const width = child.getBoundingClientRect().width;
+        if (width > rowWidth + 1) {
+          out.push(`chip ${width.toFixed(0)}px > fila ${rowWidth}px`);
+          break;
+        }
+      }
+    }
+
+    for (const grid of document.querySelectorAll('form div')) {
+      if (!String(grid.className).includes('minmax')) continue;
+      const panel = grid.closest('.panel');
+      if (!panel) continue;
+      const panelRect = panel.getBoundingClientRect();
+      const innerRight = panelRect.right - parseFloat(getComputedStyle(panel).paddingRight);
+      for (const child of grid.children) {
+        const overflow = child.getBoundingClientRect().right - innerRight;
+        if (overflow > 1) {
+          out.push(`form grid invade ${overflow.toFixed(0)}px del padding`);
+          break;
+        }
+      }
+    }
+
+    const hero = document.querySelector('section#inicio');
+    if (hero && vw <= 320) {
+      const heroHeight = hero.getBoundingClientRect().height;
+      if (heroHeight > vh * 1.15) {
+        out.push(`hero ${heroHeight.toFixed(0)}px > ${(vh * 1.15).toFixed(0)}px`);
+      }
+    }
+    return out;
+  });
+
+  return issues.map((msg) => ({ tag, level: 'FAIL', msg }));
+}
+
+/** Menú móvil: foco inicial, scroll interno, CTA alcanzable, trap y Esc. */
+async function runMenuChecks(page, tag) {
+  const button = page.locator('button[aria-controls="mobile-menu"]');
+  if (!(await button.count()) || !(await button.isVisible().catch(() => false))) return [];
+
+  const results = [];
+  await button.click();
+  await page.waitForSelector('#mobile-menu', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(400);
+
+  const info = await page.evaluate(() => {
+    const menu = document.querySelector('#mobile-menu');
+    if (!menu) return null;
+    const cta = menu.querySelector('a.btn-accent');
+    const ctaRect = cta?.getBoundingClientRect();
+    const active = document.activeElement;
+    const buttonEl = document.querySelector('button[aria-controls="mobile-menu"]');
+    return {
+      initialFocus: !!menu.contains(active) || active === buttonEl,
+      scrollHeight: menu.scrollHeight,
+      clientHeight: menu.clientHeight,
+      overflowY: getComputedStyle(menu).overflowY,
+      ctaVisible: ctaRect ? ctaRect.top >= 0 && ctaRect.bottom <= window.innerHeight + 1 : false,
+    };
+  });
+
+  if (!info) {
+    results.push({ tag, level: 'FAIL', msg: 'el menú móvil no renderizó' });
+    return results;
+  }
+  if (!info.initialFocus) results.push({ tag, level: 'FAIL', msg: 'el menú no recibe foco inicial' });
+  if (info.scrollHeight > info.clientHeight + 1 && info.overflowY !== 'auto') {
+    results.push({ tag, level: 'FAIL', msg: 'el menú no tiene scroll interno' });
+  }
+  if (!info.ctaVisible) {
+    await page.evaluate(() => {
+      const menu = document.querySelector('#mobile-menu');
+      if (menu) menu.scrollTop = menu.scrollHeight;
+    });
+    await page.waitForTimeout(150);
+    const ctaAfter = await page.evaluate(() => {
+      const cta = document.querySelector('#mobile-menu a.btn-accent');
+      if (!cta) return false;
+      const rect = cta.getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= window.innerHeight + 1;
+    });
+    if (!ctaAfter) results.push({ tag, level: 'FAIL', msg: 'el CTA del menú es inalcanzable' });
+  }
+
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(() => {
+      const menu = document.querySelector('#mobile-menu');
+      const buttonEl = document.querySelector('button[aria-controls="mobile-menu"]');
+      return !!menu && (menu.contains(document.activeElement) || document.activeElement === buttonEl);
+    });
+    if (!inside) {
+      results.push({ tag, level: 'FAIL', msg: 'el foco escapa del menú' });
+      break;
+    }
+  }
+
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  const closed = await page.evaluate(() => ({
+    gone: !document.querySelector('#mobile-menu'),
+    focusOnButton: document.activeElement === document.querySelector('button[aria-controls="mobile-menu"]'),
+  }));
+  if (!closed.gone) results.push({ tag, level: 'FAIL', msg: 'Esc no cierra el menú' });
+  if (!closed.focusOnButton) results.push({ tag, level: 'FAIL', msg: 'el foco no vuelve al botón del menú' });
+  return results;
+}
+
 async function auditPage(page, { path, file, ready }, viewport) {
   const tag = `${file}@${viewport.label}`;
   await page.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForSelector(ready ?? 'app-root', { timeout: 30000 });
   await page.waitForTimeout(1800);
   const results = await runCoreChecks(page, tag);
+  results.push(...(await runLayoutChecks(page, tag)));
+  results.push(...(await runMenuChecks(page, tag)));
+
+  if (path === '/quienes-somos' && viewport.width < 640) {
+    const columns = await page.evaluate(() => {
+      const gallery = document.querySelector('[class*="auto-rows-"]');
+      return gallery
+        ? getComputedStyle(gallery).gridTemplateColumns.split(' ').filter(Boolean).length
+        : 0;
+    });
+    if (columns !== 2) {
+      results.push({ tag, level: 'FAIL', msg: `galería con ${columns} columnas (esperado 2)` });
+    }
+  }
 
   // Chip de filtro activo de /proyectos (relleno naranja + texto oscuro).
   if (path === '/proyectos') {
@@ -287,6 +447,12 @@ async function main() {
   try {
     for (const vp of VIEWPORTS) {
       const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
+      // Red externa abortada: datos semilla/defaults y layout determinista.
+      await page.route('**/*', (route) => {
+        const url = route.request().url();
+        if (url.startsWith(BASE) || url.startsWith('http://127.0.0.1')) return route.continue();
+        return route.abort();
+      });
       for (const p of PAGES) {
         all.push(...(await auditPage(page, p, vp)));
       }
@@ -300,7 +466,9 @@ async function main() {
 
   const fails = all.filter((r) => r.level === 'FAIL');
   const warns = all.filter((r) => r.level === 'WARN');
-  console.log(`\nQA visual completo: ${all.length - fails.length - warns.length} OK · ${warns.length} warn · ${fails.length} FAIL`);
+  const adminEnabled = Boolean(process.env.E2E_ADMIN_EMAIL && process.env.E2E_ADMIN_PASSWORD);
+  const pagesAudited = PAGES.length * VIEWPORTS.length + (adminEnabled ? ADMIN_ROUTES.length * VIEWPORTS.length : 0);
+  console.log(`\nQA visual completo: ${pagesAudited} páginas auditadas · ${warns.length} warn · ${fails.length} FAIL`);
   for (const w of warns) console.log('⚠', w.tag, '-', w.msg);
   for (const f of fails) console.log('✗', f.tag, '-', f.msg);
   console.log(`Screenshots en ${OUT}/`);

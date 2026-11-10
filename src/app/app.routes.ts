@@ -1,13 +1,6 @@
 import { Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { HomeComponent } from './features/home/home.component';
-import { AboutComponent } from './features/about/about.component';
-import { ServicesPageComponent } from './features/services/public/services-page.component';
-import { ServiceDetailComponent } from './features/services/public/service-detail.component';
-import { ProjectsPageComponent } from './features/projects/public/projects-page.component';
-import { ProjectDetailComponent } from './features/projects/public/project-detail.component';
-import { ContactComponent } from './features/contact/contact.component';
-import { NotFoundComponent } from './features/not-found/not-found.component';
 import { authGuard } from './features/auth/auth.guard';
 
 /** Rutas públicas (plan, sección 6). */
@@ -27,7 +20,7 @@ export const routes: Routes = [
       },
       {
         path: 'quienes-somos',
-        component: AboutComponent,
+        loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
         data: {
           title: 'Quiénes Somos',
           description:
@@ -36,7 +29,8 @@ export const routes: Routes = [
       },
       {
         path: 'servicios',
-        component: ServicesPageComponent,
+        loadComponent: () =>
+          import('./features/services/public/services-page.component').then((m) => m.ServicesPageComponent),
         data: {
           title: 'Servicios',
           description:
@@ -45,7 +39,8 @@ export const routes: Routes = [
       },
       {
         path: 'servicios/:slug',
-        component: ServiceDetailComponent,
+        loadComponent: () =>
+          import('./features/services/public/service-detail.component').then((m) => m.ServiceDetailComponent),
         data: {
           title: 'Servicios',
           description:
@@ -54,7 +49,8 @@ export const routes: Routes = [
       },
       {
         path: 'proyectos',
-        component: ProjectsPageComponent,
+        loadComponent: () =>
+          import('./features/projects/public/projects-page.component').then((m) => m.ProjectsPageComponent),
         data: {
           title: 'Proyectos',
           description:
@@ -63,7 +59,8 @@ export const routes: Routes = [
       },
       {
         path: 'proyectos/:slug',
-        component: ProjectDetailComponent,
+        loadComponent: () =>
+          import('./features/projects/public/project-detail.component').then((m) => m.ProjectDetailComponent),
         data: {
           title: 'Proyectos',
           description:
@@ -72,7 +69,7 @@ export const routes: Routes = [
       },
       {
         path: 'contacto',
-        component: ContactComponent,
+        loadComponent: () => import('./features/contact/contact.component').then((m) => m.ContactComponent),
         data: {
           title: 'Contacto',
           description:
@@ -81,7 +78,8 @@ export const routes: Routes = [
       },
       {
         path: 'no-encontrada',
-        component: NotFoundComponent,
+        loadComponent: () =>
+          import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),
         data: {
           title: 'Página no encontrada',
           description: 'La página que busca no existe o fue movida. Vuelva al inicio o explore el portafolio.',

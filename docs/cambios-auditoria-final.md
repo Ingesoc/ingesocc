@@ -2,6 +2,9 @@
 
 Fecha: 2026-09-03 · Rama: `main`
 
+> Continuación: los cambios de las auditorías de rendimiento y responsive de noviembre 2026 están
+> consolidados en `docs/cambios-auditorias-2026-11.md`.
+
 Método: lectura completa de `src/app`, plantillas, `supabase/`, config y assets;
 verificación empírica con `pnpm build` y `pnpm test:ci` (Karma + Chrome Headless).
 

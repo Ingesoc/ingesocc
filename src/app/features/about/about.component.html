@@ -106,7 +106,7 @@
     @for (grupo of operacionesGrupos(); track grupo.key) {
       <div class="mb-14 last:mb-0">
         <p class="text-[11px] font-bold uppercase tracking-[0.3em] text-accent-deep">{{ grupo.letter }} · {{ grupo.label }}</p>
-        <div class="mt-6 grid auto-rows-[180px] grid-cols-1 gap-3 sm:auto-rows-[220px] sm:grid-cols-2 md:grid-cols-3">
+        <div class="mt-6 grid auto-rows-[140px] grid-cols-2 gap-3 sm:auto-rows-[220px] sm:grid-cols-2 md:grid-cols-3">
           @for (media of grupo.media; track media.src) {
             @if (media.type === 'image') {
               <button

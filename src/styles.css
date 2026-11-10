@@ -485,8 +485,12 @@ body {
     transform: translateY(0);
   }
 
-  /* Icon motions: anima solo cuando se añada clase .is-animating. */
-  [data-icon-motion] {
+  /* Icon motions: anima solo cuando se añada clase .is-animating.
+     `will-change` NO se aplica de forma persistente a todos los iconos: eso
+     crearía una capa de composición por icono y consumiría memoria. Solo se
+     declara mientras la animación está en curso (la clase se retira en
+     animationend). */
+  [data-icon-motion].is-animating {
     will-change: transform;
   }
 
@@ -647,7 +651,11 @@ body {
     transition: background-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out);
     min-height: 44px;
     min-width: 44px;
+    max-width: 100%;
     justify-content: center;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .chip-active {
     background: var(--primary);
@@ -679,6 +687,7 @@ body {
   }
   .chips-row > * {
     flex: 0 0 auto;
+    max-width: 100%;
     scroll-snap-align: start;
   }
   @media (min-width: 768px) {
@@ -692,7 +701,6 @@ body {
        fila (p. ej. ubicaciones largas con zoom de texto 150%). */
     .chips-row > * {
       flex: 0 1 auto;
-      max-width: 100%;
     }
   }
 

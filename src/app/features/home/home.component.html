@@ -1,19 +1,19 @@
-<main class="min-h-screen overflow-hidden bg-background text-foreground">
+<div class="min-h-screen bg-background text-foreground">
   <!-- ── HERO ─────────────────────────────────────────────── -->
   <section id="inicio" class="relative flex min-h-[620px] items-end overflow-hidden bg-primary text-white md:min-h-[88vh]">
     <img [src]="heroBackground()" alt="Obra de Ingesocc S.A.S." width="1600" height="1000" decoding="async" class="absolute inset-0 h-full w-full object-cover opacity-60" [attr.fetchpriority]="'high'" />
     <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/55 to-primary/30"></div>
 
-    <div class="wrap relative pb-14 pt-40 md:pb-20">
+    <div class="wrap relative pb-8 pt-20 sm:pb-12 sm:pt-32 md:pb-20 md:pt-40">
       <div class="hero-reveal hero-reveal-1 flex flex-wrap items-center gap-x-8 gap-y-3 text-[11px] font-bold uppercase tracking-[0.28em] text-accent">
         <span>Arquitectura</span><span class="h-1 w-1 rounded-full bg-accent/60"></span><span>Ingeniería</span><span class="h-1 w-1 rounded-full bg-accent/60"></span><span>Construcción</span>
       </div>
 
-      <h1 class="hero-reveal hero-reveal-2 mt-7 max-w-5xl text-balance [overflow-wrap:anywhere] text-[2.7rem] font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl md:text-7xl xl:text-[5.75rem]">
+      <h1 class="hero-reveal hero-reveal-2 mt-7 max-w-5xl text-balance [overflow-wrap:anywhere] text-[2.25rem] font-bold leading-[0.98] tracking-[-0.03em] sm:text-6xl md:text-7xl xl:text-[5.75rem]">
         {{ heroTitle() }}
       </h1>
 
-      <div class="mt-12 grid gap-10 border-t border-white/15 pt-8 md:grid-cols-12 md:items-end">
+      <div class="mt-8 grid gap-10 border-t border-white/15 pt-8 sm:mt-10 md:mt-12 md:grid-cols-12 md:items-end">
         <div class="md:col-span-7">
           <p class="hero-reveal hero-reveal-3 max-w-md text-sm leading-6 text-white/70 md:text-base md:leading-7">
             {{ heroSubtitle() }}
@@ -265,4 +265,4 @@
       </div>
     </div>
   </section>
-</main>
+</div>
